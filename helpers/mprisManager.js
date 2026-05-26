@@ -1,24 +1,36 @@
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 
 const DBusInterface = `<node>
-  <interface name="org.freedesktop.DBus">
-    <method name="ListNames">
-      <arg type="as" direction="out"/>
-    </method>
-    <signal name="NameOwnerChanged">
-      <arg type="s" name="name"/>
-      <arg type="s" name="old_owner"/>
-      <arg type="s" name="new_owner"/>
-    </signal>
-  </interface>
+    <interface name="org.freedesktop.DBus">
+        <method name="ListNames">
+            <arg type="as" direction="out"/>
+        </method>
+        <signal name="NameOwnerChanged">
+            <arg type="s" name="name"/>
+            <arg type="s" name="old_owner"/>
+            <arg type="s" name="new_owner"/>
+        </signal>
+    </interface>
 </node>`;
 
 const MprisPlayerInterface = `<node>
-  <interface name="org.mpris.MediaPlayer2.Player">
-    <property name="PlaybackStatus" type="s" access="read"/>
-    <property name="Metadata" type="a{sv}" access="read"/>
-  </interface>
+    <interface name="org.mpris.MediaPlayer2.Player">
+        <method name="PlayPause"/>
+        <method name="Play"/>
+        <method name="Pause"/>
+        <method name="Next"/>
+        <method name="Previous"/>
+        <property name="PlaybackStatus" type="s" access="read"/>
+        <property name="Position" type="x" access="read"/>
+        <property name="Metadata" type="a{sv}" access="read"/>
+        <property name="CanGoNext" type="b" access="read"/>
+        <property name="CanGoPrevious" type="b" access="read"/>
+        <signal name="Seeked">
+            <arg type="x" name="Position"/>
+        </signal>
+    </interface>
 </node>`;
 
 const DBusProxy = Gio.DBusProxy.makeProxyWrapper(DBusInterface);
@@ -35,6 +47,7 @@ export const MprisManager = GObject.registerClass({
         super._init();
         this._players = new Map();
         this._currentMedia = null;
+        this._currentEntry = null;
         this._nameOwnerChangedId = null;
         this._dbusProxy = null;
 
@@ -127,6 +140,7 @@ export const MprisManager = GObject.registerClass({
 
         if (!bestEntry) {
             this._currentMedia = null;
+            this._currentEntry = null;
             this.emit('media-changed');
             return;
         }
@@ -139,11 +153,60 @@ export const MprisManager = GObject.registerClass({
                 : metadata['xesam:artist'] || '',
             album: metadata['xesam:album'] || '',
             artUrl: metadata['mpris:artUrl'] || '',
+            length: Number(metadata['mpris:length']) || 0,
             status: bestEntry.proxy.PlaybackStatus || 'Stopped',
+            canGoNext: bestEntry.proxy.CanGoNext !== false,
+            canGoPrevious: bestEntry.proxy.CanGoPrevious !== false,
             busName: bestBus,
         };
+        this._currentEntry = bestEntry;
 
         this.emit('media-changed');
+    }
+
+    playPause() {
+        this._invoke('PlayPauseRemote');
+    }
+
+    next() {
+        this._invoke('NextRemote');
+    }
+
+    previous() {
+        this._invoke('PreviousRemote');
+    }
+
+    _invoke(method) {
+        if (!this._currentEntry) return;
+        try {
+            this._currentEntry.proxy[method]();
+        } catch (e) {
+            logError(e, `Media Bar: ${method} failed`);
+        }
+    }
+
+    getPosition() {
+        if (!this._currentMedia || !this._currentMedia.busName) return 0;
+        try {
+            const result = Gio.DBus.session.call_sync(
+                this._currentMedia.busName,
+                '/org/mpris/MediaPlayer2',
+                'org.freedesktop.DBus.Properties',
+                'Get',
+                new GLib.Variant('(ss)', [
+                    'org.mpris.MediaPlayer2.Player',
+                    'Position',
+                ]),
+                null,
+                Gio.DBusCallFlags.NONE,
+                500,
+                null
+            );
+            const [variant] = result.deepUnpack();
+            return Number(variant.unpack()) || 0;
+        } catch (_) {
+            return 0;
+        }
     }
 
     _unpackMetadata(metadata) {

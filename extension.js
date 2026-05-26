@@ -16,6 +16,18 @@ import { MprisManager } from './helpers/mprisManager.js';
 const ICON_TYPE_APP = 0;
 const ICON_TYPE_ART = 1;
 
+const ART_SIZE = 72;
+const PROGRESS_HEIGHT = 4;
+const POPUP_MIN_WIDTH = 320;
+
+function formatTime(microseconds) {
+    if (!microseconds || microseconds < 0) return '0:00';
+    const totalSeconds = Math.floor(microseconds / 1_000_000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
 const Indicator = GObject.registerClass(
     class Indicator extends PanelMenu.Button {
         _init(preferences, extension, mprisManager) {
@@ -27,6 +39,10 @@ const Indicator = GObject.registerClass(
             this._mediaChangedId = null;
             this._prefsChangedId = null;
             this._currentArtUrl = null;
+            this._currentPopupArtUrl = null;
+            this._positionTimerId = null;
+            this._menuOpenStateId = null;
+            this._allocationId = null;
 
             this._buildUI();
             this._setupMenu();
@@ -39,7 +55,6 @@ const Indicator = GObject.registerClass(
                 this._onMediaChanged();
             });
 
-            // Show current state immediately if a player is already active
             this._onMediaChanged();
         }
 
@@ -69,13 +84,189 @@ const Indicator = GObject.registerClass(
         }
 
         _setupMenu() {
-            const settingsItem = new PopupMenu.PopupMenuItem(_('Settings'));
-            settingsItem.connect('activate', () => {
-                this._extension.openPreferences().catch(e =>
-                    logError(e, 'Media Bar: Failed to open preferences')
-                );
+            const item = new PopupMenu.PopupBaseMenuItem({
+                reactive: false,
+                can_focus: false,
+                activate: false,
+                hover: false,
+                style_class: 'media-bar-popup-item',
             });
-            this.menu.addMenuItem(settingsItem);
+            item.setOrnament(PopupMenu.Ornament.HIDDEN);
+
+            const container = new St.BoxLayout({
+                vertical: true,
+                x_expand: true,
+                style: `spacing: 12px; min-width: ${POPUP_MIN_WIDTH}px; padding: 4px;`,
+            });
+
+            const topRow = new St.BoxLayout({
+                x_expand: true,
+                style: 'spacing: 12px;',
+            });
+
+            this._popupArt = new St.Bin({
+                style: `width: ${ART_SIZE}px; height: ${ART_SIZE}px; min-width: ${ART_SIZE}px; min-height: ${ART_SIZE}px; border-radius: 6px; background-color: rgba(255,255,255,0.08); background-size: cover; background-position: center;`,
+            });
+            this._popupArtFallback = new St.Icon({
+                icon_name: 'audio-x-generic-symbolic',
+                icon_size: ART_SIZE - 24,
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+            this._popupArt.set_child(this._popupArtFallback);
+
+            const textBox = new St.BoxLayout({
+                vertical: true,
+                x_expand: true,
+                y_align: Clutter.ActorAlign.CENTER,
+                style: 'spacing: 4px;',
+            });
+            this._popupTitle = new St.Label({
+                text: '',
+                style: 'font-weight: 600; font-size: 14px;',
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+            this._popupTitle.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+            this._popupArtist = new St.Label({
+                text: '',
+                style: 'font-size: 12px; opacity: 0.7;',
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+            this._popupArtist.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+            textBox.add_child(this._popupTitle);
+            textBox.add_child(this._popupArtist);
+
+            topRow.add_child(this._popupArt);
+            topRow.add_child(textBox);
+
+            const progressSection = new St.BoxLayout({
+                vertical: true,
+                x_expand: true,
+                style: 'spacing: 4px;',
+            });
+
+            this._progressTrack = new St.Widget({
+                x_expand: true,
+                y_align: Clutter.ActorAlign.CENTER,
+                style: `background-color: rgba(255,255,255,0.18); border-radius: ${PROGRESS_HEIGHT / 2}px; height: ${PROGRESS_HEIGHT}px;`,
+                layout_manager: new Clutter.BinLayout(),
+                height: PROGRESS_HEIGHT,
+            });
+            this._progressFill = new St.Widget({
+                style: `background-color: rgba(255,255,255,0.9); border-radius: ${PROGRESS_HEIGHT / 2}px;`,
+                x_align: Clutter.ActorAlign.START,
+                y_align: Clutter.ActorAlign.FILL,
+                width: 0,
+                height: PROGRESS_HEIGHT,
+            });
+            this._progressTrack.add_child(this._progressFill);
+            this._allocationId = this._progressTrack.connect('notify::allocation',
+                () => this._updateProgress());
+
+            const timeRow = new St.BoxLayout({ x_expand: true });
+            this._timeCurrent = new St.Label({
+                text: '0:00',
+                style: 'font-size: 11px; opacity: 0.7;',
+            });
+            this._timeTotal = new St.Label({
+                text: '0:00',
+                style: 'font-size: 11px; opacity: 0.7;',
+                x_align: Clutter.ActorAlign.END,
+                x_expand: true,
+            });
+            timeRow.add_child(this._timeCurrent);
+            timeRow.add_child(this._timeTotal);
+
+            progressSection.add_child(timeRow);
+            progressSection.add_child(this._progressTrack);
+
+            const controlsRow = new St.BoxLayout({
+                x_expand: true,
+                x_align: Clutter.ActorAlign.CENTER,
+                style: 'spacing: 24px;',
+            });
+
+            this._prevBtn = this._makeControlButton(
+                'media-skip-backward-symbolic', 18,
+                () => this._mprisManager.previous()
+            );
+            this._playBtn = this._makeControlButton(
+                'media-playback-start-symbolic', 24,
+                () => this._mprisManager.playPause()
+            );
+            this._nextBtn = this._makeControlButton(
+                'media-skip-forward-symbolic', 18,
+                () => this._mprisManager.next()
+            );
+
+            controlsRow.add_child(this._prevBtn);
+            controlsRow.add_child(this._playBtn);
+            controlsRow.add_child(this._nextBtn);
+
+            container.add_child(topRow);
+            container.add_child(progressSection);
+            container.add_child(controlsRow);
+
+            item.add_child(container);
+            this.menu.addMenuItem(item);
+
+            this._menuOpenStateId = this.menu.connect('open-state-changed',
+                (_m, open) => {
+                    if (open) this._startPositionPolling();
+                    else this._stopPositionPolling();
+                });
+        }
+
+        _makeControlButton(iconName, iconSize, onClick) {
+            const btn = new St.Button({
+                can_focus: true,
+                track_hover: true,
+                reactive: true,
+                style_class: 'media-bar-control-button',
+                style: 'padding: 8px; border-radius: 999px;',
+            });
+            btn.set_child(new St.Icon({
+                icon_name: iconName,
+                icon_size: iconSize,
+            }));
+            btn.connect('clicked', onClick);
+            return btn;
+        }
+
+        _startPositionPolling() {
+            this._updateProgress();
+            if (this._positionTimerId) return;
+            this._positionTimerId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
+                this._updateProgress();
+                return GLib.SOURCE_CONTINUE;
+            });
+        }
+
+        _stopPositionPolling() {
+            if (this._positionTimerId) {
+                GLib.Source.remove(this._positionTimerId);
+                this._positionTimerId = null;
+            }
+        }
+
+        _updateProgress() {
+            const media = this._mprisManager.currentMedia;
+            if (!media) {
+                this._timeCurrent.text = '0:00';
+                this._timeTotal.text = '0:00';
+                this._progressFill.width = 0;
+                return;
+            }
+            const position = this._mprisManager.getPosition();
+            const length = media.length || 0;
+            this._timeCurrent.text = formatTime(position);
+            this._timeTotal.text = formatTime(length);
+
+            const alloc = this._progressTrack.get_allocation_box();
+            const trackWidth = alloc ? Math.max(0, alloc.x2 - alloc.x1) : 0;
+            let ratio = 0;
+            if (length > 0) ratio = Math.max(0, Math.min(1, position / length));
+            this._progressFill.width = Math.floor(ratio * trackWidth);
         }
 
         _onMediaChanged() {
@@ -83,6 +274,7 @@ const Indicator = GObject.registerClass(
 
             if (!media || media.status === 'Stopped') {
                 this.hide();
+                this._stopPositionPolling();
                 return;
             }
 
@@ -108,6 +300,48 @@ const Indicator = GObject.registerClass(
             this._iconActor.icon_size = prefs.iconSize;
 
             this._updateIcon(media, prefs);
+            this._updatePopup(media);
+        }
+
+        _updatePopup(media) {
+            this._popupTitle.text = media.title || _('Unknown');
+            this._popupArtist.text = media.artist || '';
+
+            const playIcon = media.status === 'Playing'
+                ? 'media-playback-pause-symbolic'
+                : 'media-playback-start-symbolic';
+            this._playBtn.get_child().icon_name = playIcon;
+
+            this._prevBtn.reactive = media.canGoPrevious !== false;
+            this._nextBtn.reactive = media.canGoNext !== false;
+            this._prevBtn.opacity = this._prevBtn.reactive ? 255 : 110;
+            this._nextBtn.opacity = this._nextBtn.reactive ? 255 : 110;
+
+            this._updatePopupArt(media);
+            this._updateProgress();
+        }
+
+        _updatePopupArt(media) {
+            const artUrl = media.artUrl || '';
+            if (artUrl === this._currentPopupArtUrl) return;
+            this._currentPopupArtUrl = artUrl;
+
+            const baseStyle = `width: ${ART_SIZE}px; height: ${ART_SIZE}px; min-width: ${ART_SIZE}px; min-height: ${ART_SIZE}px; border-radius: 6px; background-color: rgba(255,255,255,0.08); background-size: cover; background-position: center;`;
+
+            if (artUrl && artUrl.startsWith('file://')) {
+                try {
+                    const path = GLib.uri_unescape_string(
+                        artUrl.substring('file://'.length), null);
+                    const safePath = path.replace(/"/g, '\\"');
+                    this._popupArt.set_child(null);
+                    this._popupArt.style = `${baseStyle} background-image: url("${safePath}");`;
+                    return;
+                } catch (_) { /* fall through */ }
+            }
+
+            this._popupArt.style = baseStyle;
+            if (this._popupArt.get_child() !== this._popupArtFallback)
+                this._popupArt.set_child(this._popupArtFallback);
         }
 
         _updateIcon(media, prefs) {
@@ -136,11 +370,22 @@ const Indicator = GObject.registerClass(
                 : '';
 
             this._iconActor.gicon = null;
-            // Use app id as icon name; Shell falls back gracefully if it doesn't exist
             this._iconActor.icon_name = appId || 'audio-x-generic-symbolic';
         }
 
         destroy() {
+            this._stopPositionPolling();
+
+            if (this._allocationId && this._progressTrack) {
+                this._progressTrack.disconnect(this._allocationId);
+                this._allocationId = null;
+            }
+
+            if (this._menuOpenStateId) {
+                this.menu.disconnect(this._menuOpenStateId);
+                this._menuOpenStateId = null;
+            }
+
             if (this._mediaChangedId) {
                 this._mprisManager.disconnect(this._mediaChangedId);
                 this._mediaChangedId = null;
