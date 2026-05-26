@@ -17,6 +17,15 @@ const ICON_TYPE_APP = 0;
 const ICON_TYPE_ART = 1;
 const ICON_TYPE_STATUS = 2;
 
+const CLICK_NOTHING = 0;
+const CLICK_OPEN_POPUP = 1;
+const CLICK_PLAY_PAUSE = 2;
+const CLICK_OPEN_SETTINGS = 3;
+const CLICK_NEXT_TRACK = 4;
+const CLICK_PREV_TRACK = 5;
+const CLICK_VOLUME_UP = 6;
+const CLICK_VOLUME_DOWN = 7;
+
 const ART_SIZE = 64;
 const PROGRESS_HEIGHT = 4;
 const POPUP_MIN_WIDTH = 320;
@@ -223,6 +232,59 @@ const Indicator = GObject.registerClass(
                     if (open) this._startPositionPolling();
                     else this._stopPositionPolling();
                 });
+        }
+
+        vfunc_event(event) {
+            if (event.type() === Clutter.EventType.BUTTON_PRESS) {
+                const button = event.get_button();
+                let action;
+                if (button === 1) action = this._preferences.leftClickAction;
+                else if (button === 2) action = this._preferences.middleClickAction;
+                else if (button === 3) action = this._preferences.rightClickAction;
+
+                if (action !== undefined) {
+                    if (action === CLICK_OPEN_POPUP) {
+                        this.menu.toggle();
+                    } else if (action !== CLICK_NOTHING) {
+                        this._executeClickAction(action);
+                    }
+                    return Clutter.EVENT_STOP;
+                }
+            }
+            return super.vfunc_event(event);
+        }
+
+        _executeClickAction(action) {
+            switch (action) {
+                case CLICK_PLAY_PAUSE:
+                    this._mprisManager.playPause();
+                    break;
+                case CLICK_OPEN_SETTINGS:
+                    this._extension.openPreferences();
+                    break;
+                case CLICK_NEXT_TRACK:
+                    this._mprisManager.next();
+                    break;
+                case CLICK_PREV_TRACK:
+                    this._mprisManager.previous();
+                    break;
+                case CLICK_VOLUME_UP:
+                    this._adjustVolume(5);
+                    break;
+                case CLICK_VOLUME_DOWN:
+                    this._adjustVolume(-5);
+                    break;
+            }
+        }
+
+        _adjustVolume(deltaPct) {
+            try {
+                const arg = deltaPct > 0 ? `+${deltaPct}%` : `${deltaPct}%`;
+                Gio.Subprocess.new(
+                    ['pactl', 'set-sink-volume', '@DEFAULT_SINK@', arg],
+                    Gio.SubprocessFlags.NONE
+                );
+            } catch (_) {}
         }
 
         _makeControlButton(iconName, iconSize, onClick) {

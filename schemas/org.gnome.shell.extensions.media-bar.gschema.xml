@@ -12,6 +12,17 @@
     <value value="2" nick="right"/>
   </enum>
 
+  <enum id="org.gnome.shell.extensions.media-bar.click-action">
+    <value value="0" nick="nothing"/>
+    <value value="1" nick="open-popup"/>
+    <value value="2" nick="play-pause"/>
+    <value value="3" nick="open-settings"/>
+    <value value="4" nick="next-track"/>
+    <value value="5" nick="previous-track"/>
+    <value value="6" nick="volume-up"/>
+    <value value="7" nick="volume-down"/>
+  </enum>
+
   <schema id="org.gnome.shell.extensions.media-bar"
           path="/org/gnome/shell/extensions/media-bar/">
 
@@ -69,6 +80,21 @@
       <default>300</default>
       <range min="0" max="1000"/>
       <summary>Maximum text width in pixels (0 = unlimited)</summary>
+    </key>
+
+    <key name="left-click-action" enum="org.gnome.shell.extensions.media-bar.click-action">
+      <default>'open-popup'</default>
+      <summary>Left click action</summary>
+    </key>
+
+    <key name="middle-click-action" enum="org.gnome.shell.extensions.media-bar.click-action">
+      <default>'play-pause'</default>
+      <summary>Middle click action</summary>
+    </key>
+
+    <key name="right-click-action" enum="org.gnome.shell.extensions.media-bar.click-action">
+      <default>'open-settings'</default>
+      <summary>Right click action</summary>
     </key>
 
   </schema>

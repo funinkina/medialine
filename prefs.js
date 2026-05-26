@@ -166,5 +166,57 @@ export default class MediaBarPreferences extends ExtensionPreferences {
             settings.set_int('panel-index', indexRow.value);
         });
         panelGroup.add(indexRow);
+
+        // ── Mouse Page ────────────────────────────────────────────────
+        const mousePage = new Adw.PreferencesPage({
+            title: _('Mouse'),
+            icon_name: 'input-mouse-symbolic',
+        });
+        window.add(mousePage);
+
+        const clickGroup = new Adw.PreferencesGroup({
+            title: _('Click actions'),
+            description: _('What happens when you click the media bar indicator'),
+        });
+        mousePage.add(clickGroup);
+
+        const clickActionLabels = [
+            _('Nothing'),
+            _('Open popup'),
+            _('Play / Pause'),
+            _('Open settings'),
+            _('Next track'),
+            _('Previous track'),
+            _('Volume up'),
+            _('Volume down'),
+        ];
+
+        const makeClickRow = (title, subtitle, settingKey) => {
+            const row = new Adw.ComboRow({ title, subtitle });
+            const model = new Gtk.StringList();
+            clickActionLabels.forEach(l => model.append(l));
+            row.model = model;
+            row.selected = settings.get_enum(settingKey);
+            row.connect('notify::selected', () => {
+                settings.set_enum(settingKey, row.selected);
+            });
+            return row;
+        };
+
+        clickGroup.add(makeClickRow(
+            _('Left click'),
+            _('Action when left-clicking the indicator'),
+            'left-click-action'
+        ));
+        clickGroup.add(makeClickRow(
+            _('Middle click'),
+            _('Action when middle-clicking the indicator'),
+            'middle-click-action'
+        ));
+        clickGroup.add(makeClickRow(
+            _('Right click'),
+            _('Action when right-clicking the indicator'),
+            'right-click-action'
+        ));
     }
 }

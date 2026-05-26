@@ -84,6 +84,30 @@ export class ExtensionSettings {
         this._settings.set_int('max-text-width', value);
     }
 
+    get leftClickAction() {
+        return this._settings.get_enum('left-click-action');
+    }
+
+    set leftClickAction(value) {
+        this._settings.set_enum('left-click-action', value);
+    }
+
+    get middleClickAction() {
+        return this._settings.get_enum('middle-click-action');
+    }
+
+    set middleClickAction(value) {
+        this._settings.set_enum('middle-click-action', value);
+    }
+
+    get rightClickAction() {
+        return this._settings.get_enum('right-click-action');
+    }
+
+    set rightClickAction(value) {
+        this._settings.set_enum('right-click-action', value);
+    }
+
     connectChanged(callback) {
         return this._settings.connect('changed', callback);
     }
