@@ -16,7 +16,7 @@ import { MprisManager } from './helpers/mprisManager.js';
 const ICON_TYPE_APP = 0;
 const ICON_TYPE_ART = 1;
 
-const ART_SIZE = 72;
+const ART_SIZE = 64;
 const PROGRESS_HEIGHT = 4;
 const POPUP_MIN_WIDTH = 320;
 
@@ -31,7 +31,7 @@ function formatTime(microseconds) {
 const Indicator = GObject.registerClass(
     class Indicator extends PanelMenu.Button {
         _init(preferences, extension, mprisManager) {
-            super._init(0.0, _('Media Bar'));
+            super._init(0.5, _('Media Bar'));
 
             this._preferences = preferences;
             this._extension = extension;
@@ -218,18 +218,23 @@ const Indicator = GObject.registerClass(
         }
 
         _makeControlButton(iconName, iconSize, onClick) {
+            const BASE_STYLE = 'padding: 8px; border-radius: 999px; color: white;';
+            const HOVER_STYLE = `${BASE_STYLE} background-color: rgba(255,255,255,0.15);`;
             const btn = new St.Button({
                 can_focus: true,
                 track_hover: true,
                 reactive: true,
                 style_class: 'media-bar-control-button',
-                style: 'padding: 8px; border-radius: 999px; color: white;',
+                style: BASE_STYLE,
             });
             btn.set_child(new St.Icon({
                 icon_name: iconName,
                 icon_size: iconSize,
                 style: 'color: white;',
             }));
+            btn.connect('notify::hover', () => {
+                btn.style = btn.hover ? HOVER_STYLE : BASE_STYLE;
+            });
             btn.connect('clicked', onClick);
             return btn;
         }
