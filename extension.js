@@ -171,13 +171,11 @@ export default class MediaBarExtension extends Extension {
         );
 
         this._enableTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
-            if (this._preferences) {
-                this._indicator = new Indicator(
-                    this._preferences,
-                    this,
-                    this._mprisManager
-                );
-                this._updateIndicatorPosition();
+            if (this._preferences && this._mprisManager) {
+                const position = ['left', 'center', 'right'][this._preferences.panelPosition] || 'right';
+                const index = this._preferences.panelIndex || 0;
+                this._indicator = new Indicator(this._preferences, this, this._mprisManager);
+                Main.panel.addToStatusArea(this.uuid, this._indicator, index, position);
             }
             this._enableTimeoutId = null;
             return GLib.SOURCE_REMOVE;
@@ -187,20 +185,25 @@ export default class MediaBarExtension extends Extension {
     _updateIndicatorPosition() {
         if (!this._indicator) return;
 
-        const position = ['left', 'center', 'right'][this._preferences.panelPosition] || 'right';
+        const positionName = ['left', 'center', 'right'][this._preferences.panelPosition] || 'right';
         const index = this._preferences.panelIndex || 0;
 
-        this._indicator.destroy();
-        this._indicator = null;
+        const boxes = {
+            left: Main.panel._leftBox,
+            center: Main.panel._centerBox,
+            right: Main.panel._rightBox,
+        };
+        const targetBox = boxes[positionName];
+        if (!targetBox) return;
 
-        if (this._preferences && this._mprisManager) {
-            this._indicator = new Indicator(
-                this._preferences,
-                this,
-                this._mprisManager
-            );
-            Main.panel.addToStatusArea(this.uuid, this._indicator, index, position);
+        const container = this._indicator.container ?? this._indicator;
+        const currentParent = container.get_parent();
+        if (currentParent === targetBox) {
+            currentParent.set_child_at_index(container, index);
+            return;
         }
+        if (currentParent) currentParent.remove_child(container);
+        targetBox.insert_child_at_index(container, index);
     }
 
     disable() {

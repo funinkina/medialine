@@ -101,7 +101,7 @@ export const MprisManager = GObject.registerClass({
 
         try {
             entry.proxy.disconnect(entry.handlerId);
-        } catch (_) {}
+        } catch (_) { }
 
         this._players.delete(busName);
         this._pickBestPlayer();
@@ -149,7 +149,23 @@ export const MprisManager = GObject.registerClass({
     _unpackMetadata(metadata) {
         if (!metadata) return {};
         try {
-            return metadata.deep_unpack ? metadata.deep_unpack() : metadata;
+            if (typeof metadata.recursiveUnpack === 'function')
+                return metadata.recursiveUnpack();
+
+            const unwrap = (v) => {
+                if (!v || typeof v !== 'object') return v;
+                if (typeof v.recursiveUnpack === 'function') return v.recursiveUnpack();
+                if (typeof v.deep_unpack === 'function') return v.deep_unpack();
+                return v;
+            };
+
+            const dict = typeof metadata.deep_unpack === 'function'
+                ? metadata.deep_unpack()
+                : metadata;
+
+            const out = {};
+            for (const k in dict) out[k] = unwrap(dict[k]);
+            return out;
         } catch (_) {
             return {};
         }
@@ -163,14 +179,14 @@ export const MprisManager = GObject.registerClass({
         for (const [busName, entry] of this._players) {
             try {
                 entry.proxy.disconnect(entry.handlerId);
-            } catch (_) {}
+            } catch (_) { }
         }
         this._players.clear();
 
         if (this._dbusProxy && this._nameOwnerChangedId) {
             try {
                 this._dbusProxy.disconnectSignal(this._nameOwnerChangedId);
-            } catch (_) {}
+            } catch (_) { }
         }
 
         this._nameOwnerChangedId = null;
