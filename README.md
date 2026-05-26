@@ -49,21 +49,25 @@ Install directly from [extensions.gnome.org](https://extensions.gnome.org) (sear
 
 ### Manual
 ```bash
-# Clone the repo
 git clone https://github.com/funinkina/medialine
 cd medialine
-
-# Compile the GSettings schema
-glib-compile-schemas schemas/
-
-# Copy to your GNOME extensions directory
-cp -r . ~/.local/share/gnome-shell/extensions/medialine@funinkina.co.in
-
-# Enable the extension
-gnome-extensions enable medialine@funinkina.co.in
+make install
+make enable
 ```
 
 Then log out and back in (or restart GNOME Shell on X11 with `Alt+F2` → `r`).
+
+#### Other make targets
+
+| Command | Description |
+|---|---|
+| `make` | Compile GSettings schemas only |
+| `make install` | Compile schemas and copy extension to `~/.local/share/gnome-shell/extensions/` |
+| `make uninstall` | Remove the extension from the install directory |
+| `make enable` | Enable the extension via `gnome-extensions` |
+| `make disable` | Disable the extension via `gnome-extensions` |
+| `make pack` | Create a distributable zip in `dist/` for extensions.gnome.org |
+| `make clean` | Remove compiled schema and `dist/` |
 
 ## Configuration
 
