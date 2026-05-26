@@ -120,6 +120,7 @@ const Indicator = GObject.registerClass(
             const textBox = new St.BoxLayout({
                 vertical: true,
                 x_expand: true,
+                y_expand: false,
                 y_align: Clutter.ActorAlign.CENTER,
                 style: 'spacing: 4px;',
             });
@@ -135,8 +136,14 @@ const Indicator = GObject.registerClass(
                 y_align: Clutter.ActorAlign.CENTER,
             });
             this._popupArtist.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+            this._popupAlbum = new St.Label({
+                text: '',
+                style: 'font-size: 12px; color: rgba(255,255,255,0.5);',
+            });
+            this._popupAlbum.clutter_text.ellipsize = Pango.EllipsizeMode.END;
             textBox.add_child(this._popupTitle);
             textBox.add_child(this._popupArtist);
+            textBox.add_child(this._popupAlbum);
 
             topRow.add_child(this._popupArt);
             topRow.add_child(textBox);
@@ -218,7 +225,7 @@ const Indicator = GObject.registerClass(
         }
 
         _makeControlButton(iconName, iconSize, onClick) {
-            const BASE_STYLE = 'padding: 8px; border-radius: 999px; color: white;';
+            const BASE_STYLE = 'width: 40px; height: 40px; border-radius: 8px; color: white;';
             const HOVER_STYLE = `${BASE_STYLE} background-color: rgba(255,255,255,0.15);`;
             const btn = new St.Button({
                 can_focus: true,
@@ -226,11 +233,15 @@ const Indicator = GObject.registerClass(
                 reactive: true,
                 style_class: 'media-bar-control-button',
                 style: BASE_STYLE,
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
             });
             btn.set_child(new St.Icon({
                 icon_name: iconName,
                 icon_size: iconSize,
                 style: 'color: white;',
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
             }));
             btn.connect('notify::hover', () => {
                 btn.style = btn.hover ? HOVER_STYLE : BASE_STYLE;
@@ -313,6 +324,8 @@ const Indicator = GObject.registerClass(
         _updatePopup(media) {
             this._popupTitle.text = media.title || _('Unknown');
             this._popupArtist.text = media.artist || '';
+            this._popupAlbum.text = media.album || '';
+            this._popupAlbum.visible = !!media.album;
 
             const playIcon = media.status === 'Playing'
                 ? 'media-playback-pause-symbolic'
