@@ -19,7 +19,7 @@ import {
 const POPUP_ART_BASE_STYLE = `width: ${ART_SIZE}px; height: ${ART_SIZE}px; min-width: ${ART_SIZE}px; min-height: ${ART_SIZE}px; border-radius: 6px; background-color: rgba(255,255,255,0.08); background-size: cover; background-position: center;`;
 const CONTROL_BTN_STYLE = 'width: 40px; height: 40px; border-radius: 8px; color: white;';
 const CONTROL_BTN_HOVER_STYLE = `${CONTROL_BTN_STYLE} background-color: rgba(255,255,255,0.15);`;
-const TIME_LABEL_STYLE = 'font-size: 11px; opacity: 0.7;';
+const TIME_LABEL_STYLE = 'font-size: 11px; opacity: 1;';
 
 function formatTime(microseconds) {
     if (!microseconds || microseconds < 0) return '0:00';
@@ -219,21 +219,25 @@ export const Indicator = GObject.registerClass(
                 });
         }
 
-        vfunc_event(event) {
-            if (event.type() === Clutter.EventType.BUTTON_PRESS) {
-                const button = event.get_button();
-                let action;
-                if (button === 1) action = this._preferences.leftClickAction;
-                else if (button === 2) action = this._preferences.middleClickAction;
-                else if (button === 3) action = this._preferences.rightClickAction;
+        vfunc_button_press_event(event) {
+            const button = event.get_button();
+            let action;
+            if (button === Clutter.BUTTON_PRIMARY)
+                action = this._preferences.leftClickAction;
+            else if (button === Clutter.BUTTON_MIDDLE)
+                action = this._preferences.middleClickAction;
+            else if (button === Clutter.BUTTON_SECONDARY)
+                action = this._preferences.rightClickAction;
+            else
+                return super.vfunc_button_press_event(event);
 
-                if (action !== undefined) {
-                    if (action === CLICK_OPEN_POPUP) this.menu.toggle();
-                    else if (action !== CLICK_NOTHING) this._executeClickAction(action);
-                    return Clutter.EVENT_STOP;
-                }
-            }
-            return super.vfunc_event(event);
+            if (action === CLICK_OPEN_POPUP)
+                return super.vfunc_button_press_event(event);
+
+            if (action !== CLICK_NOTHING)
+                this._executeClickAction(action);
+
+            return Clutter.EVENT_STOP;
         }
 
         _executeClickAction(action) {
