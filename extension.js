@@ -29,6 +29,7 @@ const CLICK_VOLUME_DOWN = 7;
 const ART_SIZE = 64;
 const PROGRESS_HEIGHT = 4;
 const POPUP_MIN_WIDTH = 320;
+const POPUP_MAX_WIDTH = 480;
 
 function formatTime(microseconds) {
     if (!microseconds || microseconds < 0) return '0:00';
@@ -108,7 +109,7 @@ const Indicator = GObject.registerClass(
             const container = new St.BoxLayout({
                 vertical: true,
                 x_expand: true,
-                style: `spacing: 12px; min-width: ${POPUP_MIN_WIDTH}px;`,
+                style: `spacing: 12px; min-width: ${POPUP_MIN_WIDTH}px; max-width: ${POPUP_MAX_WIDTH}px;`,
             });
 
             const topRow = new St.BoxLayout({
@@ -136,18 +137,19 @@ const Indicator = GObject.registerClass(
             });
             this._popupTitle = new St.Label({
                 text: '',
+                x_expand: true,
                 style: 'font-weight: 700; font-size: 16px; color: white;',
-                // y_align: Clutter.ActorAlign.CENTER,
             });
             this._popupTitle.clutter_text.ellipsize = Pango.EllipsizeMode.END;
             this._popupArtist = new St.Label({
                 text: '',
+                x_expand: true,
                 style: 'font-size: 14px; color: rgba(255,255,255,0.7);',
-                // y_align: Clutter.ActorAlign.CENTER,
             });
             this._popupArtist.clutter_text.ellipsize = Pango.EllipsizeMode.END;
             this._popupAlbum = new St.Label({
                 text: '',
+                x_expand: true,
                 style: 'font-size: 12px; color: rgba(255,255,255,0.5);',
             });
             this._popupAlbum.clutter_text.ellipsize = Pango.EllipsizeMode.END;
