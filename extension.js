@@ -29,7 +29,7 @@ const CLICK_VOLUME_DOWN = 7;
 const ART_SIZE = 64;
 const PROGRESS_HEIGHT = 4;
 const POPUP_MIN_WIDTH = 320;
-const POPUP_MAX_WIDTH = 480;
+const POPUP_MAX_WIDTH = 400;
 
 function formatTime(microseconds) {
     if (!microseconds || microseconds < 0) return '0:00';
@@ -80,7 +80,7 @@ const Indicator = GObject.registerClass(
                 icon_name: 'audio-x-generic-symbolic',
                 icon_size: this._preferences.iconSize,
                 y_align: Clutter.ActorAlign.CENTER,
-                style: `margin-right: ${this._preferences.iconSpacing}px;`,
+                style: `margin-right: ${this._preferences.iconSpacing}px; border-radius: 4px;`,
             });
 
             this._label = new St.Label({
@@ -286,7 +286,7 @@ const Indicator = GObject.registerClass(
                     ['pactl', 'set-sink-volume', '@DEFAULT_SINK@', arg],
                     Gio.SubprocessFlags.NONE
                 );
-            } catch (_) {}
+            } catch (_) { }
         }
 
         _makeControlButton(iconName, iconSize, onClick) {
@@ -379,7 +379,7 @@ const Indicator = GObject.registerClass(
                 this._label.style = '';
             }
 
-            this._iconActor.style = `margin-right: ${prefs.iconSpacing}px;`;
+            this._iconActor.style = `margin-right: ${prefs.iconSpacing}px; border-radius: 4px;`;
             this._iconActor.icon_size = prefs.iconSize;
 
             this._updateIcon(media, prefs);
