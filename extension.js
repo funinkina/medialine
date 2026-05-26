@@ -15,6 +15,7 @@ import { MprisManager } from './helpers/mprisManager.js';
 
 const ICON_TYPE_APP = 0;
 const ICON_TYPE_ART = 1;
+const ICON_TYPE_STATUS = 2;
 
 const ART_SIZE = 64;
 const PROGRESS_HEIGHT = 4;
@@ -127,13 +128,13 @@ const Indicator = GObject.registerClass(
             this._popupTitle = new St.Label({
                 text: '',
                 style: 'font-weight: 700; font-size: 16px; color: white;',
-                y_align: Clutter.ActorAlign.CENTER,
+                // y_align: Clutter.ActorAlign.CENTER,
             });
             this._popupTitle.clutter_text.ellipsize = Pango.EllipsizeMode.END;
             this._popupArtist = new St.Label({
                 text: '',
                 style: 'font-size: 14px; color: rgba(255,255,255,0.7);',
-                y_align: Clutter.ActorAlign.CENTER,
+                // y_align: Clutter.ActorAlign.CENTER,
             });
             this._popupArtist.clutter_text.ellipsize = Pango.EllipsizeMode.END;
             this._popupAlbum = new St.Label({
@@ -343,8 +344,9 @@ const Indicator = GObject.registerClass(
 
         _updatePopupArt(media) {
             const artUrl = media.artUrl || '';
-            if (artUrl === this._currentPopupArtUrl) return;
-            this._currentPopupArtUrl = artUrl;
+            const cacheKey = `${artUrl}::${media.status}`;
+            if (cacheKey === this._currentPopupArtUrl) return;
+            this._currentPopupArtUrl = cacheKey;
 
             const baseStyle = `width: ${ART_SIZE}px; height: ${ART_SIZE}px; min-width: ${ART_SIZE}px; min-height: ${ART_SIZE}px; border-radius: 6px; background-color: rgba(255,255,255,0.08); background-size: cover; background-position: center;`;
 
@@ -360,14 +362,32 @@ const Indicator = GObject.registerClass(
             }
 
             this._popupArt.style = baseStyle;
+            const useStatusIcon = this._preferences.iconType === ICON_TYPE_STATUS;
+            if (useStatusIcon) {
+                const iconName = media.status === 'Playing'
+                    ? 'media-playback-start-symbolic'
+                    : 'media-playback-pause-symbolic';
+                if (this._popupArtFallback.icon_name !== iconName)
+                    this._popupArtFallback.icon_name = iconName;
+            } else {
+                this._popupArtFallback.icon_name = 'audio-x-generic-symbolic';
+            }
             if (this._popupArt.get_child() !== this._popupArtFallback)
                 this._popupArt.set_child(this._popupArtFallback);
         }
 
         _updateIcon(media, prefs) {
-            const useArt = prefs.iconType === ICON_TYPE_ART;
+            if (prefs.iconType === ICON_TYPE_STATUS) {
+                this._currentArtUrl = null;
+                this._iconActor.gicon = null;
+                this._iconActor.icon_name = media.status === 'Playing'
+                    ? 'media-playback-start-symbolic'
+                    : 'media-playback-pause-symbolic';
+                return;
+            }
 
-            if (useArt && media.artUrl && media.artUrl.startsWith('file://')) {
+            if (prefs.iconType === ICON_TYPE_ART &&
+                media.artUrl && media.artUrl.startsWith('file://')) {
                 if (media.artUrl !== this._currentArtUrl) {
                     this._currentArtUrl = media.artUrl;
                     try {

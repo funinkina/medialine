@@ -3,6 +3,7 @@
   <enum id="org.gnome.shell.extensions.media-bar.icon-type">
     <value value="0" nick="app-icon"/>
     <value value="1" nick="album-art"/>
+    <value value="2" nick="playing-status"/>
   </enum>
 
   <enum id="org.gnome.shell.extensions.media-bar.panel-position">

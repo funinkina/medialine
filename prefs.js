@@ -21,11 +21,12 @@ export default class MediaBarPreferences extends ExtensionPreferences {
 
         const iconTypeRow = new Adw.ComboRow({
             title: _('Icon source'),
-            subtitle: _('Show album art thumbnail or the media player app icon'),
+            subtitle: _('Show album art, app icon, or playback status icon'),
         });
         const iconTypeModel = new Gtk.StringList();
         iconTypeModel.append(_('App icon'));
         iconTypeModel.append(_('Album art'));
+        iconTypeModel.append(_('Playing status'));
         iconTypeRow.model = iconTypeModel;
         iconTypeRow.selected = settings.get_enum('icon-type');
         iconTypeRow.connect('notify::selected', () => {
