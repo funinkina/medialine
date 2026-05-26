@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <enum id="org.gnome.shell.extensions.media-bar.icon-type">
+  <enum id="org.gnome.shell.extensions.medialine.icon-type">
     <value value="0" nick="app-icon"/>
     <value value="1" nick="album-art"/>
     <value value="2" nick="playing-status"/>
   </enum>
 
-  <enum id="org.gnome.shell.extensions.media-bar.panel-position">
+  <enum id="org.gnome.shell.extensions.medialine.panel-position">
     <value value="0" nick="left"/>
     <value value="1" nick="center"/>
     <value value="2" nick="right"/>
   </enum>
 
-  <enum id="org.gnome.shell.extensions.media-bar.click-action">
+  <enum id="org.gnome.shell.extensions.medialine.click-action">
     <value value="0" nick="nothing"/>
     <value value="1" nick="open-popup"/>
     <value value="2" nick="play-pause"/>
@@ -23,10 +23,10 @@
     <value value="7" nick="volume-down"/>
   </enum>
 
-  <schema id="org.gnome.shell.extensions.media-bar"
-          path="/org/gnome/shell/extensions/media-bar/">
+  <schema id="org.gnome.shell.extensions.medialine"
+          path="/org/gnome/shell/extensions/medialine/">
 
-    <key name="icon-type" enum="org.gnome.shell.extensions.media-bar.icon-type">
+    <key name="icon-type" enum="org.gnome.shell.extensions.medialine.icon-type">
       <default>'album-art'</default>
       <summary>Icon source</summary>
       <description>Show album art thumbnail or the media player app icon</description>
@@ -49,7 +49,7 @@
       <summary>Spacing between icon and text in pixels</summary>
     </key>
 
-    <key name="panel-position" enum="org.gnome.shell.extensions.media-bar.panel-position">
+    <key name="panel-position" enum="org.gnome.shell.extensions.medialine.panel-position">
       <default>'right'</default>
       <summary>Panel position</summary>
       <description>Which section of the top bar to place the indicator</description>
@@ -82,17 +82,17 @@
       <summary>Maximum text width in pixels (0 = unlimited)</summary>
     </key>
 
-    <key name="left-click-action" enum="org.gnome.shell.extensions.media-bar.click-action">
+    <key name="left-click-action" enum="org.gnome.shell.extensions.medialine.click-action">
       <default>'open-popup'</default>
       <summary>Left click action</summary>
     </key>
 
-    <key name="middle-click-action" enum="org.gnome.shell.extensions.media-bar.click-action">
+    <key name="middle-click-action" enum="org.gnome.shell.extensions.medialine.click-action">
       <default>'play-pause'</default>
       <summary>Middle click action</summary>
     </key>
 
-    <key name="right-click-action" enum="org.gnome.shell.extensions.media-bar.click-action">
+    <key name="right-click-action" enum="org.gnome.shell.extensions.medialine.click-action">
       <default>'open-settings'</default>
       <summary>Right click action</summary>
     </key>

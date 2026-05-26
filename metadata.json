@@ -1,11 +1,11 @@
 {
-  "name": "Media Bar",
+  "name": "Medialine",
   "description": "Shows currently playing media in the top bar via MPRIS",
-  "uuid": "media-bar@funinkina.co.in",
+  "uuid": "medialine@funinkina.co.in",
   "author": "Aryan Kushwaha <hello@funinkina.co.in>",
   "license": "MIT",
-  "url": "https://github.com/funinkina/media-bar",
-  "settings-schema": "org.gnome.shell.extensions.media-bar",
+  "url": "https://github.com/funinkina/medialine",
+  "settings-schema": "org.gnome.shell.extensions.medialine",
   "shell-version": [
     "45",
     "46",

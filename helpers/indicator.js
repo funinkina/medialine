@@ -32,7 +32,7 @@ function formatTime(microseconds) {
 export const Indicator = GObject.registerClass(
     class Indicator extends PanelMenu.Button {
         _init(preferences, extension, mprisManager) {
-            super._init(0.5, _('Media Bar'));
+            super._init(0.5, _('Medialine'));
 
             this._preferences = preferences;
             this._extension = extension;
@@ -195,7 +195,7 @@ export const Indicator = GObject.registerClass(
                 can_focus: false,
                 activate: false,
                 hover: false,
-                style_class: 'media-bar-popup-item',
+                style_class: 'medialine-popup-item',
             });
             item.setOrnament(PopupMenu.Ornament.HIDDEN);
             item.style = 'padding: 8px 6px;';
@@ -266,7 +266,7 @@ export const Indicator = GObject.registerClass(
                 can_focus: true,
                 track_hover: true,
                 reactive: true,
-                style_class: 'media-bar-control-button',
+                style_class: 'medialine-control-button',
                 style: CONTROL_BTN_STYLE,
                 x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,

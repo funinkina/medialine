@@ -3,9 +3,9 @@ import Gtk from 'gi://Gtk';
 
 import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-export default class MediaBarPreferences extends ExtensionPreferences {
+export default class MedialinePreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
-        const settings = this.getSettings('org.gnome.shell.extensions.media-bar');
+        const settings = this.getSettings('org.gnome.shell.extensions.medialine');
         window.add(this._buildDisplayPage(settings));
         window.add(this._buildPanelPage(settings));
         window.add(this._buildMousePage(settings));

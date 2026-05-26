@@ -80,7 +80,7 @@ export const MprisManager = GObject.registerClass({
                     this._addPlayer(name);
             }
         } catch (e) {
-            logError(e, 'Media Bar: Failed to initialize MPRIS manager');
+            logError(e, 'Medialine: Failed to initialize MPRIS manager');
         }
     }
 
@@ -104,7 +104,7 @@ export const MprisManager = GObject.registerClass({
             this._players.set(busName, { proxy, handlerId });
             this._pickBestPlayer();
         } catch (e) {
-            logError(e, `Media Bar: Failed to create proxy for ${busName}`);
+            logError(e, `Medialine: Failed to create proxy for ${busName}`);
         }
     }
 
@@ -181,7 +181,7 @@ export const MprisManager = GObject.registerClass({
         try {
             this._currentEntry.proxy[method]();
         } catch (e) {
-            logError(e, `Media Bar: ${method} failed`);
+            logError(e, `Medialine: ${method} failed`);
         }
     }
 

@@ -8,7 +8,7 @@ import { Indicator } from './helpers/indicator.js';
 
 const PANEL_POSITIONS = ['left', 'center', 'right'];
 
-export default class MediaBarExtension extends Extension {
+export default class MedialineExtension extends Extension {
     enable() {
         this._preferences = new ExtensionSettings(this);
         this._mprisManager = new MprisManager();
