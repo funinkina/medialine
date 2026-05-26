@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <enum id="org.gnome.shell.extensions.media-bar.icon-type">
+    <value value="0" nick="app-icon"/>
+    <value value="1" nick="album-art"/>
+  </enum>
+
+  <enum id="org.gnome.shell.extensions.media-bar.panel-position">
+    <value value="0" nick="left"/>
+    <value value="1" nick="center"/>
+    <value value="2" nick="right"/>
+  </enum>
+
+  <schema id="org.gnome.shell.extensions.media-bar"
+          path="/org/gnome/shell/extensions/media-bar/">
+
+    <key name="icon-type" enum="org.gnome.shell.extensions.media-bar.icon-type">
+      <default>'album-art'</default>
+      <summary>Icon source</summary>
+      <description>Show album art thumbnail or the media player app icon</description>
+    </key>
+
+    <key name="icon-size" type="i">
+      <default>16</default>
+      <range min="8" max="64"/>
+      <summary>Icon size in pixels</summary>
+    </key>
+
+    <key name="separator" type="s">
+      <default>' • '</default>
+      <summary>Separator between title, artist, and album</summary>
+    </key>
+
+    <key name="icon-spacing" type="i">
+      <default>6</default>
+      <range min="0" max="32"/>
+      <summary>Spacing between icon and text in pixels</summary>
+    </key>
+
+    <key name="panel-position" enum="org.gnome.shell.extensions.media-bar.panel-position">
+      <default>'right'</default>
+      <summary>Panel position</summary>
+      <description>Which section of the top bar to place the indicator</description>
+    </key>
+
+    <key name="panel-index" type="i">
+      <default>0</default>
+      <range min="0" max="20"/>
+      <summary>Position index within the panel section</summary>
+    </key>
+
+    <key name="show-title" type="b">
+      <default>true</default>
+      <summary>Show track title</summary>
+    </key>
+
+    <key name="show-artist" type="b">
+      <default>true</default>
+      <summary>Show artist name</summary>
+    </key>
+
+    <key name="show-album" type="b">
+      <default>false</default>
+      <summary>Show album name</summary>
+    </key>
+
+    <key name="max-text-width" type="i">
+      <default>300</default>
+      <range min="0" max="1000"/>
+      <summary>Maximum text width in pixels (0 = unlimited)</summary>
+    </key>
+
+  </schema>
+</schemalist>

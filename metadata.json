@@ -1,0 +1,11 @@
+{
+  "name": "Media Bar",
+  "description": "Shows currently playing media in the top bar via MPRIS",
+  "uuid": "media-bar@funinkina.is-a.dev",
+  "author": "Aryan Kushwaha <hello@funinkina.co.in>",
+  "license": "MIT",
+  "url": "https://github.com/funinkina/media-bar",
+  "settings-schema": "org.gnome.shell.extensions.media-bar",
+  "shell-version": ["45", "46", "47", "48", "49", "50"],
+  "version": 1
+}
