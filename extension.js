@@ -93,10 +93,12 @@ const Indicator = GObject.registerClass(
             });
             item.setOrnament(PopupMenu.Ornament.HIDDEN);
 
+            item.style = 'padding: 8px 6px;';
+
             const container = new St.BoxLayout({
                 vertical: true,
                 x_expand: true,
-                style: `spacing: 12px; min-width: ${POPUP_MIN_WIDTH}px; padding: 4px;`,
+                style: `spacing: 12px; min-width: ${POPUP_MIN_WIDTH}px;`,
             });
 
             const topRow = new St.BoxLayout({
@@ -123,13 +125,13 @@ const Indicator = GObject.registerClass(
             });
             this._popupTitle = new St.Label({
                 text: '',
-                style: 'font-weight: 600; font-size: 14px;',
+                style: 'font-weight: 700; font-size: 16px; color: white;',
                 y_align: Clutter.ActorAlign.CENTER,
             });
             this._popupTitle.clutter_text.ellipsize = Pango.EllipsizeMode.END;
             this._popupArtist = new St.Label({
                 text: '',
-                style: 'font-size: 12px; opacity: 0.7;',
+                style: 'font-size: 14px; color: rgba(255,255,255,0.7);',
                 y_align: Clutter.ActorAlign.CENTER,
             });
             this._popupArtist.clutter_text.ellipsize = Pango.EllipsizeMode.END;
@@ -149,16 +151,14 @@ const Indicator = GObject.registerClass(
                 x_expand: true,
                 y_align: Clutter.ActorAlign.CENTER,
                 style: `background-color: rgba(255,255,255,0.18); border-radius: ${PROGRESS_HEIGHT / 2}px; height: ${PROGRESS_HEIGHT}px;`,
-                layout_manager: new Clutter.BinLayout(),
                 height: PROGRESS_HEIGHT,
             });
             this._progressFill = new St.Widget({
                 style: `background-color: rgba(255,255,255,0.9); border-radius: ${PROGRESS_HEIGHT / 2}px;`,
-                x_align: Clutter.ActorAlign.START,
-                y_align: Clutter.ActorAlign.FILL,
                 width: 0,
                 height: PROGRESS_HEIGHT,
             });
+            this._progressFill.set_position(0, 0);
             this._progressTrack.add_child(this._progressFill);
             this._allocationId = this._progressTrack.connect('notify::allocation',
                 () => this._updateProgress());
@@ -223,11 +223,12 @@ const Indicator = GObject.registerClass(
                 track_hover: true,
                 reactive: true,
                 style_class: 'media-bar-control-button',
-                style: 'padding: 8px; border-radius: 999px;',
+                style: 'padding: 8px; border-radius: 999px; color: white;',
             });
             btn.set_child(new St.Icon({
                 icon_name: iconName,
                 icon_size: iconSize,
+                style: 'color: white;',
             }));
             btn.connect('clicked', onClick);
             return btn;
@@ -266,6 +267,7 @@ const Indicator = GObject.registerClass(
             const trackWidth = alloc ? Math.max(0, alloc.x2 - alloc.x1) : 0;
             let ratio = 0;
             if (length > 0) ratio = Math.max(0, Math.min(1, position / length));
+            this._progressFill.set_position(0, 0);
             this._progressFill.width = Math.floor(ratio * trackWidth);
         }
 
