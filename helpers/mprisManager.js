@@ -36,8 +36,16 @@ const MprisPlayerInterface = `<node>
     </interface>
 </node>`;
 
+const MprisRootInterface = `<node>
+    <interface name="org.mpris.MediaPlayer2">
+        <property name="DesktopEntry" type="s" access="read"/>
+        <property name="Identity" type="s" access="read"/>
+    </interface>
+</node>`;
+
 const DBusProxy = Gio.DBusProxy.makeProxyWrapper(DBusInterface);
 const MprisPlayerProxy = Gio.DBusProxy.makeProxyWrapper(MprisPlayerInterface);
+const MprisRootProxy = Gio.DBusProxy.makeProxyWrapper(MprisRootInterface);
 
 const MPRIS_PREFIX = 'org.mpris.MediaPlayer2.';
 
@@ -104,7 +112,19 @@ export const MprisManager = GObject.registerClass({
                 this._pickBestPlayer();
             });
 
-            this._players.set(busName, { proxy, handlerId });
+            let rootProxy = null;
+            try {
+                rootProxy = new MprisRootProxy(
+                    Gio.DBus.session,
+                    busName,
+                    '/org/mpris/MediaPlayer2',
+                    null,
+                    null,
+                    Gio.DBusProxyFlags.GET_INVALIDATED_PROPERTIES
+                );
+            } catch (_) { }
+
+            this._players.set(busName, { proxy, handlerId, rootProxy });
             this._pickBestPlayer();
         } catch (e) {
             logError(e, `Medialine: Failed to create proxy for ${busName}`);
@@ -149,6 +169,14 @@ export const MprisManager = GObject.registerClass({
         }
 
         const metadata = this._unpackMetadata(bestEntry.proxy.Metadata);
+        let desktopEntry = '';
+        let identity = '';
+        if (bestEntry.rootProxy) {
+            try {
+                desktopEntry = String(bestEntry.rootProxy.DesktopEntry || '');
+                identity = String(bestEntry.rootProxy.Identity || '');
+            } catch (_) { }
+        }
         this._currentMedia = {
             title: metadata['xesam:title'] || '',
             artist: Array.isArray(metadata['xesam:artist'])
@@ -164,6 +192,8 @@ export const MprisManager = GObject.registerClass({
             shuffle: bestEntry.proxy.Shuffle != null ? Boolean(bestEntry.proxy.Shuffle) : null,
             loopStatus: bestEntry.proxy.LoopStatus != null ? String(bestEntry.proxy.LoopStatus) : null,
             busName: bestBus,
+            desktopEntry,
+            identity,
         };
         this._currentEntry = bestEntry;
 

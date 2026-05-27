@@ -465,22 +465,67 @@ export const Indicator = GObject.registerClass(
                         const file = Gio.File.new_for_uri(media.artUrl);
                         this._iconActor.gicon = new Gio.FileIcon({ file });
                     } catch (_) {
-                        this._setAppIcon(media.busName);
+                        this._setAppIcon(media);
                     }
                 }
                 return;
             }
 
             this._currentArtUrl = null;
-            this._setAppIcon(media.busName);
+            this._setAppIcon(media);
         }
 
-        _setAppIcon(busName) {
-            const appId = busName
-                ? busName.replace('org.mpris.MediaPlayer2.', '').toLowerCase()
-                : '';
+        _setAppIcon(media) {
+            this._iconActor.icon_name = null;
             this._iconActor.gicon = null;
-            this._iconActor.icon_name = appId || 'audio-x-generic-symbolic';
+
+            const gicon = this._lookupAppGicon(media);
+            if (gicon) {
+                this._iconActor.gicon = gicon;
+                return;
+            }
+            this._iconActor.icon_name = 'audio-x-generic-symbolic';
+        }
+
+        _lookupAppGicon(media) {
+            if (!media) return null;
+
+            const candidates = [];
+            const push = (v) => { if (v) candidates.push(v); };
+
+            push(media.desktopEntry);
+            if (media.identity) {
+                push(media.identity);
+                push(media.identity.toLowerCase().replace(/\s+/g, '-'));
+                push(media.identity.toLowerCase().replace(/\s+/g, ''));
+            }
+            if (media.busName) {
+                const tail = media.busName.replace('org.mpris.MediaPlayer2.', '');
+                push(tail);
+                push(tail.split('.')[0]);
+            }
+
+            const ids = candidates.map(c =>
+                c.endsWith('.desktop') ? c : `${c}.desktop`);
+
+            for (const id of ids) {
+                const info = Gio.DesktopAppInfo.new(id);
+                if (info) {
+                    const icon = info.get_icon();
+                    if (icon) return icon;
+                }
+            }
+
+            const lcSet = new Set(ids.map(id => id.toLowerCase()));
+            for (const info of Gio.AppInfo.get_all()) {
+                const aid = info.get_id();
+                if (aid && lcSet.has(aid.toLowerCase())) {
+                    const icon = info.get_icon();
+                    if (icon) return icon;
+                }
+            }
+
+            return null;
         }
 
         destroy() {
