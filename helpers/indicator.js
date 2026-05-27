@@ -19,6 +19,7 @@ import {
 const POPUP_ART_BASE_STYLE = `width: ${ART_SIZE}px; height: ${ART_SIZE}px; min-width: ${ART_SIZE}px; min-height: ${ART_SIZE}px; border-radius: 6px; background-color: rgba(255,255,255,0.08); background-size: cover; background-position: center;`;
 const CONTROL_BTN_STYLE = 'width: 40px; height: 40px; border-radius: 8px; color: white;';
 const CONTROL_BTN_HOVER_STYLE = `${CONTROL_BTN_STYLE} background-color: rgba(255,255,255,0.15);`;
+const CONTROL_BTN_ACTIVE_STYLE = `${CONTROL_BTN_STYLE} background-color: rgba(255,255,255,0.22);`;
 const TIME_LABEL_STYLE = 'font-size: 11px; color: rgba(255,255,255,0.8);';
 
 function formatTime(microseconds) {
@@ -173,22 +174,43 @@ export const Indicator = GObject.registerClass(
         }
 
         _buildControlsRow() {
+            this._shuffleBtn = this._makeControlButton(
+                'media-playlist-shuffle-symbolic', 16, () => this._toggleShuffle());
             this._prevBtn = this._makeControlButton(
                 'media-skip-backward-symbolic', 18, () => this._mprisManager.previous());
             this._playBtn = this._makeControlButton(
                 'media-playback-start-symbolic', 24, () => this._mprisManager.playPause());
             this._nextBtn = this._makeControlButton(
                 'media-skip-forward-symbolic', 18, () => this._mprisManager.next());
+            this._repeatBtn = this._makeControlButton(
+                'media-playlist-repeat-symbolic', 16, () => this._cycleRepeat());
 
             const row = new St.BoxLayout({
                 x_expand: true,
                 x_align: Clutter.ActorAlign.CENTER,
-                style: 'spacing: 24px;',
+                style: 'spacing: 16px;',
             });
+            row.add_child(this._shuffleBtn);
             row.add_child(this._prevBtn);
             row.add_child(this._playBtn);
             row.add_child(this._nextBtn);
+            row.add_child(this._repeatBtn);
             return row;
+        }
+
+        _toggleShuffle() {
+            const media = this._mprisManager.currentMedia;
+            if (!media || media.shuffle === null || !media.canControl) return;
+            this._mprisManager.setShuffle(!media.shuffle);
+        }
+
+        _cycleRepeat() {
+            const media = this._mprisManager.currentMedia;
+            if (!media || media.loopStatus === null || !media.canControl) return;
+            const order = ['None', 'Track', 'Playlist'];
+            const idx = order.indexOf(media.loopStatus);
+            const next = order[(idx >= 0 ? idx + 1 : 1) % order.length];
+            this._mprisManager.setLoopStatus(next);
         }
 
         _setupMenu() {
@@ -290,8 +312,11 @@ export const Indicator = GObject.registerClass(
                 x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,
             }));
+            btn._active = false;
             btn.connect('notify::hover', () => {
-                btn.style = btn.hover ? CONTROL_BTN_HOVER_STYLE : CONTROL_BTN_STYLE;
+                btn.style = btn.hover
+                    ? CONTROL_BTN_HOVER_STYLE
+                    : (btn._active ? CONTROL_BTN_ACTIVE_STYLE : CONTROL_BTN_STYLE);
             });
             btn.connect('clicked', onClick);
             return btn;
@@ -376,6 +401,21 @@ export const Indicator = GObject.registerClass(
             this._nextBtn.reactive = media.canGoNext !== false;
             this._prevBtn.opacity = this._prevBtn.reactive ? 255 : 110;
             this._nextBtn.opacity = this._nextBtn.reactive ? 255 : 110;
+
+            const shuffleAvail = media.shuffle !== null && media.canControl;
+            this._shuffleBtn.reactive = shuffleAvail;
+            this._shuffleBtn.opacity = shuffleAvail ? 255 : 110;
+            this._shuffleBtn._active = shuffleAvail && media.shuffle;
+            this._shuffleBtn.style = this._shuffleBtn._active ? CONTROL_BTN_ACTIVE_STYLE : CONTROL_BTN_STYLE;
+
+            const repeatAvail = media.loopStatus !== null && media.canControl;
+            this._repeatBtn.reactive = repeatAvail;
+            this._repeatBtn.opacity = repeatAvail ? 255 : 110;
+            this._repeatBtn.get_child().icon_name = media.loopStatus === 'Track'
+                ? 'media-playlist-repeat-song-symbolic'
+                : 'media-playlist-repeat-symbolic';
+            this._repeatBtn._active = repeatAvail && media.loopStatus !== 'None';
+            this._repeatBtn.style = this._repeatBtn._active ? CONTROL_BTN_ACTIVE_STYLE : CONTROL_BTN_STYLE;
 
             this._updatePopupArt(media);
             this._updateProgress();

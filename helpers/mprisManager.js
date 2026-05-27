@@ -27,6 +27,9 @@ const MprisPlayerInterface = `<node>
         <property name="Metadata" type="a{sv}" access="read"/>
         <property name="CanGoNext" type="b" access="read"/>
         <property name="CanGoPrevious" type="b" access="read"/>
+        <property name="CanControl" type="b" access="read"/>
+        <property name="Shuffle" type="b" access="readwrite"/>
+        <property name="LoopStatus" type="s" access="readwrite"/>
         <signal name="Seeked">
             <arg type="x" name="Position"/>
         </signal>
@@ -157,6 +160,9 @@ export const MprisManager = GObject.registerClass({
             status: bestEntry.proxy.PlaybackStatus || 'Stopped',
             canGoNext: bestEntry.proxy.CanGoNext !== false,
             canGoPrevious: bestEntry.proxy.CanGoPrevious !== false,
+            canControl: bestEntry.proxy.CanControl !== false,
+            shuffle: bestEntry.proxy.Shuffle != null ? Boolean(bestEntry.proxy.Shuffle) : null,
+            loopStatus: bestEntry.proxy.LoopStatus != null ? String(bestEntry.proxy.LoopStatus) : null,
             busName: bestBus,
         };
         this._currentEntry = bestEntry;
@@ -174,6 +180,52 @@ export const MprisManager = GObject.registerClass({
 
     previous() {
         this._invoke('PreviousRemote');
+    }
+
+    setShuffle(value) {
+        if (!this._currentMedia) return;
+        try {
+            Gio.DBus.session.call_sync(
+                this._currentMedia.busName,
+                '/org/mpris/MediaPlayer2',
+                'org.freedesktop.DBus.Properties',
+                'Set',
+                new GLib.Variant('(ssv)', [
+                    'org.mpris.MediaPlayer2.Player',
+                    'Shuffle',
+                    new GLib.Variant('b', value),
+                ]),
+                null,
+                Gio.DBusCallFlags.NONE,
+                500,
+                null
+            );
+        } catch (e) {
+            logError(e, 'Medialine: setShuffle failed');
+        }
+    }
+
+    setLoopStatus(value) {
+        if (!this._currentMedia) return;
+        try {
+            Gio.DBus.session.call_sync(
+                this._currentMedia.busName,
+                '/org/mpris/MediaPlayer2',
+                'org.freedesktop.DBus.Properties',
+                'Set',
+                new GLib.Variant('(ssv)', [
+                    'org.mpris.MediaPlayer2.Player',
+                    'LoopStatus',
+                    new GLib.Variant('s', value),
+                ]),
+                null,
+                Gio.DBusCallFlags.NONE,
+                500,
+                null
+            );
+        } catch (e) {
+            logError(e, 'Medialine: setLoopStatus failed');
+        }
     }
 
     _invoke(method) {
