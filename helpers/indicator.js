@@ -19,7 +19,7 @@ import {
 const POPUP_ART_BASE_STYLE = `width: ${ART_SIZE}px; height: ${ART_SIZE}px; min-width: ${ART_SIZE}px; min-height: ${ART_SIZE}px; border-radius: 6px; background-color: rgba(255,255,255,0.08); background-size: cover; background-position: center;`;
 const CONTROL_BTN_STYLE = 'width: 40px; height: 40px; border-radius: 8px; color: white;';
 const CONTROL_BTN_HOVER_STYLE = `${CONTROL_BTN_STYLE} background-color: rgba(255,255,255,0.15);`;
-const TIME_LABEL_STYLE = 'font-size: 11px; opacity: 1;';
+const TIME_LABEL_STYLE = 'font-size: 11px; color: rgba(255,255,255,0.8);';
 
 function formatTime(microseconds) {
     if (!microseconds || microseconds < 0) return '0:00';
@@ -44,9 +44,11 @@ export const Indicator = GObject.registerClass(
             this._positionTimerId = null;
             this._menuOpenStateId = null;
             this._allocationId = null;
+            this._buttonPressId = null;
 
             this._buildUI();
             this._setupMenu();
+            this._setupClickHandling();
 
             this._mediaChangedId = this._mprisManager.connect('media-changed', () => {
                 this._onMediaChanged();
@@ -219,7 +221,15 @@ export const Indicator = GObject.registerClass(
                 });
         }
 
-        vfunc_button_press_event(event) {
+        _setupClickHandling() {
+            if (this._clickGesture)
+                this._clickGesture.set_enabled(false);
+
+            this._buttonPressId = this.connect('button-press-event',
+                (_actor, event) => this._handleButtonPress(event));
+        }
+
+        _handleButtonPress(event) {
             const button = event.get_button();
             let action;
             if (button === Clutter.BUTTON_PRIMARY)
@@ -229,10 +239,12 @@ export const Indicator = GObject.registerClass(
             else if (button === Clutter.BUTTON_SECONDARY)
                 action = this._preferences.rightClickAction;
             else
-                return super.vfunc_button_press_event(event);
+                return Clutter.EVENT_PROPAGATE;
 
-            if (action === CLICK_OPEN_POPUP)
-                return super.vfunc_button_press_event(event);
+            if (action === CLICK_OPEN_POPUP) {
+                this.menu.toggle();
+                return Clutter.EVENT_STOP;
+            }
 
             if (action !== CLICK_NOTHING)
                 this._executeClickAction(action);
@@ -433,6 +445,11 @@ export const Indicator = GObject.registerClass(
 
         destroy() {
             this._stopPositionPolling();
+
+            if (this._buttonPressId) {
+                this.disconnect(this._buttonPressId);
+                this._buttonPressId = null;
+            }
 
             if (this._allocationId && this._progressTrack) {
                 this._progressTrack.disconnect(this._allocationId);
