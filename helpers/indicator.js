@@ -104,19 +104,13 @@ export const Indicator = GObject.registerClass(
             });
             this._popupTitle.clutter_text.ellipsize = Pango.EllipsizeMode.END;
 
-            this._popupArtist = new St.Label({
+            this._popupSubtitle = new St.Label({
                 text: '',
                 x_expand: true,
-                style: 'font-size: 14px; color: white;',
+                style: 'font-size: 14px; color: #FFFFFF;',
             });
-            this._popupArtist.clutter_text.ellipsize = Pango.EllipsizeMode.END;
-
-            this._popupAlbum = new St.Label({
-                text: '',
-                x_expand: true,
-                style: 'font-size: 12px; color: rgba(255,255,255,0.7);',
-            });
-            this._popupAlbum.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+            this._popupSubtitle.clutter_text.use_markup = true;
+            this._popupSubtitle.clutter_text.ellipsize = Pango.EllipsizeMode.END;
 
             const textBox = new St.BoxLayout({
                 vertical: true,
@@ -126,8 +120,7 @@ export const Indicator = GObject.registerClass(
                 style: 'spacing: 4px;',
             });
             textBox.add_child(this._popupTitle);
-            textBox.add_child(this._popupArtist);
-            textBox.add_child(this._popupAlbum);
+            textBox.add_child(this._popupSubtitle);
 
             const topRow = new St.BoxLayout({ x_expand: true, style: 'spacing: 12px;' });
             topRow.add_child(this._popupArt);
@@ -222,7 +215,7 @@ export const Indicator = GObject.registerClass(
                 style_class: 'medialine-popup-item',
             });
             item.setOrnament(PopupMenu.Ornament.HIDDEN);
-            item.style = 'padding: 8px 6px;';
+            item.style = 'padding: 8px 6px 4px 6px;';
 
             const container = new St.BoxLayout({
                 vertical: true,
@@ -389,9 +382,12 @@ export const Indicator = GObject.registerClass(
 
         _updatePopup(media) {
             this._popupTitle.text = media.title || _('Unknown');
-            this._popupArtist.text = media.artist || '';
-            this._popupAlbum.text = media.album || '';
-            this._popupAlbum.visible = !!media.album;
+            const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const artist = media.artist ? esc(media.artist) : '';
+            const album = media.album ? esc(media.album) : '';
+            const on = (artist && album) ? `<span foreground="#AAAAAA"> on </span>` : '';
+            this._popupSubtitle.clutter_text.set_markup(artist + on + album);
+            this._popupSubtitle.visible = !!(artist || album);
 
             this._playBtn.get_child().icon_name = media.status === 'Playing'
                 ? 'media-playback-pause-symbolic'
