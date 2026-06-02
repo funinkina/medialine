@@ -13,7 +13,7 @@ import {
     ICON_TYPE_ART, ICON_TYPE_STATUS,
     CLICK_NOTHING, CLICK_OPEN_POPUP, CLICK_PLAY_PAUSE, CLICK_OPEN_SETTINGS,
     CLICK_NEXT_TRACK, CLICK_PREV_TRACK, CLICK_VOLUME_UP, CLICK_VOLUME_DOWN,
-    ART_SIZE, PROGRESS_HEIGHT, POPUP_MIN_WIDTH, POPUP_MAX_WIDTH,
+    ART_SIZE, PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE, POPUP_MIN_WIDTH, POPUP_MAX_WIDTH,
 } from './constants.js';
 
 const POPUP_ART_BASE_STYLE = `width: ${ART_SIZE}px; height: ${ART_SIZE}px; min-width: ${ART_SIZE}px; min-height: ${ART_SIZE}px; border-radius: 6px; background-color: rgba(255,255,255,0.08); background-size: cover; background-position: center;`;
@@ -46,6 +46,12 @@ export const Indicator = GObject.registerClass(
             this._menuOpenStateId = null;
             this._allocationId = null;
             this._buttonPressId = null;
+            this._progressPressId = null;
+            this._progressMotionId = null;
+            this._progressReleaseId = null;
+            this._progressHoverId = null;
+            this._dragging = false;
+            this._dragRatio = 0;
 
             this._buildUI();
             this._setupMenu();
@@ -143,6 +149,8 @@ export const Indicator = GObject.registerClass(
             this._progressTrack = new St.Widget({
                 x_expand: true,
                 y_align: Clutter.ActorAlign.CENTER,
+                reactive: true,
+                track_hover: true,
                 style: `background-color: rgba(255,255,255,0.18); border-radius: ${PROGRESS_HEIGHT / 2}px; height: ${PROGRESS_HEIGHT}px;`,
                 height: PROGRESS_HEIGHT,
             });
@@ -152,9 +160,27 @@ export const Indicator = GObject.registerClass(
                 height: PROGRESS_HEIGHT,
             });
             this._progressFill.set_position(0, 0);
+            this._progressThumb = new St.Widget({
+                style: `background-color: rgba(255,255,255,1); border-radius: ${PROGRESS_THUMB_SIZE / 2}px;`,
+                width: PROGRESS_THUMB_SIZE,
+                height: PROGRESS_THUMB_SIZE,
+                visible: false,
+            });
+            this._progressThumb.set_position(
+                -PROGRESS_THUMB_SIZE / 2,
+                (PROGRESS_HEIGHT - PROGRESS_THUMB_SIZE) / 2);
             this._progressTrack.add_child(this._progressFill);
+            this._progressTrack.add_child(this._progressThumb);
             this._allocationId = this._progressTrack.connect(
                 'notify::allocation', () => this._updateProgress());
+            this._progressPressId = this._progressTrack.connect(
+                'button-press-event', (_a, event) => this._onProgressPress(event));
+            this._progressMotionId = this._progressTrack.connect(
+                'motion-event', (_a, event) => this._onProgressMotion(event));
+            this._progressReleaseId = this._progressTrack.connect(
+                'button-release-event', (_a, event) => this._onProgressRelease(event));
+            this._progressHoverId = this._progressTrack.connect(
+                'notify::hover', () => this._updateProgress());
 
             const section = new St.BoxLayout({
                 vertical: true,
@@ -337,18 +363,83 @@ export const Indicator = GObject.registerClass(
                 this._timeCurrent.text = '0:00';
                 this._timeTotal.text = '0:00';
                 this._progressFill.width = 0;
+                this._progressThumb.visible = false;
                 return;
             }
-            const position = this._mprisManager.getPosition();
             const length = media.length || 0;
-            this._timeCurrent.text = formatTime(position);
-            this._timeTotal.text = formatTime(length);
-
             const alloc = this._progressTrack.get_allocation_box();
             const trackWidth = alloc ? Math.max(0, alloc.x2 - alloc.x1) : 0;
-            const ratio = length > 0 ? Math.max(0, Math.min(1, position / length)) : 0;
+
+            let ratio;
+            if (this._dragging) {
+                ratio = this._dragRatio;
+                this._timeCurrent.text = formatTime(Math.floor(ratio * length));
+            } else {
+                const position = this._mprisManager.getPosition();
+                ratio = length > 0 ? Math.max(0, Math.min(1, position / length)) : 0;
+                this._timeCurrent.text = formatTime(position);
+            }
+            this._timeTotal.text = formatTime(length);
+
+            const fillWidth = Math.floor(ratio * trackWidth);
             this._progressFill.set_position(0, 0);
-            this._progressFill.width = Math.floor(ratio * trackWidth);
+            this._progressFill.width = fillWidth;
+
+            const canSeek = !!media.canSeek && length > 0 && !!media.trackId;
+            const showThumb = canSeek && (this._dragging || this._progressTrack.hover);
+            this._progressThumb.visible = showThumb;
+            if (showThumb) {
+                this._progressThumb.set_position(
+                    Math.floor(fillWidth - PROGRESS_THUMB_SIZE / 2),
+                    (PROGRESS_HEIGHT - PROGRESS_THUMB_SIZE) / 2);
+            }
+        }
+
+        _ratioFromEvent(event) {
+            const media = this._mprisManager.currentMedia;
+            if (!media || !media.length) return null;
+            const alloc = this._progressTrack.get_allocation_box();
+            const trackWidth = alloc ? Math.max(1, alloc.x2 - alloc.x1) : 1;
+            const [stageX] = event.get_coords();
+            const [trackStageX] = this._progressTrack.get_transformed_position();
+            const localX = stageX - trackStageX;
+            return Math.max(0, Math.min(1, localX / trackWidth));
+        }
+
+        _onProgressPress(event) {
+            if (event.get_button() !== Clutter.BUTTON_PRIMARY)
+                return Clutter.EVENT_PROPAGATE;
+            const media = this._mprisManager.currentMedia;
+            if (!media || !media.canSeek || !media.length || !media.trackId)
+                return Clutter.EVENT_PROPAGATE;
+            const ratio = this._ratioFromEvent(event);
+            if (ratio === null) return Clutter.EVENT_PROPAGATE;
+            this._dragging = true;
+            this._dragRatio = ratio;
+            this._updateProgress();
+            return Clutter.EVENT_STOP;
+        }
+
+        _onProgressMotion(event) {
+            if (!this._dragging) return Clutter.EVENT_PROPAGATE;
+            const ratio = this._ratioFromEvent(event);
+            if (ratio === null) return Clutter.EVENT_PROPAGATE;
+            this._dragRatio = ratio;
+            this._updateProgress();
+            return Clutter.EVENT_STOP;
+        }
+
+        _onProgressRelease(event) {
+            if (!this._dragging) return Clutter.EVENT_PROPAGATE;
+            if (event.get_button() !== Clutter.BUTTON_PRIMARY)
+                return Clutter.EVENT_PROPAGATE;
+            const ratio = this._ratioFromEvent(event) ?? this._dragRatio;
+            const media = this._mprisManager.currentMedia;
+            this._dragging = false;
+            if (media && media.length)
+                this._mprisManager.setPosition(Math.floor(ratio * media.length));
+            this._updateProgress();
+            return Clutter.EVENT_STOP;
         }
 
         _onMediaChanged() {
@@ -532,9 +623,27 @@ export const Indicator = GObject.registerClass(
                 this._buttonPressId = null;
             }
 
-            if (this._allocationId && this._progressTrack) {
-                this._progressTrack.disconnect(this._allocationId);
-                this._allocationId = null;
+            if (this._progressTrack) {
+                if (this._allocationId) {
+                    this._progressTrack.disconnect(this._allocationId);
+                    this._allocationId = null;
+                }
+                if (this._progressPressId) {
+                    this._progressTrack.disconnect(this._progressPressId);
+                    this._progressPressId = null;
+                }
+                if (this._progressMotionId) {
+                    this._progressTrack.disconnect(this._progressMotionId);
+                    this._progressMotionId = null;
+                }
+                if (this._progressReleaseId) {
+                    this._progressTrack.disconnect(this._progressReleaseId);
+                    this._progressReleaseId = null;
+                }
+                if (this._progressHoverId) {
+                    this._progressTrack.disconnect(this._progressHoverId);
+                    this._progressHoverId = null;
+                }
             }
 
             if (this._menuOpenStateId) {

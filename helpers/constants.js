@@ -13,5 +13,6 @@ export const CLICK_VOLUME_DOWN = 7;
 
 export const ART_SIZE = 68;
 export const PROGRESS_HEIGHT = 4;
+export const PROGRESS_THUMB_SIZE = 12;
 export const POPUP_MIN_WIDTH = 320;
 export const POPUP_MAX_WIDTH = 400;

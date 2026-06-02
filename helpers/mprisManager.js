@@ -22,12 +22,17 @@ const MprisPlayerInterface = `<node>
         <method name="Pause"/>
         <method name="Next"/>
         <method name="Previous"/>
+        <method name="SetPosition">
+            <arg type="o" name="TrackId" direction="in"/>
+            <arg type="x" name="Position" direction="in"/>
+        </method>
         <property name="PlaybackStatus" type="s" access="read"/>
         <property name="Position" type="x" access="read"/>
         <property name="Metadata" type="a{sv}" access="read"/>
         <property name="CanGoNext" type="b" access="read"/>
         <property name="CanGoPrevious" type="b" access="read"/>
         <property name="CanControl" type="b" access="read"/>
+        <property name="CanSeek" type="b" access="read"/>
         <property name="Shuffle" type="b" access="readwrite"/>
         <property name="LoopStatus" type="s" access="readwrite"/>
         <signal name="Seeked">
@@ -185,10 +190,12 @@ export const MprisManager = GObject.registerClass({
             album: metadata['xesam:album'] || '',
             artUrl: metadata['mpris:artUrl'] || '',
             length: Number(metadata['mpris:length']) || 0,
+            trackId: metadata['mpris:trackid'] || '',
             status: bestEntry.proxy.PlaybackStatus || 'Stopped',
             canGoNext: bestEntry.proxy.CanGoNext !== false,
             canGoPrevious: bestEntry.proxy.CanGoPrevious !== false,
             canControl: bestEntry.proxy.CanControl !== false,
+            canSeek: bestEntry.proxy.CanSeek !== false,
             shuffle: bestEntry.proxy.Shuffle != null ? Boolean(bestEntry.proxy.Shuffle) : null,
             loopStatus: bestEntry.proxy.LoopStatus != null ? String(bestEntry.proxy.LoopStatus) : null,
             busName: bestBus,
@@ -264,6 +271,28 @@ export const MprisManager = GObject.registerClass({
             this._currentEntry.proxy[method]();
         } catch (e) {
             logError(e, `Medialine: ${method} failed`);
+        }
+    }
+
+    setPosition(positionMicros) {
+        if (!this._currentMedia || !this._currentMedia.canSeek) return;
+        const trackId = this._currentMedia.trackId;
+        if (!trackId) return;
+        const clamped = Math.max(0, Math.floor(positionMicros));
+        try {
+            Gio.DBus.session.call_sync(
+                this._currentMedia.busName,
+                '/org/mpris/MediaPlayer2',
+                'org.mpris.MediaPlayer2.Player',
+                'SetPosition',
+                new GLib.Variant('(ox)', [String(trackId), clamped]),
+                null,
+                Gio.DBusCallFlags.NONE,
+                500,
+                null
+            );
+        } catch (e) {
+            logError(e, 'Medialine: setPosition failed');
         }
     }
 
