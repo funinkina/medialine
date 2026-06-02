@@ -12,10 +12,11 @@ A GNOME Shell extension that shows the currently playing media track in the top 
 
 ### Popup
 Click the indicator to open a rich media popup with:
-- Album art (falls back to a generic icon if unavailable)
+- Album art preserving the original aspect ratio (works for square album covers and 16:9 video thumbnails like YouTube) — falls back to a generic icon if unavailable
 - Track title, artist, and album name
 - Live **progress bar** with elapsed and total time (updates every second)
-- **Playback controls** — previous, play/pause, next — with greyed-out state when unavailable
+- **Click or drag** anywhere on the progress bar to seek to that position (a thumb appears on hover when the player supports seeking)
+- **Playback controls** — shuffle, previous, play/pause, next, repeat (off / track / playlist) — with greyed-out state when unavailable
 
 ### Mouse Button Actions
 Each mouse button (left, middle, right) can be independently configured to:
@@ -59,15 +60,15 @@ Then log out and back in (or restart GNOME Shell on X11 with `Alt+F2` → `r`).
 
 #### Other make targets
 
-| Command | Description |
-|---|---|
-| `make` | Compile GSettings schemas only |
-| `make install` | Compile schemas and copy extension to `~/.local/share/gnome-shell/extensions/` |
-| `make uninstall` | Remove the extension from the install directory |
-| `make enable` | Enable the extension via `gnome-extensions` |
-| `make disable` | Disable the extension via `gnome-extensions` |
-| `make pack` | Create a distributable zip in `dist/` for extensions.gnome.org |
-| `make clean` | Remove compiled schema and `dist/` |
+| Command          | Description                                                                    |
+| ---------------- | ------------------------------------------------------------------------------ |
+| `make`           | Compile GSettings schemas only                                                 |
+| `make install`   | Compile schemas and copy extension to `~/.local/share/gnome-shell/extensions/` |
+| `make uninstall` | Remove the extension from the install directory                                |
+| `make enable`    | Enable the extension via `gnome-extensions`                                    |
+| `make disable`   | Disable the extension via `gnome-extensions`                                   |
+| `make pack`      | Create a distributable zip in `dist/` for extensions.gnome.org                 |
+| `make clean`     | Remove compiled schema and `dist/`                                             |
 
 ## Configuration
 
@@ -77,19 +78,19 @@ Open the extension preferences via:
 - Configuring a mouse button to **Open settings** and clicking
 
 ### Display tab
-| Setting | Description |
-|---|---|
-| Icon source | Album art / App icon / Playing status |
-| Icon size | Size in pixels (8–64) |
-| Icon spacing | Gap between icon and text (0–32 px) |
-| Separator | String placed between title, artist, album |
-| Max text width | Clip long labels (0 = unlimited) |
-| Show title / artist / album | Toggle each field independently |
+| Setting                     | Description                                |
+| --------------------------- | ------------------------------------------ |
+| Icon source                 | Album art / App icon / Playing status      |
+| Icon size                   | Size in pixels (8–64)                      |
+| Icon spacing                | Gap between icon and text (0–32 px)        |
+| Separator                   | String placed between title, artist, album |
+| Max text width              | Clip long labels (0 = unlimited)           |
+| Show title / artist / album | Toggle each field independently            |
 
 ### Panel tab
-| Setting | Description |
-|---|---|
-| Panel section | Left, Center, or Right |
+| Setting        | Description                          |
+| -------------- | ------------------------------------ |
+| Panel section  | Left, Center, or Right               |
 | Position index | Order within the section (0 = first) |
 
 ### Mouse tab
