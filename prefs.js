@@ -1,4 +1,5 @@
 import Adw from 'gi://Adw';
+import Gdk from 'gi://Gdk';
 import Gtk from 'gi://Gtk';
 
 import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
@@ -6,9 +7,72 @@ import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/
 export default class MedialinePreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const settings = this.getSettings('org.gnome.shell.extensions.medialine');
+
+        this._registerIconPath();
+
         window.add(this._buildDisplayPage(settings));
         window.add(this._buildPanelPage(settings));
         window.add(this._buildMousePage(settings));
+
+        this._addAboutButton(window);
+    }
+
+    _registerIconPath() {
+        const display = Gdk.Display.get_default();
+        if (!display) return;
+        const iconTheme = Gtk.IconTheme.get_for_display(display);
+        const iconDir = this.dir.get_child('icons').get_path();
+        if (iconDir && !iconTheme.get_search_path().includes(iconDir))
+            iconTheme.add_search_path(iconDir);
+    }
+
+    _addAboutButton(window) {
+        const button = new Gtk.Button({
+            icon_name: 'positive-feedback-symbolic',
+            tooltip_text: _('About Medialine'),
+        });
+        button.add_css_class('flat');
+        button.connect('clicked', () => this._showAbout(window));
+
+        const headerBar = this._findHeaderBar(window);
+        if (headerBar)
+            headerBar.pack_start(button);
+    }
+
+    _findHeaderBar(widget) {
+        if (widget instanceof Adw.HeaderBar || widget instanceof Gtk.HeaderBar)
+            return widget;
+        let child = widget.get_first_child?.();
+        while (child) {
+            const found = this._findHeaderBar(child);
+            if (found) return found;
+            child = child.get_next_sibling();
+        }
+        return null;
+    }
+
+    _showAbout(parent) {
+        const about = new Adw.AboutWindow({
+            transient_for: parent,
+            modal: true,
+            application_name: _('Medialine'),
+            application_icon: 'medialine',
+            developer_name: 'Aryan Kushwaha',
+            version: String(this.metadata.version ?? ''),
+            comments: _('Shows currently playing media in the top bar via MPRIS.'),
+            website: 'https://github.com/funinkina/medialine',
+            issue_url: 'https://github.com/funinkina/medialine/issues',
+            support_url: 'https://www.buymeacoffee.com/funinkina',
+            developers: ['Aryan Kushwaha <hello@funinkina.co.in>'],
+            copyright: '© 2025–2026 Aryan Kushwaha',
+            license_type: Gtk.License.MIT_X11,
+        });
+
+        about.add_link(_('GitHub'), 'https://github.com/funinkina');
+        about.add_link(_('X / Twitter'), 'https://x.com/funinkina');
+        about.add_link(_('Email'), 'mailto:hello@funinkina.co.in');
+
+        about.present();
     }
 
     _buildDisplayPage(settings) {
