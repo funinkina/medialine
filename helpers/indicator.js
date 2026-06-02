@@ -2,6 +2,7 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
+import GdkPixbuf from 'gi://GdkPixbuf';
 import Clutter from 'gi://Clutter';
 import Pango from 'gi://Pango';
 
@@ -16,7 +17,10 @@ import {
     ART_SIZE, PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE, POPUP_MIN_WIDTH, POPUP_MAX_WIDTH,
 } from './constants.js';
 
-const POPUP_ART_BASE_STYLE = `width: ${ART_SIZE}px; height: ${ART_SIZE}px; min-width: ${ART_SIZE}px; min-height: ${ART_SIZE}px; border-radius: 6px; background-color: rgba(255,255,255,0.08); background-size: cover; background-position: center;`;
+const POPUP_ART_MAX_W = 120;
+const POPUP_ART_MAX_H = ART_SIZE;
+const POPUP_ART_COMMON_STYLE = 'border-radius: 6px; background-color: rgba(255,255,255,0.08); background-size: contain; background-repeat: no-repeat; background-position: center;';
+const POPUP_ART_FALLBACK_STYLE = `width: ${ART_SIZE}px; height: ${ART_SIZE}px; min-width: ${ART_SIZE}px; min-height: ${ART_SIZE}px; ${POPUP_ART_COMMON_STYLE}`;
 const CONTROL_BTN_STYLE = 'width: 40px; height: 40px; border-radius: 8px; color: white;';
 const CONTROL_BTN_HOVER_STYLE = `${CONTROL_BTN_STYLE} background-color: rgba(255,255,255,0.15);`;
 const CONTROL_BTN_ACTIVE_STYLE = `${CONTROL_BTN_STYLE} background-color: rgba(255,255,255,0.22);`;
@@ -94,7 +98,7 @@ export const Indicator = GObject.registerClass(
         }
 
         _buildTopRow() {
-            this._popupArt = new St.Bin({ style: POPUP_ART_BASE_STYLE });
+            this._popupArt = new St.Bin({ style: POPUP_ART_FALLBACK_STYLE });
             this._popupArtFallback = new St.Icon({
                 icon_name: 'audio-x-generic-symbolic',
                 icon_size: ART_SIZE - 24,
@@ -518,13 +522,19 @@ export const Indicator = GObject.registerClass(
                 try {
                     const path = GLib.uri_unescape_string(artUrl.substring('file://'.length), null);
                     const safePath = path.replace(/"/g, '\\"');
-                    this._popupArt.set_child(null);
-                    this._popupArt.style = `${POPUP_ART_BASE_STYLE} background-image: url("${safePath}");`;
-                    return;
+                    const dims = this._readImageDims(path);
+                    if (dims) {
+                        const [w, h] = this._fitBox(dims.width, dims.height);
+                        this._popupArt.set_child(null);
+                        this._popupArt.style =
+                            `width: ${w}px; height: ${h}px; min-width: ${w}px; min-height: ${h}px; ` +
+                            `${POPUP_ART_COMMON_STYLE} background-image: url("${safePath}");`;
+                        return;
+                    }
                 } catch (_) { /* fall through to fallback icon */ }
             }
 
-            this._popupArt.style = POPUP_ART_BASE_STYLE;
+            this._popupArt.style = POPUP_ART_FALLBACK_STYLE;
             this._popupArtFallback.icon_name = this._preferences.iconType === ICON_TYPE_STATUS
                 ? (media.status === 'Playing'
                     ? 'media-playback-start-symbolic'
@@ -532,6 +542,28 @@ export const Indicator = GObject.registerClass(
                 : 'audio-x-generic-symbolic';
             if (this._popupArt.get_child() !== this._popupArtFallback)
                 this._popupArt.set_child(this._popupArtFallback);
+        }
+
+        _readImageDims(path) {
+            try {
+                const fmt = GdkPixbuf.Pixbuf.get_file_info(path);
+                if (fmt && fmt.length >= 3 && fmt[1] > 0 && fmt[2] > 0)
+                    return { width: fmt[1], height: fmt[2] };
+                const pb = GdkPixbuf.Pixbuf.new_from_file(path);
+                return { width: pb.get_width(), height: pb.get_height() };
+            } catch (_) {
+                return null;
+            }
+        }
+
+        _fitBox(w, h) {
+            if (!w || !h) return [ART_SIZE, ART_SIZE];
+            const r = w / h;
+            const maxR = POPUP_ART_MAX_W / POPUP_ART_MAX_H;
+            let outW, outH;
+            if (r > maxR) { outW = POPUP_ART_MAX_W; outH = outW / r; }
+            else { outH = POPUP_ART_MAX_H; outW = outH * r; }
+            return [Math.round(outW), Math.round(outH)];
         }
 
         _updateIcon(media, prefs) {
