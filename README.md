@@ -66,6 +66,16 @@ Each mouse button (left, middle, right) can be independently configured to:
 ### From extensions.gnome.org
 Install directly from [extensions.gnome.org/medialine](https://extensions.gnome.org/extension/10076/medialine/).
 
+### From GitHub Releases
+Download the latest `medialine@funinkina.co.in.zip` from the [Releases page](https://github.com/funinkina/medialine/releases/latest), then install it:
+
+```bash
+gnome-extensions install --force medialine@funinkina.co.in.zip
+gnome-extensions enable medialine@funinkina.co.in
+```
+
+Log out and back in (or restart GNOME Shell on X11 with `Alt+F2` → `r`) for the extension to appear.
+
 ### Manual
 ```bash
 git clone https://github.com/funinkina/medialine
