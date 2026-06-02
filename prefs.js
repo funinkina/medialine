@@ -101,9 +101,9 @@ export default class MedialinePreferences extends ExtensionPreferences {
         ]);
 
         for (const [key, title, subtitle] of [
-            ['left-click-action',   _('Left click'),   _('Action when left-clicking the indicator')],
+            ['left-click-action', _('Left click'), _('Action when left-clicking the indicator')],
             ['middle-click-action', _('Middle click'), _('Action when middle-clicking the indicator')],
-            ['right-click-action',  _('Right click'),  _('Action when right-clicking the indicator')],
+            ['right-click-action', _('Right click'), _('Action when right-clicking the indicator')],
         ]) {
             group.add(this._makeComboRow(settings, key, title, subtitle, actionModel));
         }

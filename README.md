@@ -96,6 +96,9 @@ Open the extension preferences via:
 ### Mouse tab
 Assign an action to left, middle, and right click individually.
 
+## TODO
+- [ ] Add proper mouse scroll wheel support
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

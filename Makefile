@@ -11,7 +11,7 @@ schemas/gschemas.compiled: schemas/*.gschema.xml
 
 install: schemas/gschemas.compiled
 	mkdir -p $(INSTALL_DIR)
-	cp -r $(SRC_FILES) helpers schemas $(INSTALL_DIR)
+	cp -r $(SRC_FILES) helpers schemas icons $(INSTALL_DIR)
 
 uninstall:
 	rm -rf $(INSTALL_DIR)
@@ -24,7 +24,7 @@ disable:
 
 pack: schemas/gschemas.compiled
 	mkdir -p dist
-	zip -r dist/$(UUID).zip $(SRC_FILES) helpers schemas LICENSE README.md
+	zip -r dist/$(UUID).zip $(SRC_FILES) helpers schemas icons LICENSE README.md
 
 clean:
 	rm -f schemas/gschemas.compiled
