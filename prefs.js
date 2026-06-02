@@ -28,7 +28,7 @@ export default class MedialinePreferences extends ExtensionPreferences {
 
     _addAboutButton(window) {
         const button = new Gtk.Button({
-            icon_name: 'positive-feedback-symbolic',
+            icon_name: 'emblem-favorite-symbolic',
             tooltip_text: _('About Medialine'),
         });
         button.add_css_class('flat');

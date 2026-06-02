@@ -1,24 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#9141ac"/>
-      <stop offset="1" stop-color="#613583"/>
-    </linearGradient>
-    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.18"/>
-      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
-    </linearGradient>
-  </defs>
-
-  <rect x="8" y="8" width="112" height="112" rx="24" ry="24" fill="url(#bg)"/>
-  <rect x="8" y="8" width="112" height="56"  rx="24" ry="24" fill="url(#sheen)"/>
-
-  <g fill="#ffffff">
-    <rect x="32" y="60" width="10" height="28" rx="5"/>
-    <rect x="50" y="44" width="10" height="44" rx="5"/>
-    <rect x="68" y="36" width="10" height="52" rx="5"/>
-    <rect x="86" y="52" width="10" height="36" rx="5"/>
-    <rect x="24" y="92" width="80" height="8" rx="4"/>
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g clip-path="url(#clip0_40_14)">
+    <rect width="100" height="100" rx="20" fill="url(#paint0_linear_40_14)" />
+    <rect x="10" y="81" width="80" height="5" rx="2.5" fill="white" />
+    <rect x="10" y="14" width="80" height="5" rx="2.5" fill="white" />
+    <mask id="mask0_40_14" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="14" y="14"
+      width="72" height="72">
+      <rect x="14" y="14" width="72" height="72" fill="#D9D9D9" />
+    </mask>
+    <g mask="url(#mask0_40_14)">
+      <path
+        d="M38 66.7611V33.2389C38 32.3212 38.3259 31.552 38.9778 30.9312C39.6296 30.3104 40.3901 30 41.2593 30C41.5309 30 41.816 30.0405 42.1148 30.1215C42.4136 30.2024 42.6988 30.3239 42.9704 30.4858L69.5333 47.247C70.0222 47.5709 70.3889 47.9757 70.6333 48.4615C70.8778 48.9474 71 49.4602 71 50C71 50.5398 70.8778 51.0526 70.6333 51.5385C70.3889 52.0243 70.0222 52.4292 69.5333 52.753L42.9704 69.5142C42.6988 69.6761 42.4136 69.7976 42.1148 69.8785C41.816 69.9595 41.5309 70 41.2593 70C40.3901 70 39.6296 69.6896 38.9778 69.0688C38.3259 68.448 38 67.6788 38 66.7611Z"
+        fill="white" />
+    </g>
   </g>
+  <defs>
+    <linearGradient id="paint0_linear_40_14" x1="50" y1="0" x2="50" y2="100"
+      gradientUnits="userSpaceOnUse">
+      <stop stop-color="#266EDA" />
+      <stop offset="1" stop-color="#5DDBD8" />
+    </linearGradient>
+    <clipPath id="clip0_40_14">
+      <rect width="100" height="100" fill="white" />
+    </clipPath>
+  </defs>
 </svg>
