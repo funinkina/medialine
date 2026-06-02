@@ -8,10 +8,15 @@ A GNOME Shell extension that shows the currently playing media track in the top 
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-45%E2%80%9350-4A86CF?logo=gnome&logoColor=white)](https://www.gnome.org/)
-[![extensions.gnome.org](https://img.shields.io/badge/EGO-Medialine-326CE5?logo=gnome&logoColor=white)](https://extensions.gnome.org)
 [![GitHub stars](https://img.shields.io/github/stars/funinkina/medialine?style=flat&logo=github)](https://github.com/funinkina/medialine/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/funinkina/medialine?logo=github)](https://github.com/funinkina/medialine/issues)
 [![Language](https://img.shields.io/badge/JavaScript-GJS-F7DF1E?logo=javascript&logoColor=black)](https://gjs.guide/)
+
+<a href="https://extensions.gnome.org/extension/10076/medialine/">
+  <img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=false" alt="Get it on GNOME Extensions" height="100" />
+</a>
+
+**(COMING SOON)**
 
 </div>
 
@@ -59,7 +64,7 @@ Each mouse button (left, middle, right) can be independently configured to:
 ## Installation
 
 ### From extensions.gnome.org
-Install directly from [extensions.gnome.org](https://extensions.gnome.org) (search for **Medialine**).
+Install directly from [extensions.gnome.org/medialine](https://extensions.gnome.org/extension/10076/medialine/).
 
 ### Manual
 ```bash
