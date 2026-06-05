@@ -52,9 +52,7 @@ export default class MedialinePreferences extends ExtensionPreferences {
     }
 
     _showAbout(parent) {
-        const about = new Adw.AboutWindow({
-            transient_for: parent,
-            modal: true,
+        const props = {
             application_name: _('Medialine'),
             application_icon: 'medialine',
             developer_name: 'Aryan Kushwaha',
@@ -64,15 +62,17 @@ export default class MedialinePreferences extends ExtensionPreferences {
             issue_url: 'https://github.com/funinkina/medialine/issues',
             support_url: 'https://www.buymeacoffee.com/funinkina',
             developers: ['Aryan Kushwaha <hello@funinkina.co.in>'],
-            copyright: '© 2025–2026 Aryan Kushwaha',
+            copyright: '© 2025-2026 Aryan Kushwaha',
             license_type: Gtk.License.MIT_X11,
-        });
+        };
+
+        const about = new Adw.AboutDialog(props);
 
         about.add_link(_('GitHub'), 'https://github.com/funinkina');
         about.add_link(_('X / Twitter'), 'https://x.com/funinkina');
         about.add_link(_('Email'), 'mailto:hello@funinkina.co.in');
 
-        about.present();
+        about.present(parent);
     }
 
     _buildDisplayPage(settings) {

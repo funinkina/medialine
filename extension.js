@@ -13,7 +13,7 @@ export default class MedialineExtension extends Extension {
         this._preferences = new ExtensionSettings(this);
         this._mprisManager = new MprisManager();
         this._indicator = null;
-        this._enableTimeoutId = null;
+        this._enableIdleId = null;
 
         this._preferences.connectObject(
             'changed::panel-position', () => this._updateIndicatorPosition(),
@@ -21,14 +21,14 @@ export default class MedialineExtension extends Extension {
             this
         );
 
-        this._enableTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
+        this._enableIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
             if (this._preferences && this._mprisManager) {
                 const position = PANEL_POSITIONS[this._preferences.panelPosition] ?? 'right';
                 const index = this._preferences.panelIndex || 0;
                 this._indicator = new Indicator(this._preferences, this, this._mprisManager);
                 Main.panel.addToStatusArea(this.uuid, this._indicator, index, position);
             }
-            this._enableTimeoutId = null;
+            this._enableIdleId = null;
             return GLib.SOURCE_REMOVE;
         });
     }
@@ -58,9 +58,9 @@ export default class MedialineExtension extends Extension {
     }
 
     disable() {
-        if (this._enableTimeoutId) {
-            GLib.Source.remove(this._enableTimeoutId);
-            this._enableTimeoutId = null;
+        if (this._enableIdleId) {
+            GLib.Source.remove(this._enableIdleId);
+            this._enableIdleId = null;
         }
 
         this._preferences.disconnectObject(this);

@@ -5,6 +5,7 @@ import Gio from 'gi://Gio';
 import GdkPixbuf from 'gi://GdkPixbuf';
 import Clutter from 'gi://Clutter';
 import Pango from 'gi://Pango';
+import Gvc from 'gi://Gvc';
 
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
@@ -45,8 +46,12 @@ export const Indicator = GObject.registerClass(
             this._currentArtUrl = null;
             this._currentPopupArtUrl = null;
             this._positionTimerId = null;
+            this._position = 0;
             this._dragging = false;
             this._dragRatio = 0;
+            this._destroyed = false;
+            this._mixer = null;
+            this._pendingVolumeDelta = 0;
 
             this._buildUI();
             this._setupMenu();
@@ -292,13 +297,35 @@ export const Indicator = GObject.registerClass(
         }
 
         _adjustVolume(deltaPct) {
-            try {
-                const arg = deltaPct > 0 ? `+${deltaPct}%` : `${deltaPct}%`;
-                Gio.Subprocess.new(
-                    ['pactl', 'set-sink-volume', '@DEFAULT_SINK@', arg],
-                    Gio.SubprocessFlags.NONE
-                );
-            } catch (_) { }
+            this._ensureMixer();
+            if (this._mixer.get_state() === Gvc.MixerControlState.READY)
+                this._applyVolumeDelta(deltaPct);
+            else
+                this._pendingVolumeDelta += deltaPct;
+        }
+
+        _ensureMixer() {
+            if (this._mixer) return;
+            this._mixer = new Gvc.MixerControl({ name: 'Medialine' });
+            this._mixer.connectObject('state-changed', () => {
+                if (this._mixer.get_state() !== Gvc.MixerControlState.READY)
+                    return;
+                if (this._pendingVolumeDelta) {
+                    const delta = this._pendingVolumeDelta;
+                    this._pendingVolumeDelta = 0;
+                    this._applyVolumeDelta(delta);
+                }
+            }, this);
+            this._mixer.open();
+        }
+
+        _applyVolumeDelta(deltaPct) {
+            const sink = this._mixer.get_default_sink();
+            if (!sink) return;
+            const maxNorm = this._mixer.get_vol_max_norm();
+            const step = maxNorm * (deltaPct / 100);
+            sink.volume = Math.max(0, Math.min(maxNorm, sink.volume + step));
+            sink.push_volume();
         }
 
         _makeControlButton(iconName, iconSize, onClick) {
@@ -329,11 +356,23 @@ export const Indicator = GObject.registerClass(
         }
 
         _startPositionPolling() {
-            this._updateProgress();
+            this._pollPosition();
             if (this._positionTimerId) return;
             this._positionTimerId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
-                this._updateProgress();
+                this._pollPosition();
                 return GLib.SOURCE_CONTINUE;
+            });
+        }
+
+        _pollPosition() {
+            if (this._dragging) {
+                this._updateProgress();
+                return;
+            }
+            this._mprisManager.getPositionAsync((position) => {
+                if (this._destroyed) return;
+                this._position = position;
+                this._updateProgress();
             });
         }
 
@@ -362,7 +401,7 @@ export const Indicator = GObject.registerClass(
                 ratio = this._dragRatio;
                 this._timeCurrent.text = formatTime(Math.floor(ratio * length));
             } else {
-                const position = this._mprisManager.getPosition();
+                const position = this._position;
                 ratio = length > 0 ? Math.max(0, Math.min(1, position / length)) : 0;
                 this._timeCurrent.text = formatTime(position);
             }
@@ -456,6 +495,9 @@ export const Indicator = GObject.registerClass(
 
             this._updateIcon(media, prefs);
             this._updatePopup(media);
+
+            if (this._positionTimerId)
+                this._pollPosition();
         }
 
         _updatePopup(media) {
@@ -497,7 +539,7 @@ export const Indicator = GObject.registerClass(
 
         _updatePopupArt(media) {
             const artUrl = media.artUrl || '';
-            const cacheKey = `${artUrl}::${media.status}`;
+            const cacheKey = `${artUrl}::${media.status}::${this._preferences.iconType}`;
             if (cacheKey === this._currentPopupArtUrl) return;
             this._currentPopupArtUrl = cacheKey;
 
@@ -631,7 +673,14 @@ export const Indicator = GObject.registerClass(
         }
 
         destroy() {
+            this._destroyed = true;
             this._stopPositionPolling();
+
+            if (this._mixer) {
+                this._mixer.disconnectObject(this);
+                this._mixer.close();
+                this._mixer = null;
+            }
 
             this._progressTrack?.disconnectObject(this);
             this.menu.disconnectObject(this);

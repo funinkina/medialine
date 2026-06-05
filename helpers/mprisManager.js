@@ -218,48 +218,37 @@ export const MprisManager = GObject.registerClass({
 
     setShuffle(value) {
         if (!this._currentMedia) return;
-        try {
-            Gio.DBus.session.call_sync(
-                this._currentMedia.busName,
-                '/org/mpris/MediaPlayer2',
-                'org.freedesktop.DBus.Properties',
-                'Set',
-                new GLib.Variant('(ssv)', [
-                    'org.mpris.MediaPlayer2.Player',
-                    'Shuffle',
-                    new GLib.Variant('b', value),
-                ]),
-                null,
-                Gio.DBusCallFlags.NONE,
-                500,
-                null
-            );
-        } catch (e) {
-            logError(e, 'Medialine: setShuffle failed');
-        }
+        this._setPlayerProperty('Shuffle', new GLib.Variant('b', value),
+            'Medialine: setShuffle failed');
     }
 
     setLoopStatus(value) {
         if (!this._currentMedia) return;
-        try {
-            Gio.DBus.session.call_sync(
-                this._currentMedia.busName,
-                '/org/mpris/MediaPlayer2',
-                'org.freedesktop.DBus.Properties',
-                'Set',
-                new GLib.Variant('(ssv)', [
-                    'org.mpris.MediaPlayer2.Player',
-                    'LoopStatus',
-                    new GLib.Variant('s', value),
-                ]),
-                null,
-                Gio.DBusCallFlags.NONE,
-                500,
-                null
-            );
-        } catch (e) {
-            logError(e, 'Medialine: setLoopStatus failed');
-        }
+        this._setPlayerProperty('LoopStatus', new GLib.Variant('s', value),
+            'Medialine: setLoopStatus failed');
+    }
+
+    _setPlayerProperty(propName, valueVariant, errorLabel) {
+        Gio.DBus.session.call(
+            this._currentMedia.busName,
+            '/org/mpris/MediaPlayer2',
+            'org.freedesktop.DBus.Properties',
+            'Set',
+            new GLib.Variant('(ssv)', [
+                'org.mpris.MediaPlayer2.Player', propName, valueVariant,
+            ]),
+            null,
+            Gio.DBusCallFlags.NONE,
+            500,
+            null,
+            (conn, res) => {
+                try {
+                    conn.call_finish(res);
+                } catch (e) {
+                    logError(e, errorLabel);
+                }
+            }
+        );
     }
 
     _invoke(method) {
@@ -276,45 +265,54 @@ export const MprisManager = GObject.registerClass({
         const trackId = this._currentMedia.trackId;
         if (!trackId) return;
         const clamped = Math.max(0, Math.floor(positionMicros));
-        try {
-            Gio.DBus.session.call_sync(
-                this._currentMedia.busName,
-                '/org/mpris/MediaPlayer2',
-                'org.mpris.MediaPlayer2.Player',
-                'SetPosition',
-                new GLib.Variant('(ox)', [String(trackId), clamped]),
-                null,
-                Gio.DBusCallFlags.NONE,
-                500,
-                null
-            );
-        } catch (e) {
-            logError(e, 'Medialine: setPosition failed');
-        }
+        Gio.DBus.session.call(
+            this._currentMedia.busName,
+            '/org/mpris/MediaPlayer2',
+            'org.mpris.MediaPlayer2.Player',
+            'SetPosition',
+            new GLib.Variant('(ox)', [String(trackId), clamped]),
+            null,
+            Gio.DBusCallFlags.NONE,
+            500,
+            null,
+            (conn, res) => {
+                try {
+                    conn.call_finish(res);
+                } catch (e) {
+                    logError(e, 'Medialine: setPosition failed');
+                }
+            }
+        );
     }
 
-    getPosition() {
-        if (!this._currentMedia || !this._currentMedia.busName) return 0;
-        try {
-            const result = Gio.DBus.session.call_sync(
-                this._currentMedia.busName,
-                '/org/mpris/MediaPlayer2',
-                'org.freedesktop.DBus.Properties',
-                'Get',
-                new GLib.Variant('(ss)', [
-                    'org.mpris.MediaPlayer2.Player',
-                    'Position',
-                ]),
-                null,
-                Gio.DBusCallFlags.NONE,
-                500,
-                null
-            );
-            const [variant] = result.deepUnpack();
-            return Number(variant.unpack()) || 0;
-        } catch (_) {
-            return 0;
+    getPositionAsync(callback) {
+        if (!this._currentMedia || !this._currentMedia.busName) {
+            callback(0);
+            return;
         }
+        Gio.DBus.session.call(
+            this._currentMedia.busName,
+            '/org/mpris/MediaPlayer2',
+            'org.freedesktop.DBus.Properties',
+            'Get',
+            new GLib.Variant('(ss)', [
+                'org.mpris.MediaPlayer2.Player',
+                'Position',
+            ]),
+            null,
+            Gio.DBusCallFlags.NONE,
+            500,
+            null,
+            (conn, res) => {
+                try {
+                    const result = conn.call_finish(res);
+                    const [variant] = result.deepUnpack();
+                    callback(Number(variant.unpack()) || 0);
+                } catch (_) {
+                    callback(0);
+                }
+            }
+        );
     }
 
     _unpackMetadata(metadata) {
