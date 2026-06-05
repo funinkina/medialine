@@ -172,6 +172,19 @@ export default class MedialinePreferences extends ExtensionPreferences {
             group.add(this._makeComboRow(settings, key, title, subtitle, actionModel));
         }
 
+        const scrollGroup = new Adw.PreferencesGroup({
+            title: _('Scroll actions'),
+            description: _('What happens when you scroll over the media bar indicator'),
+        });
+        page.add(scrollGroup);
+
+        for (const [key, title, subtitle] of [
+            ['scroll-up-action', _('Scroll up'), _('Action when scrolling up over the indicator')],
+            ['scroll-down-action', _('Scroll down'), _('Action when scrolling down over the indicator')],
+        ]) {
+            scrollGroup.add(this._makeComboRow(settings, key, title, subtitle, actionModel));
+        }
+
         return page;
     }
 

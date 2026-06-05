@@ -97,5 +97,15 @@
       <summary>Right click action</summary>
     </key>
 
+    <key name="scroll-up-action" enum="org.gnome.shell.extensions.medialine.click-action">
+      <default>'volume-up'</default>
+      <summary>Scroll up action</summary>
+    </key>
+
+    <key name="scroll-down-action" enum="org.gnome.shell.extensions.medialine.click-action">
+      <default>'volume-down'</default>
+      <summary>Scroll down action</summary>
+    </key>
+
   </schema>
 </schemalist>

@@ -26,6 +26,7 @@ const CONTROL_BTN_STYLE = 'width: 40px; height: 40px; border-radius: 8px; color:
 const CONTROL_BTN_HOVER_STYLE = `${CONTROL_BTN_STYLE} background-color: rgba(255,255,255,0.15);`;
 const CONTROL_BTN_ACTIVE_STYLE = `${CONTROL_BTN_STYLE} background-color: rgba(255,255,255,0.22);`;
 const TIME_LABEL_STYLE = 'font-size: 11px; color: rgba(255,255,255,0.8);';
+const SCROLL_NOTCH = 1.0;
 
 function formatTime(microseconds) {
     if (!microseconds || microseconds < 0) return '0:00';
@@ -49,6 +50,7 @@ export const Indicator = GObject.registerClass(
             this._position = 0;
             this._dragging = false;
             this._dragRatio = 0;
+            this._scrollAccum = 0;
             this._destroyed = false;
             this._mixer = null;
             this._pendingVolumeDelta = 0;
@@ -264,9 +266,12 @@ export const Indicator = GObject.registerClass(
             // default toggle never runs and only the configured action fires.
             this.connectObject('captured-event',
                 (_actor, event) => {
-                    if (event.type() !== Clutter.EventType.BUTTON_PRESS)
-                        return Clutter.EVENT_PROPAGATE;
-                    return this._handleButtonPress(event);
+                    const type = event.type();
+                    if (type === Clutter.EventType.BUTTON_PRESS)
+                        return this._handleButtonPress(event);
+                    if (type === Clutter.EventType.SCROLL)
+                        return this._handleScroll(event);
+                    return Clutter.EVENT_PROPAGATE;
                 }, this);
         }
 
@@ -282,6 +287,39 @@ export const Indicator = GObject.registerClass(
             else
                 return Clutter.EVENT_PROPAGATE;
 
+            return this._dispatchAction(action);
+        }
+
+        _handleScroll(event) {
+            let action;
+            switch (event.get_scroll_direction()) {
+                case Clutter.ScrollDirection.UP:
+                    action = this._preferences.scrollUpAction;
+                    break;
+                case Clutter.ScrollDirection.DOWN:
+                    action = this._preferences.scrollDownAction;
+                    break;
+                case Clutter.ScrollDirection.SMOOTH: {
+                    // Touchpads emit a stream of small deltas; accumulate until
+                    // one notch's worth before firing so actions don't spam.
+                    const [, dy] = event.get_scroll_delta();
+                    this._scrollAccum += dy;
+                    if (Math.abs(this._scrollAccum) < SCROLL_NOTCH)
+                        return Clutter.EVENT_STOP;
+                    action = this._scrollAccum < 0
+                        ? this._preferences.scrollUpAction
+                        : this._preferences.scrollDownAction;
+                    this._scrollAccum = 0;
+                    break;
+                }
+                default:
+                    return Clutter.EVENT_PROPAGATE;
+            }
+
+            return this._dispatchAction(action);
+        }
+
+        _dispatchAction(action) {
             if (action === CLICK_OPEN_POPUP) {
                 this.menu.toggle();
                 return Clutter.EVENT_STOP;

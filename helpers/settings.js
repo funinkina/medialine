@@ -16,6 +16,8 @@ export class ExtensionSettings {
     get leftClickAction() { return this._settings.get_enum('left-click-action'); }
     get middleClickAction() { return this._settings.get_enum('middle-click-action'); }
     get rightClickAction() { return this._settings.get_enum('right-click-action'); }
+    get scrollUpAction() { return this._settings.get_enum('scroll-up-action'); }
+    get scrollDownAction() { return this._settings.get_enum('scroll-down-action'); }
 
     connectObject(...args) {
         this._settings.connectObject(...args);
