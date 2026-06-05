@@ -10,6 +10,7 @@ import Gvc from 'gi://Gvc';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import {
     ICON_TYPE_ART, ICON_TYPE_STATUS,
@@ -372,6 +373,13 @@ export const Indicator = GObject.registerClass(
             const step = maxNorm * (deltaPct / 100);
             sink.volume = Math.max(0, Math.min(maxNorm, sink.volume + step));
             sink.push_volume();
+
+            const level = sink.volume / maxNorm;
+            const name = level === 0 ? 'audio-volume-muted-symbolic'
+                : level < 0.34 ? 'audio-volume-low-symbolic'
+                : level < 0.67 ? 'audio-volume-medium-symbolic'
+                : 'audio-volume-high-symbolic';
+            Main.osdWindowManager.showAll(new Gio.ThemedIcon({ name }), null, level, 1.0);
         }
 
         _makeControlButton(iconName, iconSize, onClick) {
