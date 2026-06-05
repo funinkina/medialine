@@ -17,11 +17,11 @@ export class ExtensionSettings {
     get middleClickAction() { return this._settings.get_enum('middle-click-action'); }
     get rightClickAction() { return this._settings.get_enum('right-click-action'); }
 
-    connect(signal, callback) {
-        return this._settings.connect(signal, callback);
+    connectObject(...args) {
+        this._settings.connectObject(...args);
     }
 
-    disconnect(handlerId) {
-        this._settings.disconnect(handlerId);
+    disconnectObject(owner) {
+        this._settings.disconnectObject(owner);
     }
 }

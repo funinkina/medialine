@@ -113,9 +113,8 @@ export const MprisManager = GObject.registerClass({
                 Gio.DBusProxyFlags.GET_INVALIDATED_PROPERTIES
             );
 
-            const handlerId = proxy.connect('g-properties-changed', () => {
-                this._pickBestPlayer();
-            });
+            proxy.connectObject('g-properties-changed',
+                () => this._pickBestPlayer(), this);
 
             let rootProxy = null;
             try {
@@ -129,7 +128,7 @@ export const MprisManager = GObject.registerClass({
                 );
             } catch (_) { }
 
-            this._players.set(busName, { proxy, handlerId, rootProxy });
+            this._players.set(busName, { proxy, rootProxy });
             this._pickBestPlayer();
         } catch (e) {
             logError(e, `Medialine: Failed to create proxy for ${busName}`);
@@ -140,9 +139,7 @@ export const MprisManager = GObject.registerClass({
         const entry = this._players.get(busName);
         if (!entry) return;
 
-        try {
-            entry.proxy.disconnect(entry.handlerId);
-        } catch (_) { }
+        entry.proxy.disconnectObject(this);
 
         this._players.delete(busName);
         this._pickBestPlayer();
@@ -350,21 +347,18 @@ export const MprisManager = GObject.registerClass({
     }
 
     destroy() {
-        for (const [busName, entry] of this._players) {
-            try {
-                entry.proxy.disconnect(entry.handlerId);
-            } catch (_) { }
+        for (const [, entry] of this._players) {
+            entry.proxy.disconnectObject(this);
         }
         this._players.clear();
 
         if (this._dbusProxy && this._nameOwnerChangedId) {
-            try {
-                this._dbusProxy.disconnectSignal(this._nameOwnerChangedId);
-            } catch (_) { }
+            this._dbusProxy.disconnectSignal(this._nameOwnerChangedId);
         }
 
         this._nameOwnerChangedId = null;
         this._dbusProxy = null;
         this._currentMedia = null;
+        this._currentEntry = null;
     }
 });

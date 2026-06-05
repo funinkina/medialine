@@ -15,12 +15,10 @@ export default class MedialineExtension extends Extension {
         this._indicator = null;
         this._enableTimeoutId = null;
 
-        this._positionChangedId = this._preferences.connect(
-            'changed',
-            (_settings, key) => {
-                if (key === 'panel-position' || key === 'panel-index')
-                    this._updateIndicatorPosition();
-            }
+        this._preferences.connectObject(
+            'changed::panel-position', () => this._updateIndicatorPosition(),
+            'changed::panel-index', () => this._updateIndicatorPosition(),
+            this
         );
 
         this._enableTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 500, () => {
@@ -65,10 +63,7 @@ export default class MedialineExtension extends Extension {
             this._enableTimeoutId = null;
         }
 
-        if (this._positionChangedId) {
-            this._preferences.disconnect(this._positionChangedId);
-            this._positionChangedId = null;
-        }
+        this._preferences.disconnectObject(this);
 
         if (this._indicator) {
             this._indicator.destroy();

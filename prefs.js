@@ -6,7 +6,7 @@ import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/
 
 export default class MedialinePreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
-        const settings = this.getSettings('org.gnome.shell.extensions.medialine');
+        const settings = this.getSettings();
 
         this._registerIconPath();
 

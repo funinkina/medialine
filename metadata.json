@@ -2,17 +2,9 @@
   "name": "Medialine",
   "description": "Shows currently playing media in the top bar via MPRIS",
   "uuid": "medialine@funinkina.co.in",
-  "author": "Aryan Kushwaha <hello@funinkina.co.in>",
-  "license": "MIT",
   "url": "https://github.com/funinkina/medialine",
-  "issue_url": "https://github.com/funinkina/medialine/issues",
   "donations": {
     "buymeacoffee": "funinkina"
-  },
-  "contact": {
-    "email": "hello@funinkina.co.in",
-    "github": "https://github.com/funinkina",
-    "twitter": "https://x.com/funinkina"
   },
   "settings-schema": "org.gnome.shell.extensions.medialine",
   "shell-version": [

@@ -22,9 +22,10 @@ enable:
 disable:
 	gnome-extensions disable $(UUID)
 
-pack: schemas/gschemas.compiled
+pack:
 	mkdir -p dist
-	zip -r dist/$(UUID).zip $(SRC_FILES) helpers schemas icons LICENSE README.md
+	rm -f dist/$(UUID).zip
+	zip -r dist/$(UUID).zip $(SRC_FILES) helpers schemas/*.gschema.xml icons LICENSE README.md
 
 clean:
 	rm -f schemas/gschemas.compiled

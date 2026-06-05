@@ -42,18 +42,9 @@ export const Indicator = GObject.registerClass(
             this._preferences = preferences;
             this._extension = extension;
             this._mprisManager = mprisManager;
-            this._mediaChangedId = null;
-            this._prefsChangedId = null;
             this._currentArtUrl = null;
             this._currentPopupArtUrl = null;
             this._positionTimerId = null;
-            this._menuOpenStateId = null;
-            this._allocationId = null;
-            this._buttonPressId = null;
-            this._progressPressId = null;
-            this._progressMotionId = null;
-            this._progressReleaseId = null;
-            this._progressHoverId = null;
             this._dragging = false;
             this._dragRatio = 0;
 
@@ -61,13 +52,11 @@ export const Indicator = GObject.registerClass(
             this._setupMenu();
             this._setupClickHandling();
 
-            this._mediaChangedId = this._mprisManager.connect('media-changed', () => {
-                this._onMediaChanged();
-            });
+            this._mprisManager.connectObject('media-changed',
+                () => this._onMediaChanged(), this);
 
-            this._prefsChangedId = this._preferences.connect('changed', () => {
-                this._onMediaChanged();
-            });
+            this._preferences.connectObject('changed',
+                () => this._onMediaChanged(), this);
 
             this._onMediaChanged();
         }
@@ -175,16 +164,13 @@ export const Indicator = GObject.registerClass(
                 (PROGRESS_HEIGHT - PROGRESS_THUMB_SIZE) / 2);
             this._progressTrack.add_child(this._progressFill);
             this._progressTrack.add_child(this._progressThumb);
-            this._allocationId = this._progressTrack.connect(
-                'notify::allocation', () => this._updateProgress());
-            this._progressPressId = this._progressTrack.connect(
-                'button-press-event', (_a, event) => this._onProgressPress(event));
-            this._progressMotionId = this._progressTrack.connect(
-                'motion-event', (_a, event) => this._onProgressMotion(event));
-            this._progressReleaseId = this._progressTrack.connect(
-                'button-release-event', (_a, event) => this._onProgressRelease(event));
-            this._progressHoverId = this._progressTrack.connect(
-                'notify::hover', () => this._updateProgress());
+            this._progressTrack.connectObject(
+                'notify::allocation', () => this._updateProgress(),
+                'button-press-event', (_a, event) => this._onProgressPress(event),
+                'motion-event', (_a, event) => this._onProgressMotion(event),
+                'button-release-event', (_a, event) => this._onProgressRelease(event),
+                'notify::hover', () => this._updateProgress(),
+                this);
 
             const section = new St.BoxLayout({
                 vertical: true,
@@ -259,19 +245,16 @@ export const Indicator = GObject.registerClass(
             item.add_child(container);
             this.menu.addMenuItem(item);
 
-            this._menuOpenStateId = this.menu.connect('open-state-changed',
+            this.menu.connectObject('open-state-changed',
                 (_m, open) => {
                     if (open) this._startPositionPolling();
                     else this._stopPositionPolling();
-                });
+                }, this);
         }
 
         _setupClickHandling() {
-            if (this._clickGesture)
-                this._clickGesture.set_enabled(false);
-
-            this._buttonPressId = this.connect('button-press-event',
-                (_actor, event) => this._handleButtonPress(event));
+            this.connectObject('button-press-event',
+                (_actor, event) => this._handleButtonPress(event), this);
         }
 
         _handleButtonPress(event) {
@@ -650,48 +633,11 @@ export const Indicator = GObject.registerClass(
         destroy() {
             this._stopPositionPolling();
 
-            if (this._buttonPressId) {
-                this.disconnect(this._buttonPressId);
-                this._buttonPressId = null;
-            }
-
-            if (this._progressTrack) {
-                if (this._allocationId) {
-                    this._progressTrack.disconnect(this._allocationId);
-                    this._allocationId = null;
-                }
-                if (this._progressPressId) {
-                    this._progressTrack.disconnect(this._progressPressId);
-                    this._progressPressId = null;
-                }
-                if (this._progressMotionId) {
-                    this._progressTrack.disconnect(this._progressMotionId);
-                    this._progressMotionId = null;
-                }
-                if (this._progressReleaseId) {
-                    this._progressTrack.disconnect(this._progressReleaseId);
-                    this._progressReleaseId = null;
-                }
-                if (this._progressHoverId) {
-                    this._progressTrack.disconnect(this._progressHoverId);
-                    this._progressHoverId = null;
-                }
-            }
-
-            if (this._menuOpenStateId) {
-                this.menu.disconnect(this._menuOpenStateId);
-                this._menuOpenStateId = null;
-            }
-
-            if (this._mediaChangedId) {
-                this._mprisManager.disconnect(this._mediaChangedId);
-                this._mediaChangedId = null;
-            }
-
-            if (this._prefsChangedId) {
-                this._preferences.disconnect(this._prefsChangedId);
-                this._prefsChangedId = null;
-            }
+            this._progressTrack?.disconnectObject(this);
+            this.menu.disconnectObject(this);
+            this._mprisManager.disconnectObject(this);
+            this._preferences.disconnectObject(this);
+            this.disconnectObject(this);
 
             super.destroy();
         }
