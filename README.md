@@ -7,16 +7,15 @@
 A GNOME Shell extension that shows the currently playing media track in the top bar via MPRIS.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-45%E2%80%9350-4A86CF?logo=gnome&logoColor=white)](https://www.gnome.org/)
+[![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-46%E2%80%9350-4A86CF?logo=gnome&logoColor=white)](https://www.gnome.org/)
+[![GNOME Extensions installs](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fextensions.gnome.org%2Fextension-info%2F%3Fuuid%3Dmedialine%40funinkina.co.in&query=%24.downloads&label=installs&logo=gnome&logoColor=white&color=4A86CF)](https://extensions.gnome.org/extension/10076/medialine/)
 [![GitHub stars](https://img.shields.io/github/stars/funinkina/medialine?style=flat&logo=github)](https://github.com/funinkina/medialine/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/funinkina/medialine?logo=github)](https://github.com/funinkina/medialine/issues)
 [![Language](https://img.shields.io/badge/JavaScript-GJS-F7DF1E?logo=javascript&logoColor=black)](https://gjs.guide/)
 
 <a href="https://extensions.gnome.org/extension/10076/medialine/">
-  <img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=false" alt="Get it on GNOME Extensions" height="100" />
+  <img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=false" alt="Get it on GNOME Extensions" height="140" />
 </a>
-
-**(COMING SOON)**
 
 </div>
 
