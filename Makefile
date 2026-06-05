@@ -25,7 +25,7 @@ disable:
 pack:
 	mkdir -p dist
 	rm -f dist/$(UUID).zip
-	zip -r dist/$(UUID).zip $(SRC_FILES) helpers schemas/*.gschema.xml icons LICENSE README.md
+	zip -r dist/$(UUID).zip $(SRC_FILES) helpers schemas/*.gschema.xml icons 
 
 clean:
 	rm -f schemas/gschemas.compiled
