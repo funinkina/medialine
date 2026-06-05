@@ -377,8 +377,8 @@ export const Indicator = GObject.registerClass(
             const level = sink.volume / maxNorm;
             const name = level === 0 ? 'audio-volume-muted-symbolic'
                 : level < 0.34 ? 'audio-volume-low-symbolic'
-                : level < 0.67 ? 'audio-volume-medium-symbolic'
-                : 'audio-volume-high-symbolic';
+                    : level < 0.67 ? 'audio-volume-medium-symbolic'
+                        : 'audio-volume-high-symbolic';
             Main.osdWindowManager.showAll(new Gio.ThemedIcon({ name }), null, level, 1.0);
         }
 
@@ -400,12 +400,14 @@ export const Indicator = GObject.registerClass(
                 y_align: Clutter.ActorAlign.CENTER,
             }));
             btn._active = false;
-            btn.connect('notify::hover', () => {
-                btn.style = btn.hover
-                    ? CONTROL_BTN_HOVER_STYLE
-                    : (btn._active ? CONTROL_BTN_ACTIVE_STYLE : CONTROL_BTN_STYLE);
-            });
-            btn.connect('clicked', onClick);
+            btn.connectObject(
+                'notify::hover', () => {
+                    btn.style = btn.hover
+                        ? CONTROL_BTN_HOVER_STYLE
+                        : (btn._active ? CONTROL_BTN_ACTIVE_STYLE : CONTROL_BTN_STYLE);
+                },
+                'clicked', onClick,
+                this);
             return btn;
         }
 
