@@ -258,8 +258,16 @@ export const Indicator = GObject.registerClass(
         }
 
         _setupClickHandling() {
-            this.connectObject('button-press-event',
-                (_actor, event) => this._handleButtonPress(event), this);
+            // PanelMenu.Button toggles its menu from an 'event'-signal handler
+            // that fires during the bubble phase, before any 'button-press-event'
+            // handler we connect. Intercept in the capture phase instead so the
+            // default toggle never runs and only the configured action fires.
+            this.connectObject('captured-event',
+                (_actor, event) => {
+                    if (event.type() !== Clutter.EventType.BUTTON_PRESS)
+                        return Clutter.EVENT_PROPAGATE;
+                    return this._handleButtonPress(event);
+                }, this);
         }
 
         _handleButtonPress(event) {
