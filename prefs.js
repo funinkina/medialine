@@ -13,6 +13,7 @@ export default class MedialinePreferences extends ExtensionPreferences {
         window.add(this._buildDisplayPage(settings));
         window.add(this._buildPanelPage(settings));
         window.add(this._buildMousePage(settings));
+        window.add(this._buildPopupPage(settings));
 
         this._addAboutButton(window);
     }
@@ -186,6 +187,52 @@ export default class MedialinePreferences extends ExtensionPreferences {
         }
 
         return page;
+    }
+
+    _buildPopupPage(settings) {
+        const page = new Adw.PreferencesPage({
+            title: _('Popup'),
+            icon_name: 'applications-graphics-symbolic',
+        });
+
+        const group = new Adw.PreferencesGroup({
+            title: _('Colors'),
+            description: _('Customize the popup color scheme'),
+        });
+        page.add(group);
+
+        group.add(this._makeColorRow(settings, 'popup-primary-color',
+            _('Primary color'), _('Color for text and controls')));
+        group.add(this._makeColorRow(settings, 'popup-secondary-color',
+            _('Secondary color'), _('Color for backgrounds and accents')));
+
+        return page;
+    }
+
+    _makeColorRow(settings, key, title, subtitle) {
+        const hex = settings.get_string(key);
+        const rgba = new Gdk.RGBA();
+        const r = parseInt(hex.substring(1, 3), 16) / 255;
+        const g = parseInt(hex.substring(3, 5), 16) / 255;
+        const b = parseInt(hex.substring(5, 7), 16) / 255;
+        rgba.red = r;
+        rgba.green = g;
+        rgba.blue = b;
+        rgba.alpha = 1;
+
+        const button = new Gtk.ColorButton({ rgba });
+        const row = new Adw.ActionRow({ title, subtitle, activatable_widget: button });
+        row.add_suffix(button);
+
+        button.connect('notify::rgba', () => {
+            const c = button.rgba;
+            const hr = Math.round(c.red * 255).toString(16).padStart(2, '0');
+            const hg = Math.round(c.green * 255).toString(16).padStart(2, '0');
+            const hb = Math.round(c.blue * 255).toString(16).padStart(2, '0');
+            settings.set_string(key, `#${hr}${hg}${hb}`.toUpperCase());
+        });
+
+        return row;
     }
 
     _makeStringList(labels) {

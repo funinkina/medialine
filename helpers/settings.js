@@ -18,6 +18,8 @@ export class ExtensionSettings {
     get rightClickAction() { return this._settings.get_enum('right-click-action'); }
     get scrollUpAction() { return this._settings.get_enum('scroll-up-action'); }
     get scrollDownAction() { return this._settings.get_enum('scroll-down-action'); }
+    get popupPrimaryColor() { return this._settings.get_string('popup-primary-color'); }
+    get popupSecondaryColor() { return this._settings.get_string('popup-secondary-color'); }
 
     connectObject(...args) {
         this._settings.connectObject(...args);

@@ -21,13 +21,15 @@ import {
 
 const POPUP_ART_MAX_W = 120;
 const POPUP_ART_MAX_H = ART_SIZE;
-const POPUP_ART_COMMON_STYLE = 'border-radius: 6px; background-color: rgba(255,255,255,0.08); background-size: contain; background-repeat: no-repeat; background-position: center;';
-const POPUP_ART_FALLBACK_STYLE = `width: ${ART_SIZE}px; height: ${ART_SIZE}px; min-width: ${ART_SIZE}px; min-height: ${ART_SIZE}px; ${POPUP_ART_COMMON_STYLE}`;
-const CONTROL_BTN_STYLE = 'width: 40px; height: 40px; border-radius: 8px; color: white;';
-const CONTROL_BTN_HOVER_STYLE = `${CONTROL_BTN_STYLE} background-color: rgba(255,255,255,0.15);`;
-const CONTROL_BTN_ACTIVE_STYLE = `${CONTROL_BTN_STYLE} background-color: rgba(255,255,255,0.22);`;
-const TIME_LABEL_STYLE = 'font-size: 11px; color: rgba(255,255,255,0.8);';
 const SCROLL_NOTCH = 1.0;
+
+function hexToRgba(hex, alpha) {
+    const h = hex.replace('#', '');
+    const r = parseInt(h.substring(0, 2), 16);
+    const g = parseInt(h.substring(2, 4), 16);
+    const b = parseInt(h.substring(4, 6), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+}
 
 function formatTime(microseconds) {
     if (!microseconds || microseconds < 0) return '0:00';
@@ -55,7 +57,10 @@ export const Indicator = GObject.registerClass(
             this._destroyed = false;
             this._mixer = null;
             this._pendingVolumeDelta = 0;
+            this._controlButtons = [];
+            this._controlIcons = [];
 
+            this._initPopupColors();
             this._buildUI();
             this._setupMenu();
             this._setupClickHandling();
@@ -94,8 +99,29 @@ export const Indicator = GObject.registerClass(
             this.add_child(this._box);
         }
 
+        _initPopupColors() {
+            const primary = this._preferences.popupPrimaryColor;
+            const secondary = this._preferences.popupSecondaryColor;
+            this._popupStyles = {
+                primary,
+                secondary,
+                artCommon: `border-radius: 6px; background-color: ${hexToRgba(secondary, 0.08)}; background-size: contain; background-repeat: no-repeat; background-position: center;`,
+                artFallback: `width: ${ART_SIZE}px; height: ${ART_SIZE}px; min-width: ${ART_SIZE}px; min-height: ${ART_SIZE}px; border-radius: 6px; background-color: ${hexToRgba(secondary, 0.08)}; background-size: contain; background-repeat: no-repeat; background-position: center;`,
+                title: `font-weight: 700; font-size: 16px; color: ${primary};`,
+                subtitle: `font-size: 14px; color: ${primary};`,
+                btn: `width: 40px; height: 40px; border-radius: 8px; color: ${primary};`,
+                btnHover: `width: 40px; height: 40px; border-radius: 8px; color: ${primary}; background-color: ${hexToRgba(secondary, 0.15)};`,
+                btnActive: `width: 40px; height: 40px; border-radius: 8px; color: ${primary}; background-color: ${hexToRgba(secondary, 0.22)};`,
+                time: `font-size: 11px; color: ${hexToRgba(primary, 0.8)};`,
+                progressTrack: `background-color: ${hexToRgba(secondary, 0.18)}; border-radius: ${PROGRESS_HEIGHT / 2}px; height: ${PROGRESS_HEIGHT}px;`,
+                progressFill: `background-color: ${hexToRgba(primary, 0.9)}; border-radius: ${PROGRESS_HEIGHT / 2}px;`,
+                progressThumb: `background-color: ${primary}; border-radius: ${PROGRESS_THUMB_SIZE / 2}px;`,
+                iconColor: `color: ${primary};`,
+            };
+        }
+
         _buildTopRow() {
-            this._popupArt = new St.Bin({ style: POPUP_ART_FALLBACK_STYLE });
+            this._popupArt = new St.Bin({ style: this._popupStyles.artFallback });
             this._popupArtFallback = new St.Icon({
                 icon_name: 'audio-x-generic-symbolic',
                 icon_size: ART_SIZE - 24,
@@ -107,14 +133,14 @@ export const Indicator = GObject.registerClass(
             this._popupTitle = new St.Label({
                 text: '',
                 x_expand: true,
-                style: 'font-weight: 700; font-size: 16px; color: white;',
+                style: this._popupStyles.title,
             });
             this._popupTitle.clutter_text.ellipsize = Pango.EllipsizeMode.END;
 
             this._popupSubtitle = new St.Label({
                 text: '',
                 x_expand: true,
-                style: 'font-size: 14px; color: #FFFFFF;',
+                style: this._popupStyles.subtitle,
             });
             this._popupSubtitle.clutter_text.use_markup = true;
             this._popupSubtitle.clutter_text.ellipsize = Pango.EllipsizeMode.END;
@@ -136,10 +162,10 @@ export const Indicator = GObject.registerClass(
         }
 
         _buildProgressSection() {
-            this._timeCurrent = new St.Label({ text: '0:00', style: TIME_LABEL_STYLE });
+            this._timeCurrent = new St.Label({ text: '0:00', style: this._popupStyles.time });
             this._timeTotal = new St.Label({
                 text: '0:00',
-                style: TIME_LABEL_STYLE,
+                style: this._popupStyles.time,
                 x_align: Clutter.ActorAlign.END,
                 x_expand: true,
             });
@@ -152,17 +178,17 @@ export const Indicator = GObject.registerClass(
                 y_align: Clutter.ActorAlign.CENTER,
                 reactive: true,
                 track_hover: true,
-                style: `background-color: rgba(255,255,255,0.18); border-radius: ${PROGRESS_HEIGHT / 2}px; height: ${PROGRESS_HEIGHT}px;`,
+                style: this._popupStyles.progressTrack,
                 height: PROGRESS_HEIGHT,
             });
             this._progressFill = new St.Widget({
-                style: `background-color: rgba(255,255,255,0.9); border-radius: ${PROGRESS_HEIGHT / 2}px;`,
+                style: this._popupStyles.progressFill,
                 width: 0,
                 height: PROGRESS_HEIGHT,
             });
             this._progressFill.set_position(0, 0);
             this._progressThumb = new St.Widget({
-                style: `background-color: rgba(255,255,255,1); border-radius: ${PROGRESS_THUMB_SIZE / 2}px;`,
+                style: this._popupStyles.progressThumb,
                 width: PROGRESS_THUMB_SIZE,
                 height: PROGRESS_THUMB_SIZE,
                 visible: false,
@@ -388,27 +414,71 @@ export const Indicator = GObject.registerClass(
                 track_hover: true,
                 reactive: true,
                 style_class: 'medialine-control-button',
-                style: CONTROL_BTN_STYLE,
+                style: this._popupStyles.btn,
                 x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,
             });
-            btn.set_child(new St.Icon({
+            const icon = new St.Icon({
                 icon_name: iconName,
                 icon_size: iconSize,
-                style: 'color: white;',
+                style: this._popupStyles.iconColor,
                 x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,
-            }));
+            });
+            btn.set_child(icon);
             btn._active = false;
+            this._controlButtons.push(btn);
+            this._controlIcons.push(icon);
             btn.connectObject(
                 'notify::hover', () => {
                     btn.style = btn.hover
-                        ? CONTROL_BTN_HOVER_STYLE
-                        : (btn._active ? CONTROL_BTN_ACTIVE_STYLE : CONTROL_BTN_STYLE);
+                        ? this._popupStyles.btnHover
+                        : (btn._active ? this._popupStyles.btnActive : this._popupStyles.btn);
                 },
                 'clicked', onClick,
                 this);
             return btn;
+        }
+
+        _updatePopupColors() {
+            const primary = this._preferences.popupPrimaryColor;
+            const secondary = this._preferences.popupSecondaryColor;
+
+            this._popupStyles.primary = primary;
+            this._popupStyles.secondary = secondary;
+            this._popupStyles.artCommon = `border-radius: 6px; background-color: ${hexToRgba(secondary, 0.08)}; background-size: contain; background-repeat: no-repeat; background-position: center;`;
+            this._popupStyles.artFallback = `width: ${ART_SIZE}px; height: ${ART_SIZE}px; min-width: ${ART_SIZE}px; min-height: ${ART_SIZE}px; border-radius: 6px; background-color: ${hexToRgba(secondary, 0.08)}; background-size: contain; background-repeat: no-repeat; background-position: center;`;
+            this._popupStyles.title = `font-weight: 700; font-size: 16px; color: ${primary};`;
+            this._popupStyles.subtitle = `font-size: 14px; color: ${primary};`;
+            this._popupStyles.btn = `width: 40px; height: 40px; border-radius: 8px; color: ${primary};`;
+            this._popupStyles.btnHover = `width: 40px; height: 40px; border-radius: 8px; color: ${primary}; background-color: ${hexToRgba(secondary, 0.15)};`;
+            this._popupStyles.btnActive = `width: 40px; height: 40px; border-radius: 8px; color: ${primary}; background-color: ${hexToRgba(secondary, 0.22)};`;
+            this._popupStyles.time = `font-size: 11px; color: ${hexToRgba(primary, 0.8)};`;
+            this._popupStyles.progressTrack = `background-color: ${hexToRgba(secondary, 0.18)}; border-radius: ${PROGRESS_HEIGHT / 2}px; height: ${PROGRESS_HEIGHT}px;`;
+            this._popupStyles.progressFill = `background-color: ${hexToRgba(primary, 0.9)}; border-radius: ${PROGRESS_HEIGHT / 2}px;`;
+            this._popupStyles.progressThumb = `background-color: ${primary}; border-radius: ${PROGRESS_THUMB_SIZE / 2}px;`;
+            this._popupStyles.iconColor = `color: ${primary};`;
+
+            this._popupTitle.style = this._popupStyles.title;
+            this._popupSubtitle.style = this._popupStyles.subtitle;
+            this._timeCurrent.style = this._popupStyles.time;
+            this._timeTotal.style = this._popupStyles.time;
+            this._progressTrack.style = this._popupStyles.progressTrack;
+            this._progressFill.style = this._popupStyles.progressFill;
+            this._progressThumb.style = this._popupStyles.progressThumb;
+
+            for (const icon of this._controlIcons)
+                icon.style = this._popupStyles.iconColor;
+            for (const btn of this._controlButtons) {
+                if (btn._active)
+                    btn.style = this._popupStyles.btnActive;
+                else if (btn.hover)
+                    btn.style = this._popupStyles.btnHover;
+                else
+                    btn.style = this._popupStyles.btn;
+            }
+
+            this._currentPopupArtUrl = '';
         }
 
         _startPositionPolling() {
@@ -550,6 +620,7 @@ export const Indicator = GObject.registerClass(
             this._iconActor.icon_size = prefs.iconSize;
 
             this._updateIcon(media, prefs);
+            this._updatePopupColors();
             this._updatePopup(media);
 
             if (this._positionTimerId)
@@ -561,7 +632,7 @@ export const Indicator = GObject.registerClass(
             const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             const artist = media.artist ? esc(media.artist) : '';
             const album = media.album ? esc(media.album) : '';
-            const on = (artist && album) ? `<span foreground="#AAAAAA"> on </span>` : '';
+            const on = (artist && album) ? `<span foreground="${this._popupStyles.secondary}"> on </span>` : '';
             this._popupSubtitle.clutter_text.set_markup(artist + on + album);
             this._popupSubtitle.visible = !!(artist || album);
 
@@ -578,7 +649,7 @@ export const Indicator = GObject.registerClass(
             this._shuffleBtn.reactive = shuffleAvail;
             this._shuffleBtn.opacity = shuffleAvail ? 255 : 110;
             this._shuffleBtn._active = shuffleAvail && media.shuffle;
-            this._shuffleBtn.style = this._shuffleBtn._active ? CONTROL_BTN_ACTIVE_STYLE : CONTROL_BTN_STYLE;
+            this._shuffleBtn.style = this._shuffleBtn._active ? this._popupStyles.btnActive : this._popupStyles.btn;
 
             const repeatAvail = media.loopStatus !== null && media.canControl;
             this._repeatBtn.reactive = repeatAvail;
@@ -587,7 +658,7 @@ export const Indicator = GObject.registerClass(
                 ? 'media-playlist-repeat-song-symbolic'
                 : 'media-playlist-repeat-symbolic';
             this._repeatBtn._active = repeatAvail && media.loopStatus !== 'None';
-            this._repeatBtn.style = this._repeatBtn._active ? CONTROL_BTN_ACTIVE_STYLE : CONTROL_BTN_STYLE;
+            this._repeatBtn.style = this._repeatBtn._active ? this._popupStyles.btnActive : this._popupStyles.btn;
 
             this._updatePopupArt(media);
             this._updateProgress();
@@ -609,13 +680,13 @@ export const Indicator = GObject.registerClass(
                         this._popupArt.set_child(null);
                         this._popupArt.style =
                             `width: ${w}px; height: ${h}px; min-width: ${w}px; min-height: ${h}px; ` +
-                            `${POPUP_ART_COMMON_STYLE} background-image: url("${safePath}");`;
+                            `${this._popupStyles.artCommon} background-image: url("${safePath}");`;
                         return;
                     }
                 } catch (_) { /* fall through to fallback icon */ }
             }
 
-            this._popupArt.style = POPUP_ART_FALLBACK_STYLE;
+            this._popupArt.style = this._popupStyles.artFallback;
             this._popupArtFallback.icon_name = this._preferences.iconType === ICON_TYPE_STATUS
                 ? (media.status === 'Playing'
                     ? 'media-playback-start-symbolic'

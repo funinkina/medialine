@@ -107,5 +107,17 @@
       <summary>Scroll down action</summary>
     </key>
 
+    <key name="popup-primary-color" type="s">
+      <default>'#FFFFFF'</default>
+      <summary>Popup primary color</summary>
+      <description>Primary color for popup text and controls</description>
+    </key>
+
+    <key name="popup-secondary-color" type="s">
+      <default>'#888888'</default>
+      <summary>Popup secondary color</summary>
+      <description>Secondary color for popup backgrounds and accents</description>
+    </key>
+
   </schema>
 </schemalist>
