@@ -62,6 +62,7 @@ export const MprisManager = GObject.registerClass({
     _init() {
         super._init();
         this._players = new Map();
+        this._allMedia = [];
         this._currentMedia = null;
         this._currentEntry = null;
         this._nameOwnerChangedId = null;
@@ -114,7 +115,7 @@ export const MprisManager = GObject.registerClass({
             );
 
             proxy.connectObject('g-properties-changed',
-                () => this._pickBestPlayer(), this);
+                () => this._refreshMedia(), this);
 
             let rootProxy = null;
             try {
@@ -129,7 +130,7 @@ export const MprisManager = GObject.registerClass({
             } catch (_) { }
 
             this._players.set(busName, { proxy, rootProxy });
-            this._pickBestPlayer();
+            this._refreshMedia();
         } catch (e) {
             logError(e, `Medialine: Failed to create proxy for ${busName}`);
         }
@@ -142,44 +143,20 @@ export const MprisManager = GObject.registerClass({
         entry.proxy.disconnectObject(this);
 
         this._players.delete(busName);
-        this._pickBestPlayer();
+        this._refreshMedia();
     }
 
-    _pickBestPlayer() {
-        let bestEntry = null;
-        let bestBus = null;
-
-        // Prefer Playing, then Paused
-        for (const [busName, entry] of this._players) {
-            const status = entry.proxy.PlaybackStatus;
-            if (status === 'Playing') {
-                bestEntry = entry;
-                bestBus = busName;
-                break;
-            }
-            if (status === 'Paused' && !bestEntry) {
-                bestEntry = entry;
-                bestBus = busName;
-            }
-        }
-
-        if (!bestEntry) {
-            this._currentMedia = null;
-            this._currentEntry = null;
-            this.emit('media-changed');
-            return;
-        }
-
-        const metadata = this._unpackMetadata(bestEntry.proxy.Metadata);
+    _buildMediaObject(busName, entry) {
+        const metadata = this._unpackMetadata(entry.proxy.Metadata);
         let desktopEntry = '';
         let identity = '';
-        if (bestEntry.rootProxy) {
+        if (entry.rootProxy) {
             try {
-                desktopEntry = String(bestEntry.rootProxy.DesktopEntry || '');
-                identity = String(bestEntry.rootProxy.Identity || '');
+                desktopEntry = String(entry.rootProxy.DesktopEntry || '');
+                identity = String(entry.rootProxy.Identity || '');
             } catch (_) { }
         }
-        this._currentMedia = {
+        return {
             title: metadata['xesam:title'] || '',
             artist: Array.isArray(metadata['xesam:artist'])
                 ? metadata['xesam:artist'][0] || ''
@@ -188,49 +165,75 @@ export const MprisManager = GObject.registerClass({
             artUrl: metadata['mpris:artUrl'] || '',
             length: Number(metadata['mpris:length']) || 0,
             trackId: metadata['mpris:trackid'] || '',
-            status: bestEntry.proxy.PlaybackStatus || 'Stopped',
-            canGoNext: bestEntry.proxy.CanGoNext !== false,
-            canGoPrevious: bestEntry.proxy.CanGoPrevious !== false,
-            canControl: bestEntry.proxy.CanControl !== false,
-            canSeek: bestEntry.proxy.CanSeek !== false,
-            shuffle: bestEntry.proxy.Shuffle != null ? Boolean(bestEntry.proxy.Shuffle) : null,
-            loopStatus: bestEntry.proxy.LoopStatus != null ? String(bestEntry.proxy.LoopStatus) : null,
-            busName: bestBus,
+            status: entry.proxy.PlaybackStatus || 'Stopped',
+            canGoNext: entry.proxy.CanGoNext !== false,
+            canGoPrevious: entry.proxy.CanGoPrevious !== false,
+            canControl: entry.proxy.CanControl !== false,
+            canSeek: entry.proxy.CanSeek !== false,
+            shuffle: entry.proxy.Shuffle != null ? Boolean(entry.proxy.Shuffle) : null,
+            loopStatus: entry.proxy.LoopStatus != null ? String(entry.proxy.LoopStatus) : null,
+            busName,
             desktopEntry,
             identity,
         };
-        this._currentEntry = bestEntry;
+    }
+
+    // Rebuilds the full list of active (non-stopped) players, ordered
+    // Playing-first then Paused, and picks the first as the "best" one
+    // used for the panel label/icon and the single-player rich popup.
+    _refreshMedia() {
+        const candidates = [];
+        for (const [busName, entry] of this._players) {
+            const status = entry.proxy.PlaybackStatus;
+            if (status === 'Stopped') continue;
+            candidates.push({ busName, entry, status });
+        }
+
+        candidates.sort((a, b) => {
+            const rank = s => (s === 'Playing' ? 0 : 1);
+            return rank(a.status) - rank(b.status);
+        });
+
+        this._allMedia = candidates.map(c => this._buildMediaObject(c.busName, c.entry));
+
+        if (candidates.length === 0) {
+            this._currentMedia = null;
+            this._currentEntry = null;
+        } else {
+            this._currentMedia = this._allMedia[0];
+            this._currentEntry = candidates[0].entry;
+        }
 
         this.emit('media-changed');
     }
 
-    playPause() {
-        this._invoke('PlayPauseRemote');
+    playPause(busName) {
+        this._invoke('PlayPauseRemote', busName);
     }
 
-    next() {
-        this._invoke('NextRemote');
+    next(busName) {
+        this._invoke('NextRemote', busName);
     }
 
-    previous() {
-        this._invoke('PreviousRemote');
+    previous(busName) {
+        this._invoke('PreviousRemote', busName);
     }
 
-    setShuffle(value) {
-        if (!this._currentMedia) return;
-        this._setPlayerProperty('Shuffle', new GLib.Variant('b', value),
+    setShuffle(value, busName = this._currentMedia?.busName) {
+        if (!busName) return;
+        this._setPlayerProperty(busName, 'Shuffle', new GLib.Variant('b', value),
             'Medialine: setShuffle failed');
     }
 
-    setLoopStatus(value) {
-        if (!this._currentMedia) return;
-        this._setPlayerProperty('LoopStatus', new GLib.Variant('s', value),
+    setLoopStatus(value, busName = this._currentMedia?.busName) {
+        if (!busName) return;
+        this._setPlayerProperty(busName, 'LoopStatus', new GLib.Variant('s', value),
             'Medialine: setLoopStatus failed');
     }
 
-    _setPlayerProperty(propName, valueVariant, errorLabel) {
+    _setPlayerProperty(busName, propName, valueVariant, errorLabel) {
         Gio.DBus.session.call(
-            this._currentMedia.busName,
+            busName,
             '/org/mpris/MediaPlayer2',
             'org.freedesktop.DBus.Properties',
             'Set',
@@ -251,10 +254,11 @@ export const MprisManager = GObject.registerClass({
         );
     }
 
-    _invoke(method) {
-        if (!this._currentEntry) return;
+    _invoke(method, busName) {
+        const entry = busName ? this._players.get(busName) : this._currentEntry;
+        if (!entry) return;
         try {
-            this._currentEntry.proxy[method]();
+            entry.proxy[method]();
         } catch (e) {
             logError(e, `Medialine: ${method} failed`);
         }
@@ -315,6 +319,32 @@ export const MprisManager = GObject.registerClass({
         );
     }
 
+    // Resolves the unix PID that owns a given MPRIS bus name. Used by the
+    // indicator both to find a better app icon and to focus the correct
+    // existing window instead of relying on the player's own (sometimes
+    // buggy) handling of the MPRIS Raise method.
+    getPidForBusName(busName, callback) {
+        Gio.DBus.session.call(
+            'org.freedesktop.DBus',
+            '/org/freedesktop/DBus',
+            'org.freedesktop.DBus',
+            'GetConnectionUnixProcessID',
+            new GLib.Variant('(s)', [busName]),
+            null,
+            Gio.DBusCallFlags.NONE,
+            -1,
+            null,
+            (conn, res) => {
+                let pid = 0;
+                try {
+                    const result = conn.call_finish(res);
+                    [pid] = result.deepUnpack();
+                } catch (_) { /* unknown */ }
+                callback(pid);
+            }
+        );
+    }
+
     _unpackMetadata(metadata) {
         if (!metadata) return {};
         try {
@@ -344,6 +374,11 @@ export const MprisManager = GObject.registerClass({
         return this._currentMedia;
     }
 
+    // All currently active (non-stopped) players, Playing first.
+    get allMedia() {
+        return this._allMedia;
+    }
+
     destroy() {
         for (const [, entry] of this._players) {
             entry.proxy.disconnectObject(this);
@@ -356,6 +391,7 @@ export const MprisManager = GObject.registerClass({
 
         this._nameOwnerChangedId = null;
         this._dbusProxy = null;
+        this._allMedia = [];
         this._currentMedia = null;
         this._currentEntry = null;
     }

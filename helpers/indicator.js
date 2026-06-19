@@ -6,6 +6,7 @@ import GdkPixbuf from 'gi://GdkPixbuf';
 import Clutter from 'gi://Clutter';
 import Pango from 'gi://Pango';
 import Gvc from 'gi://Gvc';
+import Shell from 'gi://Shell';
 
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
@@ -59,6 +60,8 @@ export const Indicator = GObject.registerClass(
             this._pendingVolumeDelta = 0;
             this._controlButtons = [];
             this._controlIcons = [];
+            this._pidCache = new Map();
+            this._pendingPidLookups = new Set();
 
             this._initPopupColors();
             this._buildUI();
@@ -117,18 +120,24 @@ export const Indicator = GObject.registerClass(
                 progressFill: `background-color: ${hexToRgba(primary, 0.9)}; border-radius: ${PROGRESS_HEIGHT / 2}px;`,
                 progressThumb: `background-color: ${primary}; border-radius: ${PROGRESS_THUMB_SIZE / 2}px;`,
                 iconColor: `color: ${primary};`,
+                separator: `height: 1px; background-color: ${hexToRgba(secondary, 0.15)};`,
+                compactTitle: `font-weight: 600; font-size: 13px; color: ${primary};`,
+                compactSubtitle: `font-size: 11px; color: ${hexToRgba(primary, 0.75)};`,
+                compactBtn: `width: 32px; height: 32px; border-radius: 8px; color: ${primary};`,
+                compactBtnHover: `width: 32px; height: 32px; border-radius: 8px; color: ${primary}; background-color: ${hexToRgba(secondary, 0.15)};`,
             };
         }
 
         _buildTopRow() {
-            this._popupArt = new St.Bin({
+            this._popupArt = new St.Widget({
+                layout_manager: new Clutter.FixedLayout(),
                 style: this._popupStyles.artFallback,
                 reactive: true,
             });
             this._popupArt.connectObject(
                 'button-release-event', (_a, event) => {
                     if (event.type() === Clutter.EventType.BUTTON_RELEASE) {
-                        this._launchCurrentMediaApp();
+                        this._focusPlayerWindow(this._mprisManager.currentMedia?.busName);
                         return Clutter.EVENT_STOP;
                     }
                     return Clutter.EVENT_PROPAGATE;
@@ -138,12 +147,9 @@ export const Indicator = GObject.registerClass(
 
             this._popupArtAppIcon = new St.Icon({
                 icon_name: 'audio-x-generic-symbolic',
-                icon_size: ART_SIZE - 24,
-                x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER,
+                icon_size: 40,
             });
-
-            this._popupArt.set_child(this._popupArtAppIcon);
+            this._popupArt.add_child(this._popupArtAppIcon);
 
             this._popupTitle = new St.Label({
                 text: '',
@@ -287,9 +293,30 @@ export const Indicator = GObject.registerClass(
                 x_expand: true,
                 style: `spacing: 12px; min-width: ${POPUP_MIN_WIDTH}px; max-width: ${POPUP_MAX_WIDTH}px;`,
             });
-            container.add_child(this._buildTopRow());
-            container.add_child(this._buildProgressSection());
-            container.add_child(this._buildControlsRow());
+
+            // Rich single-player layout (art, title/subtitle, scrubber,
+            // full control row). Shown when exactly one player is active.
+            this._richContainer = new St.BoxLayout({
+                vertical: true,
+                x_expand: true,
+                style: 'spacing: 12px;',
+            });
+            this._richContainer.add_child(this._buildTopRow());
+            this._richContainer.add_child(this._buildProgressSection());
+            this._richContainer.add_child(this._buildControlsRow());
+
+            // Compact stacked layout, one row per player. Shown when two or
+            // more players are active simultaneously. Rows are rebuilt on
+            // every media-changed event since the count/order can change.
+            this._listContainer = new St.BoxLayout({
+                vertical: true,
+                x_expand: true,
+                style: 'spacing: 8px;',
+            });
+            this._listContainer.hide();
+
+            container.add_child(this._richContainer);
+            container.add_child(this._listContainer);
 
             item.add_child(container);
             this.menu.addMenuItem(item);
@@ -455,6 +482,38 @@ export const Indicator = GObject.registerClass(
             return btn;
         }
 
+        // Lightweight control button used in the compact (multi-player) rows.
+        // Not tracked in _controlButtons/_controlIcons since compact rows are
+        // rebuilt from scratch on every update.
+        _makeCompactButton(iconName, iconSize, onClick) {
+            const btn = new St.Button({
+                can_focus: true,
+                track_hover: true,
+                reactive: true,
+                style_class: 'medialine-control-button',
+                style: this._popupStyles.compactBtn,
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+            const icon = new St.Icon({
+                icon_name: iconName,
+                icon_size: iconSize,
+                style: this._popupStyles.iconColor,
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+            btn.set_child(icon);
+            btn.connectObject(
+                'notify::hover', () => {
+                    btn.style = btn.hover
+                        ? this._popupStyles.compactBtnHover
+                        : this._popupStyles.compactBtn;
+                },
+                'clicked', onClick,
+                this);
+            return btn;
+        }
+
         _updatePopupColors() {
             const primary = this._preferences.popupPrimaryColor;
             const secondary = this._preferences.popupSecondaryColor;
@@ -473,6 +532,11 @@ export const Indicator = GObject.registerClass(
             this._popupStyles.progressFill = `background-color: ${hexToRgba(primary, 0.9)}; border-radius: ${PROGRESS_HEIGHT / 2}px;`;
             this._popupStyles.progressThumb = `background-color: ${primary}; border-radius: ${PROGRESS_THUMB_SIZE / 2}px;`;
             this._popupStyles.iconColor = `color: ${primary};`;
+            this._popupStyles.separator = `height: 1px; background-color: ${hexToRgba(secondary, 0.15)};`;
+            this._popupStyles.compactTitle = `font-weight: 600; font-size: 13px; color: ${primary};`;
+            this._popupStyles.compactSubtitle = `font-size: 11px; color: ${hexToRgba(primary, 0.75)};`;
+            this._popupStyles.compactBtn = `width: 32px; height: 32px; border-radius: 8px; color: ${primary};`;
+            this._popupStyles.compactBtnHover = `width: 32px; height: 32px; border-radius: 8px; color: ${primary}; background-color: ${hexToRgba(secondary, 0.15)};`;
 
             this._popupTitle.style = this._popupStyles.title;
             this._popupSubtitle.style = this._popupStyles.subtitle;
@@ -506,6 +570,9 @@ export const Indicator = GObject.registerClass(
         }
 
         _pollPosition() {
+            // The scrubber only exists in the single-player rich view.
+            if (this._mprisManager.allMedia.length !== 1) return;
+
             if (this._dragging) {
                 this._updateProgress();
                 return;
@@ -610,9 +677,9 @@ export const Indicator = GObject.registerClass(
         }
 
         _onMediaChanged() {
-            const media = this._mprisManager.currentMedia;
+            const allMedia = this._mprisManager.allMedia;
 
-            if (!media || media.status === 'Stopped') {
+            if (allMedia.length === 0) {
                 this.hide();
                 this._stopPositionPolling();
                 return;
@@ -620,6 +687,7 @@ export const Indicator = GObject.registerClass(
 
             this.show();
 
+            const media = allMedia[0];
             const prefs = this._preferences;
             const parts = [];
             if (prefs.showTitle && media.title) parts.push(media.title);
@@ -636,14 +704,23 @@ export const Indicator = GObject.registerClass(
 
             this._updateIcon(media, prefs);
             this._updatePopupColors();
-            this._updatePopup(media);
+
+            if (allMedia.length === 1) {
+                this._listContainer.hide();
+                this._richContainer.show();
+                this._updatePopup(media);
+            } else {
+                this._richContainer.hide();
+                this._listContainer.show();
+                this._updateMediaList(allMedia);
+            }
 
             if (this._positionTimerId)
                 this._pollPosition();
         }
 
         _updatePopup(media) {
-            this._popupTitle.text = media.title || _('Unknown');
+            this._popupTitle.text = media.title || (media.identity ? `${media.identity} is playing media` : _('Unknown'));
             const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             const artist = media.artist ? esc(media.artist) : '';
             const album = media.album ? esc(media.album) : '';
@@ -679,57 +756,187 @@ export const Indicator = GObject.registerClass(
             this._updateProgress();
         }
 
+        // Rebuilds the compact stacked rows, one per active player.
+        _updateMediaList(allMedia) {
+            this._listContainer.destroy_all_children();
+
+            allMedia.forEach((media, idx) => {
+                if (idx > 0) {
+                    this._listContainer.add_child(new St.Widget({
+                        style: this._popupStyles.separator,
+                        x_expand: true,
+                    }));
+                }
+                const row = this._buildCompactRow(media);
+                this._listContainer.add_child(row);
+                this._applyCompactArt(row, media);
+                this._applyCompactInfo(row, media);
+            });
+        }
+
+        _buildCompactRow(media) {
+            const art = new St.Widget({
+                layout_manager: new Clutter.FixedLayout(),
+                style: this._popupStyles.artFallback,
+                reactive: true,
+            });
+            const appIcon = new St.Icon({
+                icon_name: 'audio-x-generic-symbolic',
+                icon_size: 32,
+            });
+            art.add_child(appIcon);
+            art.connectObject(
+                'button-release-event', (_a, event) => {
+                    if (event.type() === Clutter.EventType.BUTTON_RELEASE) {
+                        this._focusPlayerWindow(media.busName);
+                        return Clutter.EVENT_STOP;
+                    }
+                    return Clutter.EVENT_PROPAGATE;
+                },
+                this
+            );
+
+            const title = new St.Label({
+                text: '',
+                x_expand: true,
+                style: this._popupStyles.compactTitle,
+            });
+            title.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+
+            const subtitle = new St.Label({
+                text: '',
+                x_expand: true,
+                style: this._popupStyles.compactSubtitle,
+            });
+            subtitle.clutter_text.use_markup = true;
+            subtitle.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+
+            const textBox = new St.BoxLayout({
+                vertical: true,
+                x_expand: true,
+                y_align: Clutter.ActorAlign.CENTER,
+                style: 'spacing: 2px;',
+            });
+            textBox.add_child(title);
+            textBox.add_child(subtitle);
+
+            const playBtn = this._makeCompactButton('media-playback-start-symbolic', 18,
+                () => this._mprisManager.playPause(media.busName));
+            const nextBtn = this._makeCompactButton('media-skip-forward-symbolic', 16,
+                () => this._mprisManager.next(media.busName));
+
+            const row = new St.BoxLayout({
+                x_expand: true,
+                y_align: Clutter.ActorAlign.CENTER,
+                style: 'spacing: 10px;',
+            });
+            row.add_child(art);
+            row.add_child(textBox);
+            row.add_child(playBtn);
+            row.add_child(nextBtn);
+
+            row._art = art;
+            row._appIcon = appIcon;
+            row._title = title;
+            row._subtitle = subtitle;
+            row._playBtn = playBtn;
+            row._nextBtn = nextBtn;
+            return row;
+        }
+
+        _applyCompactInfo(row, media) {
+            row._title.text = media.title || (media.identity ? `${media.identity} is playing media` : _('Unknown'));
+            const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const artist = media.artist ? esc(media.artist) : '';
+            const album = media.album ? esc(media.album) : '';
+            const on = (artist && album) ? `<span foreground="${this._popupStyles.secondary}"> on </span>` : '';
+            row._subtitle.clutter_text.set_markup(artist + on + album);
+            row._subtitle.visible = !!(artist || album);
+
+            row._playBtn.get_child().icon_name = media.status === 'Playing'
+                ? 'media-playback-pause-symbolic'
+                : 'media-playback-start-symbolic';
+
+            const nextAvail = media.canGoNext !== false;
+            row._nextBtn.reactive = nextAvail;
+            row._nextBtn.opacity = nextAvail ? 255 : 110;
+        }
+
+        _applyCompactArt(row, media) {
+            this._applyArtBin(row._art, row._appIcon, media, {
+                boxSize: ART_SIZE,
+                fallbackIconSize: 32,
+            });
+        }
+
         _updatePopupArt(media) {
-            const artUrl = media.artUrl || '';
-            const cacheKey = `${artUrl}::${media.status}::${this._preferences.iconType}`;
+            const cacheKey = `${media.artUrl || ''}::${media.status}::${this._preferences.iconType}`;
             if (cacheKey === this._currentPopupArtUrl) return;
             this._currentPopupArtUrl = cacheKey;
 
-            const appGicon = this._lookupAppGicon(media);
+            this._applyArtBin(this._popupArt, this._popupArtAppIcon, media, {
+                boxSize: null,
+                fallbackIconSize: 40,
+            });
+        }
 
-            if (artUrl && artUrl.startsWith('file://')) {
-                try {
-                    const path = GLib.uri_unescape_string(artUrl.substring('file://'.length), null);
-                    const dims = this._readImageDims(path);
-                    if (dims) {
-                        const [w, h] = this._fitBox(dims.width, dims.height);
-                        const safePath = path.replace(/"/g, '\\"');
-                        this._popupArt.style =
-                            `width: ${w}px; height: ${h}px; min-width: ${w}px; min-height: ${h}px; ` +
-                            `${this._popupStyles.artCommon} background-image: url("${safePath}");`;
-                        this._popupArtAppIcon.icon_size = 30;
-                        this._popupArtAppIcon.x_align = Clutter.ActorAlign.END;
-                        this._popupArtAppIcon.y_align = Clutter.ActorAlign.END;
-                        this._popupArtAppIcon.translation_x = 25;
-                        this._popupArtAppIcon.translation_y = 25;
-                        this._popupArtAppIcon.icon_name = null;
-                        this._popupArtAppIcon.gicon = null;
-                        if (appGicon) {
-                            this._popupArtAppIcon.gicon = appGicon;
-                        } else {
-                            this._popupArtAppIcon.icon_name = 'audio-x-generic-symbolic';
-                        }
-                        return;
-                    }
-                } catch (_) { /* fall through to fallback icon */ }
+        // Shared art-rendering logic for both the rich popup art box and the
+        // compact row thumbnails: shows the track art with a small app-icon
+        // badge in the bottom-right corner when art is available (matching
+        // how most "now playing" widgets do it), or the app's icon centered
+        // and prominent when there's no art at all.
+        _applyArtBin(bin, badgeIcon, media, opts) {
+            const appGicon = this._lookupAppGicon(media);
+            const art = this._tryGetArtBackgroundCss(media);
+
+            if (art) {
+                const [w, h] = opts.boxSize
+                    ? [opts.boxSize, opts.boxSize]
+                    : this._fitBox(art.dims.width, art.dims.height);
+                bin.style =
+                    `width: ${w}px; height: ${h}px; min-width: ${w}px; min-height: ${h}px; ` +
+                    `${this._popupStyles.artCommon} background-image: url("${art.safePath}");`;
+
+                const badgeSize = 30;
+                const overlap = 25;
+                badgeIcon.icon_size = badgeSize;
+                badgeIcon.icon_name = null;
+                badgeIcon.gicon = appGicon || null;
+                badgeIcon.visible = !!appGicon;
+                badgeIcon.set_size(badgeSize, badgeSize);
+                // Computed from this box's actual w/h, so it always lands in the
+                // true bottom-right corner regardless of aspect ratio — alignment
+                // + translation was inconsistent for non-square (e.g. 16:9) art.
+                badgeIcon.set_position(w - badgeSize + overlap, h - badgeSize + overlap);
+                return;
             }
 
-            this._popupArt.style = this._popupStyles.artFallback;
-            this._popupArtAppIcon.icon_size = ART_SIZE - 24;
-            this._popupArtAppIcon.x_align = Clutter.ActorAlign.CENTER;
-            this._popupArtAppIcon.y_align = Clutter.ActorAlign.CENTER;
-            this._popupArtAppIcon.translation_x = 0;
-            this._popupArtAppIcon.translation_y = 0;
-            this._popupArtAppIcon.icon_name = null;
-            this._popupArtAppIcon.gicon = null;
-            if (this._preferences.iconType === ICON_TYPE_STATUS) {
-                this._popupArtAppIcon.icon_name = media.status === 'Playing'
-                    ? 'media-playback-start-symbolic'
-                    : 'media-playback-pause-symbolic';
-            } else if (appGicon) {
-                this._popupArtAppIcon.gicon = appGicon;
-            } else {
-                this._popupArtAppIcon.icon_name = 'audio-x-generic-symbolic';
+            const size = opts.boxSize || ART_SIZE;
+            bin.style = opts.boxSize
+                ? `width: ${size}px; height: ${size}px; min-width: ${size}px; min-height: ${size}px; ${this._popupStyles.artCommon}`
+                : this._popupStyles.artFallback;
+
+            const fallbackSize = opts.fallbackIconSize;
+            badgeIcon.icon_size = fallbackSize;
+            badgeIcon.gicon = appGicon || null;
+            badgeIcon.icon_name = appGicon ? null : 'audio-x-generic-symbolic';
+            badgeIcon.visible = true;
+            badgeIcon.set_size(fallbackSize, fallbackSize);
+            badgeIcon.set_position(
+                Math.round((size - fallbackSize) / 2),
+                Math.round((size - fallbackSize) / 2));
+        }
+
+        _tryGetArtBackgroundCss(media) {
+            const artUrl = media.artUrl || '';
+            if (!artUrl || !artUrl.startsWith('file://')) return null;
+            try {
+                const path = GLib.uri_unescape_string(artUrl.substring('file://'.length), null);
+                const dims = this._readImageDims(path);
+                if (!dims) return null;
+                return { dims, safePath: path.replace(/"/g, '\\"') };
+            } catch (_) {
+                return null;
             }
         }
 
@@ -798,6 +1005,20 @@ export const Indicator = GObject.registerClass(
         _lookupAppGicon(media) {
             if (!media) return null;
 
+            // Most reliable: resolve via the PID that owns the MPRIS bus name
+            // and ask the shell which running app that actually is.
+            const pid = this._pidCache.get(media.busName);
+            if (pid) {
+                try {
+                    const app = Shell.WindowTracker.get_default().get_app_from_pid(pid);
+                    const appInfo = app ? app.get_app_info() : null;
+                    const icon = appInfo ? appInfo.get_icon() : null;
+                    if (icon) return icon;
+                } catch (_) { /* fall through to heuristic matching */ }
+            } else {
+                this._ensurePidResolved(media.busName);
+            }
+
             const candidates = [];
             const push = (v) => { if (v) candidates.push(v); };
 
@@ -833,15 +1054,85 @@ export const Indicator = GObject.registerClass(
                 }
             }
 
+            // Last resort: fuzzy match against installed apps' display names.
+            if (media.identity) {
+                const needle = media.identity.toLowerCase();
+                for (const info of Gio.AppInfo.get_all()) {
+                    const name = info.get_display_name()?.toLowerCase();
+                    if (name && (name.includes(needle) || needle.includes(name))) {
+                        const icon = info.get_icon();
+                        if (icon) return icon;
+                    }
+                }
+            }
+
             return null;
         }
 
-        _launchCurrentMediaApp() {
-            const media = this._mprisManager.currentMedia;
-            if (!media || !media.busName) return;
+        // Kicks off (at most once per bus name) an async lookup of the PID
+        // owning this MPRIS service, then refreshes the UI so icons/art can
+        // upgrade once the PID is known.
+        _ensurePidResolved(busName) {
+            if (!busName) return;
+            if (this._pidCache.has(busName) || this._pendingPidLookups.has(busName)) return;
+            this._pendingPidLookups.add(busName);
+            this._mprisManager.getPidForBusName(busName, (pid) => {
+                this._pendingPidLookups.delete(busName);
+                this._pidCache.set(busName, pid);
+                if (!this._destroyed) this._onMediaChanged();
+            });
+        }
 
+        // Brings the window of the app playing `busName` to the front. Uses
+        // the shell's own window tracker to activate the actual existing
+        // window for that process, rather than relying on the player's own
+        // (sometimes buggy) handling of the MPRIS Raise method, which can
+        // end up opening a new window instead of focusing the right one.
+        _focusPlayerWindow(busName) {
+            if (!busName) return;
+
+            const cachedPid = this._pidCache.get(busName);
+            if (cachedPid !== undefined) {
+                if (cachedPid && this._activateWindowForPid(cachedPid)) return;
+                this._raiseViaMpris(busName);
+                return;
+            }
+
+            this._mprisManager.getPidForBusName(busName, (pid) => {
+                this._pidCache.set(busName, pid);
+                if (this._destroyed) return;
+                if (pid && this._activateWindowForPid(pid)) return;
+                this._raiseViaMpris(busName);
+            });
+        }
+
+        _activateWindowForPid(pid) {
+            try {
+                const app = Shell.WindowTracker.get_default().get_app_from_pid(pid);
+                if (!app) return false;
+
+                const windows = app.get_windows();
+                if (!windows || windows.length === 0) return false;
+
+                let best = windows[0];
+                for (const w of windows) {
+                    if (w.get_user_time() > best.get_user_time())
+                        best = w;
+                }
+
+                const workspace = best.get_workspace();
+                const time = global.get_current_time();
+                if (workspace) workspace.activate_with_focus(best, time);
+                else best.activate(time);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        _raiseViaMpris(busName) {
             Gio.DBus.session.call(
-                media.busName,
+                busName,
                 '/org/mpris/MediaPlayer2',
                 'org.mpris.MediaPlayer2',
                 'Raise',
@@ -854,7 +1145,7 @@ export const Indicator = GObject.registerClass(
                     try {
                         conn.call_finish(res);
                     } catch (_) {
-                        // Player may not support the Raise method
+                        // Player may not support the Raise method either.
                     }
                 }
             );
@@ -869,6 +1160,9 @@ export const Indicator = GObject.registerClass(
                 this._mixer.close();
                 this._mixer = null;
             }
+
+            this._pidCache.clear();
+            this._pendingPidLookups.clear();
 
             this._popupArt?.disconnectObject(this);
             this._progressTrack?.disconnectObject(this);
