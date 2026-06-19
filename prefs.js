@@ -348,9 +348,11 @@ export default class MedialinePreferences extends ExtensionPreferences {
         page.add(colorsGroup);
 
         colorsGroup.add(this._makeColorRow(settings, 'popup-primary-color',
-            _('Primary color'), _('Color for text and controls')));
+            _('Primary color'), _('Color for text and controls'),
+            '#FFFFFF'));
         colorsGroup.add(this._makeColorRow(settings, 'popup-secondary-color',
-            _('Secondary color'), _('Color for backgrounds and accents')));
+            _('Secondary color'), _('Color for backgrounds and accents'),
+            '#888888'));
         colorsGroup.add(this._makeColorRow(settings, 'popup-background-color',
             _('Background color'), _('Background color for the popup'),
             ''));
