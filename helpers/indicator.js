@@ -2,6 +2,7 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
+import GioUnix from 'gi://GioUnix';
 import GdkPixbuf from 'gi://GdkPixbuf';
 import Clutter from 'gi://Clutter';
 import Pango from 'gi://Pango';
@@ -1115,7 +1116,7 @@ export const Indicator = GObject.registerClass(
             const ids = candidates.map(c => c.endsWith('.desktop') ? c : `${c}.desktop`);
 
             for (const id of ids) {
-                const info = Gio.DesktopAppInfo.new(id);
+                const info = GioUnix.DesktopAppInfo.new(id);
                 if (info) {
                     const icon = info.get_icon();
                     if (icon) return icon;
