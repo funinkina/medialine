@@ -20,8 +20,8 @@ A GNOME Shell extension that shows the currently playing media track in the top 
 </div>
 
 ## Screenshots
-|                                                                                                                                         |                                                                                                                                         |
-| :-------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: |
+|                                                                                                                                                                  |                                                                                                                                                                  |
+| :--------------------------------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | <img width="553" height="334" alt="Screenshot From 2026-06-19 17-13-08" src="https://github.com/user-attachments/assets/19a0c6ab-c510-4a55-aeee-a3bf45ef69d7" /> | <img width="657" height="333" alt="Screenshot From 2026-06-19 17-11-40" src="https://github.com/user-attachments/assets/3a3771f3-9e56-4c34-be3d-ac447e416589" /> |
 
 
@@ -56,7 +56,7 @@ Each mouse button (left, middle, right) and scroll direction (up, down) can be i
 - Play / Pause
 - Open extension settings
 - Skip to next track / previous track
-- **Raise the player window**
+- Raise the player window
 - Volume up / Volume down (scroll only, via Gvc mixer)
 
 ### Panel Placement
@@ -121,32 +121,32 @@ Open the extension preferences via:
 - Configuring a mouse button to **Open settings** and clicking
 
 ### Appearance tab
-| Setting                     | Description                                            |
-| --------------------------- | ------------------------------------------------------ |
-| Icon source                 | Album art / App icon / Playing status / Custom image   |
-| Custom image                | File picker for a custom PNG/SVG icon                  |
-| Icon size                   | Size in pixels (8–64)                                  |
-| Icon spacing                | Gap between icon and text (0–32 px)                    |
-| Separator                   | String placed between title, artist, album             |
-| Max text width              | Clip long labels (0 = unlimited)                       |
-| Show title / artist / album | Toggle each field independently                        |
+| Setting                     | Description                                          |
+| --------------------------- | ---------------------------------------------------- |
+| Icon source                 | Album art / App icon / Playing status / Custom image |
+| Custom image                | File picker for a custom PNG/SVG icon                |
+| Icon size                   | Size in pixels (8–64)                                |
+| Icon spacing                | Gap between icon and text (0–32 px)                  |
+| Separator                   | String placed between title, artist, album           |
+| Max text width              | Clip long labels (0 = unlimited)                     |
+| Show title / artist / album | Toggle each field independently                      |
 
 ### Panel tab
-| Setting                  | Description                                          |
-| ------------------------ | ---------------------------------------------------- |
-| Panel section            | Left, Center, or Right                               |
-| Position index           | Order within the section (0 = first)                 |
-| Hide default notification| Suppress GNOME's built-in media notification         |
+| Setting                   | Description                                  |
+| ------------------------- | -------------------------------------------- |
+| Panel section             | Left, Center, or Right                       |
+| Position index            | Order within the section (0 = first)         |
+| Hide default notification | Suppress GNOME's built-in media notification |
 
 ### Mouse tab
 Assign an action to left, middle, right click, and scroll up/down individually.
 
 ### Popup tab
-| Setting                    | Description                                      |
-| -------------------------- | ------------------------------------------------ |
-| Primary color              | Text and control color in the popup              |
-| Secondary color            | Background and accent color in the popup         |
-| Show app icon on album art | Overlay the player's app icon badge on the art   |
+| Setting                    | Description                                    |
+| -------------------------- | ---------------------------------------------- |
+| Primary color              | Text and control color in the popup            |
+| Secondary color            | Background and accent color in the popup       |
+| Show app icon on album art | Overlay the player's app icon badge on the art |
 
 ## License
 
