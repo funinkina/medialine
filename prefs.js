@@ -352,7 +352,8 @@ export default class MedialinePreferences extends ExtensionPreferences {
         colorsGroup.add(this._makeColorRow(settings, 'popup-secondary-color',
             _('Secondary color'), _('Color for backgrounds and accents')));
         colorsGroup.add(this._makeColorRow(settings, 'popup-background-color',
-            _('Background color'), _('Background color for the popup (set to transparent for theme default)')));
+            _('Background color'), _('Background color for the popup'),
+            ''));
 
         const appIconGroup = new Adw.PreferencesGroup({
             title: _('App icon'),
@@ -365,9 +366,13 @@ export default class MedialinePreferences extends ExtensionPreferences {
         return page;
     }
 
-    _makeColorRow(settings, key, title, subtitle) {
+    _makeColorRow(settings, key, title, subtitle, defaultValue = null) {
+        const currentValue = settings.get_string(key);
         const rgba = new Gdk.RGBA();
-        rgba.parse(settings.get_string(key));
+        if (currentValue)
+            rgba.parse(currentValue);
+        else
+            rgba.parse('#7F7F7F'); // neutral placeholder for "no custom color"
 
         const button = new Gtk.ColorDialogButton({
             dialog: new Gtk.ColorDialog({
@@ -381,11 +386,46 @@ export default class MedialinePreferences extends ExtensionPreferences {
         const row = new Adw.ActionRow({ title, subtitle, activatable_widget: button });
         row.add_suffix(button);
 
+        let _resetBtn = null;
+        let _suppressNotify = false;
+
+        const updateResetButton = () => {
+            const val = settings.get_string(key);
+            const needsReset = defaultValue !== null && val !== defaultValue;
+
+            if (needsReset && !_resetBtn) {
+                _resetBtn = new Gtk.Button({
+                    icon_name: 'edit-undo-symbolic',
+                    valign: Gtk.Align.CENTER,
+                    tooltip_text: _('Reset to default'),
+                });
+                _resetBtn.add_css_class('flat');
+                _resetBtn.connect('clicked', () => {
+                    _suppressNotify = true;
+                    settings.set_string(key, defaultValue);
+                    const neutral = new Gdk.RGBA();
+                    neutral.parse('#7F7F7F');
+                    button.rgba = neutral;
+                    _suppressNotify = false;
+                    _resetBtn.unparent();
+                    _resetBtn = null;
+                });
+                row.add_suffix(_resetBtn);
+            } else if (!needsReset && _resetBtn) {
+                _resetBtn.unparent();
+                _resetBtn = null;
+            }
+        };
+
         button.connect('notify::rgba', () => {
+            if (_suppressNotify) return;
             const c = button.rgba;
             const toHex = (channel) => Math.round(channel * 255).toString(16).padStart(2, '0');
             settings.set_string(key, `#${toHex(c.red)}${toHex(c.green)}${toHex(c.blue)}`.toUpperCase());
+            updateResetButton();
         });
+
+        updateResetButton();
 
         return row;
     }

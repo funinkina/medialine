@@ -108,10 +108,11 @@ export const Indicator = GObject.registerClass(
             const primary = this._preferences.popupPrimaryColor;
             const secondary = this._preferences.popupSecondaryColor;
             const bgColor = this._preferences.popupBackgroundColor;
+            this._popupBgActive = false;
             this._popupStyles = {
                 primary,
                 secondary,
-                popupBg: bgColor && bgColor !== 'transparent' ? `background-color: ${bgColor};` : '',
+                popupBg: bgColor ? `background-color: ${bgColor};` : '',
                 artCommon: `border-radius: 6px; background-color: ${hexToRgba(secondary, 0.08)}; background-size: contain; background-repeat: no-repeat; background-position: center;`,
                 artFallback: `width: ${ART_SIZE}px; height: ${ART_SIZE}px; min-width: ${ART_SIZE}px; min-height: ${ART_SIZE}px; border-radius: 6px; background-color: ${hexToRgba(secondary, 0.08)}; background-size: contain; background-repeat: no-repeat; background-position: center;`,
                 title: `font-weight: 700; font-size: 16px; color: ${primary};`,
@@ -318,8 +319,10 @@ export const Indicator = GObject.registerClass(
             item.add_child(container);
             this.menu.addMenuItem(item);
 
-            if (this._popupStyles.popupBg)
+            if (this._popupStyles.popupBg) {
                 this.menu.box.style = this._popupStyles.popupBg;
+                this._popupBgActive = true;
+            }
 
             this.menu.connectObject('open-state-changed',
                 (_m, open) => {
@@ -554,7 +557,13 @@ export const Indicator = GObject.registerClass(
                     btn.style = this._popupStyles.btn;
             }
 
-            this.menu.box.style = this._popupStyles.popupBg;
+            if (this._popupStyles.popupBg) {
+                this.menu.box.style = this._popupStyles.popupBg;
+                this._popupBgActive = true;
+            } else if (this._popupBgActive) {
+                this.menu.box.set_style(null);
+                this._popupBgActive = false;
+            }
 
             this._currentPopupArtUrl = '';
         }

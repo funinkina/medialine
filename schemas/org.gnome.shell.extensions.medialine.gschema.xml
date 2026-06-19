@@ -135,9 +135,9 @@
     </key>
 
     <key name="popup-background-color" type="s">
-      <default>'transparent'</default>
+      <default>''</default>
       <summary>Popup background color</summary>
-      <description>Custom background color for the popup. Set to 'transparent' to use the GNOME Shell theme default.</description>
+      <description>Custom background color for the popup. Leave empty to use the GNOME Shell theme default.</description>
     </key>
 
     <key name="popup-show-app-icon" type="b">
