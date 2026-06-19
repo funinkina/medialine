@@ -122,8 +122,6 @@ export const Indicator = GObject.registerClass(
                 progressThumb: `background-color: ${primary}; border-radius: ${PROGRESS_THUMB_SIZE / 2}px;`,
                 iconColor: `color: ${primary};`,
                 separator: `height: 1px; background-color: ${hexToRgba(secondary, 0.15)};`,
-                compactTitle: `font-weight: 600; font-size: 13px; color: ${primary};`,
-                compactSubtitle: `font-size: 11px; color: ${hexToRgba(primary, 0.75)};`,
                 compactBtn: `width: 32px; height: 32px; border-radius: 8px; color: ${primary};`,
                 compactBtnHover: `width: 32px; height: 32px; border-radius: 8px; color: ${primary}; background-color: ${hexToRgba(secondary, 0.15)};`,
             };
@@ -525,8 +523,6 @@ export const Indicator = GObject.registerClass(
             this._popupStyles.progressThumb = `background-color: ${primary}; border-radius: ${PROGRESS_THUMB_SIZE / 2}px;`;
             this._popupStyles.iconColor = `color: ${primary};`;
             this._popupStyles.separator = `height: 1px; background-color: ${hexToRgba(secondary, 0.15)};`;
-            this._popupStyles.compactTitle = `font-weight: 600; font-size: 13px; color: ${primary};`;
-            this._popupStyles.compactSubtitle = `font-size: 11px; color: ${hexToRgba(primary, 0.75)};`;
             this._popupStyles.compactBtn = `width: 32px; height: 32px; border-radius: 8px; color: ${primary};`;
             this._popupStyles.compactBtnHover = `width: 32px; height: 32px; border-radius: 8px; color: ${primary}; background-color: ${hexToRgba(secondary, 0.15)};`;
 
@@ -790,14 +786,14 @@ export const Indicator = GObject.registerClass(
             const title = new St.Label({
                 text: '',
                 x_expand: true,
-                style: this._popupStyles.compactTitle,
+                style: this._popupStyles.title,
             });
             title.clutter_text.ellipsize = Pango.EllipsizeMode.END;
 
             const subtitle = new St.Label({
                 text: '',
                 x_expand: true,
-                style: this._popupStyles.compactSubtitle,
+                style: this._popupStyles.subtitle,
             });
             subtitle.clutter_text.use_markup = true;
             subtitle.clutter_text.ellipsize = Pango.EllipsizeMode.END;
@@ -903,8 +899,8 @@ export const Indicator = GObject.registerClass(
 
             const fallbackSize = opts.fallbackIconSize;
             badgeIcon.icon_size = fallbackSize;
-            badgeIcon.gicon = appGicon || null;
-            badgeIcon.icon_name = appGicon ? null : 'audio-x-generic-symbolic';
+            badgeIcon.icon_name = 'audio-x-generic-symbolic';
+            badgeIcon.gicon = (showAppIcon && appGicon) ? appGicon : null;
             badgeIcon.visible = true;
             badgeIcon.set_size(fallbackSize, fallbackSize);
             badgeIcon.set_position(
