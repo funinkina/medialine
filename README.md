@@ -29,31 +29,42 @@ A GNOME Shell extension that shows the currently playing media track in the top 
 
 ### Panel Indicator
 - Displays track info (title, artist, album) inline in the top bar
-- Three icon modes: **album art**, **app icon**, or **playback status icon**
+- Four icon modes: **album art**, **app icon**, **playback status icon**, or **custom image**
 - Auto-hides when no media is playing or playback is stopped
 - Configurable icon size, spacing, text separator, and max label width
 
-### Popup
-Click the indicator to open a rich media popup with:
-- Album art preserving the original aspect ratio (works for square album covers and 16:9 video thumbnails like YouTube) — falls back to a generic icon if unavailable
+### Rich Popup
+Click the indicator to open a media popup with:
+- Album art preserving the original aspect ratio (square album covers and 16:9 video thumbnails like YouTube) — click to **raise/focus the player window**
+- **App icon badge** overlaid on the album art, toggleable in settings
 - Track title, artist, and album name
 - Live **progress bar** with elapsed and total time (updates every second)
-- **Click or drag** anywhere on the progress bar to seek to that position (a thumb appears on hover when the player supports seeking)
+- **Click or drag** anywhere on the progress bar to seek (a thumb appears on hover when the player supports seeking)
 - **Playback controls** — shuffle, previous, play/pause, next, repeat (off / track / playlist) — with greyed-out state when unavailable
+- Customizable popup colors (primary text and secondary accent)
 
-### Mouse Button Actions
-Each mouse button (left, middle, right) can be independently configured to:
+### Multi-Source View
+When multiple media players are active, the popup switches to a **compact list view** showing each player with:
+- Album art thumbnail (click to focus the player)
+- Track title and artist/album
+- Per-source play/pause and next-track controls
+
+### Mouse & Scroll Actions
+Each mouse button (left, middle, right) and scroll direction (up, down) can be independently configured to:
 - Do nothing
 - Open the popup
 - Play / Pause
 - Open extension settings
-- Skip to next track
-- Skip to previous track
-- Volume up / Volume down (via `pactl`)
+- Skip to next track / previous track
+- **Raise the player window**
+- Volume up / Volume down (scroll only, via Gvc mixer)
 
 ### Panel Placement
 - Place the indicator in the **left**, **center**, or **right** section of the top bar
 - Set a position index to control ordering within that section
+
+### Default Notification Hiding
+- Optionally suppress GNOME's built-in media notification while the panel indicator is shown
 
 ### MPRIS Auto-detection
 - Automatically detects all running MPRIS-compatible media players
@@ -64,7 +75,6 @@ Each mouse button (left, middle, right) can be independently configured to:
 
 - GNOME Shell 45 – 50
 - An MPRIS-compatible media player (Spotify, VLC, Firefox, Rhythmbox, mpv, etc.)
-- `pactl` (PipeWire/PulseAudio) — only required if using volume up/down click actions
 
 ## Installation
 
@@ -110,24 +120,33 @@ Open the extension preferences via:
 - Right-clicking the indicator → **Settings**
 - Configuring a mouse button to **Open settings** and clicking
 
-### Display tab
-| Setting                     | Description                                |
-| --------------------------- | ------------------------------------------ |
-| Icon source                 | Album art / App icon / Playing status      |
-| Icon size                   | Size in pixels (8–64)                      |
-| Icon spacing                | Gap between icon and text (0–32 px)        |
-| Separator                   | String placed between title, artist, album |
-| Max text width              | Clip long labels (0 = unlimited)           |
-| Show title / artist / album | Toggle each field independently            |
+### Appearance tab
+| Setting                     | Description                                            |
+| --------------------------- | ------------------------------------------------------ |
+| Icon source                 | Album art / App icon / Playing status / Custom image   |
+| Custom image                | File picker for a custom PNG/SVG icon                  |
+| Icon size                   | Size in pixels (8–64)                                  |
+| Icon spacing                | Gap between icon and text (0–32 px)                    |
+| Separator                   | String placed between title, artist, album             |
+| Max text width              | Clip long labels (0 = unlimited)                       |
+| Show title / artist / album | Toggle each field independently                        |
 
 ### Panel tab
-| Setting        | Description                          |
-| -------------- | ------------------------------------ |
-| Panel section  | Left, Center, or Right               |
-| Position index | Order within the section (0 = first) |
+| Setting                  | Description                                          |
+| ------------------------ | ---------------------------------------------------- |
+| Panel section            | Left, Center, or Right                               |
+| Position index           | Order within the section (0 = first)                 |
+| Hide default notification| Suppress GNOME's built-in media notification         |
 
 ### Mouse tab
-Assign an action to left, middle, and right click individually.
+Assign an action to left, middle, right click, and scroll up/down individually.
+
+### Popup tab
+| Setting                    | Description                                      |
+| -------------------------- | ------------------------------------------------ |
+| Primary color              | Text and control color in the popup              |
+| Secondary color            | Background and accent color in the popup         |
+| Show app icon on album art | Overlay the player's app icon badge on the art   |
 
 ## License
 
