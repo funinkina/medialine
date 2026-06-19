@@ -22,7 +22,8 @@ A GNOME Shell extension that shows the currently playing media track in the top 
 ## Screenshots
 |                                                                                                                                         |                                                                                                                                         |
 | :-------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------: |
-| <img alt="Screenshot From 2026-06-02 10-22-17" src="https://github.com/user-attachments/assets/460737c5-4ec3-4202-8fef-49bba5e78b64" /> | <img alt="Screenshot From 2026-06-02 10-27-36" src="https://github.com/user-attachments/assets/3acbe21f-6bd7-4b4b-9ad0-f44aa2c7556f" /> |
+| <img width="553" height="334" alt="Screenshot From 2026-06-19 17-13-08" src="https://github.com/user-attachments/assets/19a0c6ab-c510-4a55-aeee-a3bf45ef69d7" /> | <img width="657" height="333" alt="Screenshot From 2026-06-19 17-11-40" src="https://github.com/user-attachments/assets/3a3771f3-9e56-4c34-be3d-ac447e416589" /> |
+
 
 ## Features
 
