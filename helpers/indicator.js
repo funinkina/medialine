@@ -62,6 +62,7 @@ export const Indicator = GObject.registerClass(
             this._controlIcons = [];
             this._pidCache = new Map();
             this._pendingPidLookups = new Set();
+            this._windowClassCache = new Map();
 
             this._initPopupColors();
             this._buildUI();
@@ -294,8 +295,6 @@ export const Indicator = GObject.registerClass(
                 style: `spacing: 12px; min-width: ${POPUP_MIN_WIDTH}px; max-width: ${POPUP_MAX_WIDTH}px;`,
             });
 
-            // Rich single-player layout (art, title/subtitle, scrubber,
-            // full control row). Shown when exactly one player is active.
             this._richContainer = new St.BoxLayout({
                 vertical: true,
                 x_expand: true,
@@ -305,9 +304,6 @@ export const Indicator = GObject.registerClass(
             this._richContainer.add_child(this._buildProgressSection());
             this._richContainer.add_child(this._buildControlsRow());
 
-            // Compact stacked layout, one row per player. Shown when two or
-            // more players are active simultaneously. Rows are rebuilt on
-            // every media-changed event since the count/order can change.
             this._listContainer = new St.BoxLayout({
                 vertical: true,
                 x_expand: true,
@@ -329,10 +325,6 @@ export const Indicator = GObject.registerClass(
         }
 
         _setupClickHandling() {
-            // PanelMenu.Button toggles its menu from an 'event'-signal handler
-            // that fires during the bubble phase, before any 'button-press-event'
-            // handler we connect. Intercept in the capture phase instead so the
-            // default toggle never runs and only the configured action fires.
             this.connectObject('captured-event',
                 (_actor, event) => {
                     const type = event.type();
@@ -756,7 +748,6 @@ export const Indicator = GObject.registerClass(
             this._updateProgress();
         }
 
-        // Rebuilds the compact stacked rows, one per active player.
         _updateMediaList(allMedia) {
             this._listContainer.destroy_all_children();
 
@@ -880,11 +871,6 @@ export const Indicator = GObject.registerClass(
             });
         }
 
-        // Shared art-rendering logic for both the rich popup art box and the
-        // compact row thumbnails: shows the track art with a small app-icon
-        // badge in the bottom-right corner when art is available (matching
-        // how most "now playing" widgets do it), or the app's icon centered
-        // and prominent when there's no art at all.
         _applyArtBin(bin, badgeIcon, media, opts) {
             const appGicon = this._lookupAppGicon(media);
             const art = this._tryGetArtBackgroundCss(media);
@@ -1031,34 +1017,65 @@ export const Indicator = GObject.registerClass(
             }
 
             if (candidates.length === 0) return null;
-            if (candidates.length === 1) return candidates[0];
 
+            // Single candidate- cache its WM_CLASS and return
+            if (candidates.length === 1) {
+                this._windowClassCache.set(media.busName, candidates[0].get_wm_class());
+                return candidates[0];
+            }
+
+            const knownClass = this._windowClassCache.get(media.busName);
+            if (knownClass) {
+                const match = candidates.find(w => w.get_wm_class() === knownClass);
+                if (match) return match;
+            }
+
+            let best = null;
+            let bestScore = -1;
+
+            const knownAppTitles = [
+                'youtube music', 'spotify', 'tidal', 'deezer', 'music',
+                'soundcloud', 'pandora', 'amazon music', 'apple music',
+            ];
             const needles = this._identityCandidates(media)
                 .map(s => s.toLowerCase())
                 .filter(Boolean);
+
             for (const w of candidates) {
-                const wmClass = (w.get_wm_class() || '').toLowerCase();
-                if (!wmClass) continue;
-                if (needles.some(n => wmClass.includes(n) || n.includes(wmClass)))
-                    return w;
+                let score = 0;
+                const title = (w.get_title() || '').toLowerCase();
+                const wmclass = (w.get_wm_class() || '').toLowerCase();
+
+                if (media.title && title.includes(media.title.toLowerCase()))
+                    score += 1000;
+
+                if (knownAppTitles.some(kw => title.includes(kw)))
+                    score += 500;
+
+                if (needles.some(n => wmclass.includes(n) || n.includes(wmclass)))
+                    score += 100;
+
+                score += w.get_user_time() / 10000000;
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    best = w;
+                }
             }
 
-            let best = candidates[0];
+            if (best) return best;
+
+            let fallback = candidates[0];
             for (const w of candidates) {
-                if (w.get_user_time() > best.get_user_time())
-                    best = w;
+                if (w.get_user_time() > fallback.get_user_time())
+                    fallback = w;
             }
-            return best;
+            return fallback;
         }
 
         _lookupAppGicon(media) {
             if (!media) return null;
 
-            // Resolve via the specific window playing this media, using
-            // WM_CLASS to disambiguate PWAs from their host browser when
-            // they share a PID. This is more reliable than string-based
-            // matching, which can accidentally match the browser's own
-            // desktop entry or bus-name artifacts before we find the PWA.
             const pid = this._pidCache.get(media.busName);
             if (pid === undefined) {
                 this._ensurePidResolved(media.busName);
@@ -1074,9 +1091,6 @@ export const Indicator = GObject.registerClass(
                 } catch (_) { /* give up */ }
             }
 
-            // Fall back to string-based matching against installed .desktop
-            // files (identity, bus name, etc.) when the window-based path
-            // doesn't yield anything.
             const stringIcon = this._lookupAppGiconByString(media);
             if (stringIcon) return stringIcon;
 
@@ -1118,9 +1132,6 @@ export const Indicator = GObject.registerClass(
             return null;
         }
 
-        // Kicks off (at most once per bus name) an async lookup of the PID
-        // owning this MPRIS service, then refreshes the UI so icons/art can
-        // upgrade once the PID is known.
         _ensurePidResolved(busName) {
             if (!busName) return;
             if (this._pidCache.has(busName) || this._pendingPidLookups.has(busName)) return;
@@ -1198,6 +1209,7 @@ export const Indicator = GObject.registerClass(
 
             this._pidCache.clear();
             this._pendingPidLookups.clear();
+            this._windowClassCache.clear();
 
             this._popupArt?.disconnectObject(this);
             this._progressTrack?.disconnectObject(this);
