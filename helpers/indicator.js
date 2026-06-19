@@ -137,7 +137,7 @@ export const Indicator = GObject.registerClass(
             this._popupArt.connectObject(
                 'button-release-event', (_a, event) => {
                     if (event.type() === Clutter.EventType.BUTTON_RELEASE) {
-                        this._focusPlayerWindow(this._mprisManager.currentMedia?.busName);
+                        this._focusPlayerWindow(this._mprisManager.currentMedia);
                         return Clutter.EVENT_STOP;
                     }
                     return Clutter.EVENT_PROPAGATE;
@@ -788,7 +788,7 @@ export const Indicator = GObject.registerClass(
             art.connectObject(
                 'button-release-event', (_a, event) => {
                     if (event.type() === Clutter.EventType.BUTTON_RELEASE) {
-                        this._focusPlayerWindow(media.busName);
+                        this._focusPlayerWindow(media);
                         return Clutter.EVENT_STOP;
                     }
                     return Clutter.EVENT_PROPAGATE;
@@ -897,8 +897,8 @@ export const Indicator = GObject.registerClass(
                     `width: ${w}px; height: ${h}px; min-width: ${w}px; min-height: ${h}px; ` +
                     `${this._popupStyles.artCommon} background-image: url("${art.safePath}");`;
 
-                const badgeSize = 30;
-                const overlap = 25;
+                const badgeSize = 28;
+                const overlap = 5;
                 badgeIcon.icon_size = badgeSize;
                 badgeIcon.icon_name = null;
                 badgeIcon.gicon = appGicon || null;
@@ -1002,40 +1002,91 @@ export const Indicator = GObject.registerClass(
             this._iconActor.icon_name = 'audio-x-generic-symbolic';
         }
 
-        _lookupAppGicon(media) {
-            if (!media) return null;
-
-            // Most reliable: resolve via the PID that owns the MPRIS bus name
-            // and ask the shell which running app that actually is.
-            const pid = this._pidCache.get(media.busName);
-            if (pid) {
-                try {
-                    const app = Shell.WindowTracker.get_default().get_app_from_pid(pid);
-                    const appInfo = app ? app.get_app_info() : null;
-                    const icon = appInfo ? appInfo.get_icon() : null;
-                    if (icon) return icon;
-                } catch (_) { /* fall through to heuristic matching */ }
-            } else {
-                this._ensurePidResolved(media.busName);
-            }
-
-            const candidates = [];
-            const push = (v) => { if (v) candidates.push(v); };
-
+        _identityCandidates(media) {
+            const out = [];
+            const push = (v) => { if (v) out.push(v); };
             push(media.desktopEntry);
+            push(media.identity);
             if (media.identity) {
-                push(media.identity);
-                push(media.identity.toLowerCase().replace(/\s+/g, '-'));
-                push(media.identity.toLowerCase().replace(/\s+/g, ''));
+                push(media.identity.replace(/\s+/g, '-'));
+                push(media.identity.replace(/\s+/g, ''));
             }
             if (media.busName) {
                 const tail = media.busName.replace('org.mpris.MediaPlayer2.', '');
                 push(tail);
                 push(tail.split('.')[0]);
             }
+            return out;
+        }
 
-            const ids = candidates.map(c =>
-                c.endsWith('.desktop') ? c : `${c}.desktop`);
+        _findWindowForMedia(media, pid) {
+            if (!pid) return null;
+
+            let candidates;
+            try {
+                candidates = global.get_window_actors()
+                    .map(a => a.meta_window)
+                    .filter(w => w && w.get_pid() === pid);
+            } catch (_) {
+                return null;
+            }
+
+            if (candidates.length === 0) return null;
+            if (candidates.length === 1) return candidates[0];
+
+            const needles = this._identityCandidates(media)
+                .map(s => s.toLowerCase())
+                .filter(Boolean);
+            for (const w of candidates) {
+                const wmClass = (w.get_wm_class() || '').toLowerCase();
+                if (!wmClass) continue;
+                if (needles.some(n => wmClass.includes(n) || n.includes(wmClass)))
+                    return w;
+            }
+
+            let best = candidates[0];
+            for (const w of candidates) {
+                if (w.get_user_time() > best.get_user_time())
+                    best = w;
+            }
+            return best;
+        }
+
+        _lookupAppGicon(media) {
+            if (!media) return null;
+
+            // Resolve via the specific window playing this media, using
+            // WM_CLASS to disambiguate PWAs from their host browser when
+            // they share a PID. This is more reliable than string-based
+            // matching, which can accidentally match the browser's own
+            // desktop entry or bus-name artifacts before we find the PWA.
+            const pid = this._pidCache.get(media.busName);
+            if (pid === undefined) {
+                this._ensurePidResolved(media.busName);
+            } else if (pid) {
+                try {
+                    const win = this._findWindowForMedia(media, pid);
+                    const app = win
+                        ? Shell.WindowTracker.get_default().get_window_app(win)
+                        : null;
+                    const appInfo = app ? app.get_app_info() : null;
+                    const icon = appInfo ? appInfo.get_icon() : null;
+                    if (icon) return icon;
+                } catch (_) { /* give up */ }
+            }
+
+            // Fall back to string-based matching against installed .desktop
+            // files (identity, bus name, etc.) when the window-based path
+            // doesn't yield anything.
+            const stringIcon = this._lookupAppGiconByString(media);
+            if (stringIcon) return stringIcon;
+
+            return null;
+        }
+
+        _lookupAppGiconByString(media) {
+            const candidates = this._identityCandidates(media);
+            const ids = candidates.map(c => c.endsWith('.desktop') ? c : `${c}.desktop`);
 
             for (const id of ids) {
                 const info = Gio.DesktopAppInfo.new(id);
@@ -1054,7 +1105,6 @@ export const Indicator = GObject.registerClass(
                 }
             }
 
-            // Last resort: fuzzy match against installed apps' display names.
             if (media.identity) {
                 const needle = media.identity.toLowerCase();
                 for (const info of Gio.AppInfo.get_all()) {
@@ -1083,17 +1133,13 @@ export const Indicator = GObject.registerClass(
             });
         }
 
-        // Brings the window of the app playing `busName` to the front. Uses
-        // the shell's own window tracker to activate the actual existing
-        // window for that process, rather than relying on the player's own
-        // (sometimes buggy) handling of the MPRIS Raise method, which can
-        // end up opening a new window instead of focusing the right one.
-        _focusPlayerWindow(busName) {
-            if (!busName) return;
+        _focusPlayerWindow(media) {
+            if (!media || !media.busName) return;
+            const busName = media.busName;
 
             const cachedPid = this._pidCache.get(busName);
             if (cachedPid !== undefined) {
-                if (cachedPid && this._activateWindowForPid(cachedPid)) return;
+                if (cachedPid && this._activateWindowForMedia(media, cachedPid)) return;
                 this._raiseViaMpris(busName);
                 return;
             }
@@ -1101,29 +1147,19 @@ export const Indicator = GObject.registerClass(
             this._mprisManager.getPidForBusName(busName, (pid) => {
                 this._pidCache.set(busName, pid);
                 if (this._destroyed) return;
-                if (pid && this._activateWindowForPid(pid)) return;
+                if (pid && this._activateWindowForMedia(media, pid)) return;
                 this._raiseViaMpris(busName);
             });
         }
 
-        _activateWindowForPid(pid) {
+        _activateWindowForMedia(media, pid) {
+            const win = this._findWindowForMedia(media, pid);
+            if (!win) return false;
             try {
-                const app = Shell.WindowTracker.get_default().get_app_from_pid(pid);
-                if (!app) return false;
-
-                const windows = app.get_windows();
-                if (!windows || windows.length === 0) return false;
-
-                let best = windows[0];
-                for (const w of windows) {
-                    if (w.get_user_time() > best.get_user_time())
-                        best = w;
-                }
-
-                const workspace = best.get_workspace();
+                const workspace = win.get_workspace();
                 const time = global.get_current_time();
-                if (workspace) workspace.activate_with_focus(best, time);
-                else best.activate(time);
+                if (workspace) workspace.activate_with_focus(win, time);
+                else win.activate(time);
                 return true;
             } catch (_) {
                 return false;
