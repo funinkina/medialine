@@ -363,7 +363,7 @@ export default class MedialinePreferences extends ExtensionPreferences {
         });
         page.add(appIconGroup);
         appIconGroup.add(this._makeSwitchRow(settings, 'popup-show-app-icon',
-            _('Show app icon on album art')));
+            _('Show app icon on the bottom right of the album art')));
 
         return page;
     }
