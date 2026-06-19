@@ -61,6 +61,12 @@
       <summary>Position index within the panel section</summary>
     </key>
 
+    <key name="hide-default-notification" type="b">
+      <default>false</default>
+      <summary>Hide default GNOME media notification</summary>
+      <description>Suppress the default media notification that appears in the system notification center</description>
+    </key>
+
     <key name="show-title" type="b">
       <default>true</default>
       <summary>Show track title</summary>

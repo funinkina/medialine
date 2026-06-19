@@ -145,6 +145,11 @@ export default class MedialinePreferences extends ExtensionPreferences {
         group.add(this._makeSpinRow(settings, 'panel-index',
             _('Position index'), _('Order within the panel section (0 = first)'), 0, 20, 1));
 
+        const behaviorGroup = new Adw.PreferencesGroup({ title: _('Media Notification') });
+        page.add(behaviorGroup);
+        behaviorGroup.add(this._makeSwitchRow(settings, 'hide-default-notification',
+            _('Hide the default GNOME media notification')));
+
         return page;
     }
 

@@ -14,10 +14,12 @@ export default class MedialineExtension extends Extension {
         this._mprisManager = new MprisManager();
         this._indicator = null;
         this._enableIdleId = null;
+        this._origAddPlayer = null;
 
         this._preferences.connectObject(
             'changed::panel-position', () => this._updateIndicatorPosition(),
             'changed::panel-index', () => this._updateIndicatorPosition(),
+            'changed::hide-default-notification', () => this._updateDefaultNotification(),
             this
         );
 
@@ -31,6 +33,41 @@ export default class MedialineExtension extends Extension {
             this._enableIdleId = null;
             return GLib.SOURCE_REMOVE;
         });
+
+        this._updateDefaultNotification();
+    }
+
+    async _updateDefaultNotification() {
+        const shouldHide = this._preferences.hideDefaultNotification;
+        let MprisModule;
+        try {
+            MprisModule = await import('resource:///org/gnome/shell/ui/mpris.js');
+        } catch (_) {
+            return;
+        }
+        const MprisSource = MprisModule.MprisSource ?? MprisModule.MediaSection;
+        if (!MprisSource) return;
+
+        const mediaSource =
+            Main.panel.statusArea.dateMenu?._messageList?._messageView?._mediaSource ??
+            Main.panel.statusArea.dateMenu?._messageList?._mediaSection;
+        if (!mediaSource) return;
+
+        if (shouldHide) {
+            if (this._origAddPlayer) return;
+            this._origAddPlayer = MprisSource.prototype._addPlayer;
+            MprisSource.prototype._addPlayer = () => { };
+            if (mediaSource._players != null) {
+                for (const player of mediaSource._players.values()) {
+                    mediaSource._onNameOwnerChanged(null, null, [player._busName, player._busName, '']);
+                }
+            }
+        } else {
+            if (!this._origAddPlayer) return;
+            MprisSource.prototype._addPlayer = this._origAddPlayer;
+            this._origAddPlayer = null;
+            mediaSource._onProxyReady();
+        }
     }
 
     _updateIndicatorPosition() {
@@ -57,13 +94,29 @@ export default class MedialineExtension extends Extension {
         targetBox.insert_child_at_index(container, index);
     }
 
-    disable() {
+    async disable() {
         if (this._enableIdleId) {
             GLib.Source.remove(this._enableIdleId);
             this._enableIdleId = null;
         }
 
         this._preferences.disconnectObject(this);
+
+        if (this._origAddPlayer) {
+            try {
+                const MprisModule = await import('resource:///org/gnome/shell/ui/mpris.js');
+                const MprisSource = MprisModule.MprisSource ?? MprisModule.MediaSection;
+                if (MprisSource) {
+                    MprisSource.prototype._addPlayer = this._origAddPlayer;
+                    const mediaSource =
+                        Main.panel.statusArea.dateMenu?._messageList?._messageView?._mediaSource ??
+                        Main.panel.statusArea.dateMenu?._messageList?._mediaSection;
+                    if (mediaSource)
+                        mediaSource._onProxyReady();
+                }
+            } catch (_) { }
+            this._origAddPlayer = null;
+        }
 
         if (this._indicator) {
             this._indicator.destroy();
