@@ -134,6 +134,12 @@
       <description>Secondary color for popup backgrounds and accents</description>
     </key>
 
+    <key name="popup-background-color" type="s">
+      <default>'transparent'</default>
+      <summary>Popup background color</summary>
+      <description>Custom background color for the popup. Set to 'transparent' to use the GNOME Shell theme default.</description>
+    </key>
+
     <key name="popup-show-app-icon" type="b">
       <default>true</default>
       <summary>Show source app icon on album art</summary>

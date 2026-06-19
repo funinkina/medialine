@@ -22,6 +22,7 @@ export class ExtensionSettings {
     get scrollDownAction() { return this._settings.get_enum('scroll-down-action'); }
     get popupPrimaryColor() { return this._settings.get_string('popup-primary-color'); }
     get popupSecondaryColor() { return this._settings.get_string('popup-secondary-color'); }
+    get popupBackgroundColor() { return this._settings.get_string('popup-background-color'); }
     get popupShowAppIcon() { return this._settings.get_boolean('popup-show-app-icon'); }
 
     connectObject(...args) {

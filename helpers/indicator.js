@@ -107,9 +107,11 @@ export const Indicator = GObject.registerClass(
         _initPopupColors() {
             const primary = this._preferences.popupPrimaryColor;
             const secondary = this._preferences.popupSecondaryColor;
+            const bgColor = this._preferences.popupBackgroundColor;
             this._popupStyles = {
                 primary,
                 secondary,
+                popupBg: bgColor && bgColor !== 'transparent' ? `background-color: ${bgColor};` : '',
                 artCommon: `border-radius: 6px; background-color: ${hexToRgba(secondary, 0.08)}; background-size: contain; background-repeat: no-repeat; background-position: center;`,
                 artFallback: `width: ${ART_SIZE}px; height: ${ART_SIZE}px; min-width: ${ART_SIZE}px; min-height: ${ART_SIZE}px; border-radius: 6px; background-color: ${hexToRgba(secondary, 0.08)}; background-size: contain; background-repeat: no-repeat; background-position: center;`,
                 title: `font-weight: 700; font-size: 16px; color: ${primary};`,
@@ -316,6 +318,9 @@ export const Indicator = GObject.registerClass(
             item.add_child(container);
             this.menu.addMenuItem(item);
 
+            if (this._popupStyles.popupBg)
+                this.menu.box.style = this._popupStyles.popupBg;
+
             this.menu.connectObject('open-state-changed',
                 (_m, open) => {
                     if (open) this._startPositionPolling();
@@ -509,9 +514,11 @@ export const Indicator = GObject.registerClass(
         _updatePopupColors() {
             const primary = this._preferences.popupPrimaryColor;
             const secondary = this._preferences.popupSecondaryColor;
+            const bgColor = this._preferences.popupBackgroundColor;
 
             this._popupStyles.primary = primary;
             this._popupStyles.secondary = secondary;
+            this._popupStyles.popupBg = bgColor && bgColor !== 'transparent' ? `background-color: ${bgColor};` : '';
             this._popupStyles.artCommon = `border-radius: 6px; background-color: ${hexToRgba(secondary, 0.08)}; background-size: contain; background-repeat: no-repeat; background-position: center;`;
             this._popupStyles.artFallback = `width: ${ART_SIZE}px; height: ${ART_SIZE}px; min-width: ${ART_SIZE}px; min-height: ${ART_SIZE}px; border-radius: 6px; background-color: ${hexToRgba(secondary, 0.08)}; background-size: contain; background-repeat: no-repeat; background-position: center;`;
             this._popupStyles.title = `font-weight: 700; font-size: 16px; color: ${primary};`;
@@ -546,6 +553,8 @@ export const Indicator = GObject.registerClass(
                 else
                     btn.style = this._popupStyles.btn;
             }
+
+            this.menu.box.style = this._popupStyles.popupBg;
 
             this._currentPopupArtUrl = '';
         }

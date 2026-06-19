@@ -351,6 +351,8 @@ export default class MedialinePreferences extends ExtensionPreferences {
             _('Primary color'), _('Color for text and controls')));
         colorsGroup.add(this._makeColorRow(settings, 'popup-secondary-color',
             _('Secondary color'), _('Color for backgrounds and accents')));
+        colorsGroup.add(this._makeColorRow(settings, 'popup-background-color',
+            _('Background color'), _('Background color for the popup (set to transparent for theme default)')));
 
         const appIconGroup = new Adw.PreferencesGroup({
             title: _('App icon'),
