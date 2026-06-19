@@ -1,31 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
   <enum id="org.gnome.shell.extensions.medialine.icon-type">
-    <value value="0" nick="app-icon"/>
-    <value value="1" nick="album-art"/>
-    <value value="2" nick="playing-status"/>
+    <value value="0" nick="app-icon" />
+    <value value="1" nick="album-art" />
+    <value value="2" nick="playing-status" />
+    <value value="3" nick="custom-image" />
   </enum>
 
   <enum id="org.gnome.shell.extensions.medialine.panel-position">
-    <value value="0" nick="left"/>
-    <value value="1" nick="center"/>
-    <value value="2" nick="right"/>
+    <value value="0" nick="left" />
+    <value value="1" nick="center" />
+    <value value="2" nick="right" />
   </enum>
 
   <enum id="org.gnome.shell.extensions.medialine.click-action">
-    <value value="0" nick="nothing"/>
-    <value value="1" nick="open-popup"/>
-    <value value="2" nick="play-pause"/>
-    <value value="3" nick="open-settings"/>
-    <value value="4" nick="next-track"/>
-    <value value="5" nick="previous-track"/>
-    <value value="6" nick="volume-up"/>
-    <value value="7" nick="volume-down"/>
-    <value value="8" nick="raise-player"/>
+    <value value="0" nick="nothing" />
+    <value value="1" nick="open-popup" />
+    <value value="2" nick="play-pause" />
+    <value value="3" nick="open-settings" />
+    <value value="4" nick="next-track" />
+    <value value="5" nick="previous-track" />
+    <value value="6" nick="volume-up" />
+    <value value="7" nick="volume-down" />
+    <value value="8" nick="raise-player" />
   </enum>
 
   <schema id="org.gnome.shell.extensions.medialine"
-          path="/org/gnome/shell/extensions/medialine/">
+    path="/org/gnome/shell/extensions/medialine/">
 
     <key name="icon-type" enum="org.gnome.shell.extensions.medialine.icon-type">
       <default>'album-art'</default>
@@ -35,8 +36,14 @@
 
     <key name="icon-size" type="i">
       <default>16</default>
-      <range min="8" max="64"/>
+      <range min="8" max="64" />
       <summary>Icon size in pixels</summary>
+    </key>
+
+    <key name="custom-icon-path" type="s">
+      <default>''</default>
+      <summary>Custom icon image file path</summary>
+      <description>Path to a custom PNG or SVG image to use as the icon</description>
     </key>
 
     <key name="separator" type="s">
@@ -46,7 +53,7 @@
 
     <key name="icon-spacing" type="i">
       <default>6</default>
-      <range min="0" max="32"/>
+      <range min="0" max="32" />
       <summary>Spacing between icon and text in pixels</summary>
     </key>
 
@@ -58,14 +65,15 @@
 
     <key name="panel-index" type="i">
       <default>0</default>
-      <range min="0" max="20"/>
+      <range min="0" max="20" />
       <summary>Position index within the panel section</summary>
     </key>
 
     <key name="hide-default-notification" type="b">
       <default>false</default>
       <summary>Hide default GNOME media notification</summary>
-      <description>Suppress the default media notification that appears in the system notification center</description>
+      <description>Suppress the default media notification that appears in the system notification
+        center</description>
     </key>
 
     <key name="show-title" type="b">
@@ -85,7 +93,7 @@
 
     <key name="max-text-width" type="i">
       <default>300</default>
-      <range min="0" max="1000"/>
+      <range min="0" max="1000" />
       <summary>Maximum text width in pixels (0 = unlimited)</summary>
     </key>
 
@@ -100,7 +108,7 @@
     </key>
 
     <key name="right-click-action" enum="org.gnome.shell.extensions.medialine.click-action">
-      <default>'open-settings'</default>
+      <default>'raise-player'</default>
       <summary>Right click action</summary>
     </key>
 

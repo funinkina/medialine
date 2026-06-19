@@ -1,5 +1,6 @@
 import Adw from 'gi://Adw';
 import Gdk from 'gi://Gdk';
+import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
 
 import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
@@ -10,7 +11,7 @@ export default class MedialinePreferences extends ExtensionPreferences {
 
         this._registerIconPath();
 
-        window.add(this._buildDisplayPage(settings));
+        window.add(this._buildDisplayPage(settings, window));
         window.add(this._buildPanelPage(settings));
         window.add(this._buildMousePage(settings));
         window.add(this._buildPopupPage(settings));
@@ -76,31 +77,50 @@ export default class MedialinePreferences extends ExtensionPreferences {
         about.present(parent);
     }
 
-    _buildDisplayPage(settings) {
+    _buildDisplayPage(settings, parentWindow) {
         const page = new Adw.PreferencesPage({
             title: _('Display'),
             icon_name: 'video-display-symbolic',
         });
 
-        const iconGroup = new Adw.PreferencesGroup({ title: _('Icon') });
+        const iconGroup = new Adw.PreferencesGroup({
+            title: _('Icon'),
+            description: _('Choose how Medialine represents the currently playing media in the panel and popup.'),
+        });
         page.add(iconGroup);
 
         const iconTypeRow = new Adw.ComboRow({
             title: _('Icon source'),
-            subtitle: _('Show album art, app icon, or playback status icon'),
-            model: this._makeStringList([_('App icon'), _('Album art'), _('Playing status')]),
+            subtitle: _('Album art, app icon, playback status, or a custom image'),
+            model: this._makeStringList([
+                _('App icon'),
+                _('Album art'),
+                _('Playing status'),
+                _('Custom image'),
+            ]),
             selected: settings.get_enum('icon-type'),
         });
         iconTypeRow.connect('notify::selected', () =>
             settings.set_enum('icon-type', iconTypeRow.selected));
         iconGroup.add(iconTypeRow);
 
+        const customImageControls = this._buildCustomImageControls(settings, parentWindow);
+        customImageControls.group.margin_top = 12;
+        customImageControls.group.visible = iconTypeRow.selected === 3;
+        iconTypeRow.connect('notify::selected', () => {
+            customImageControls.group.visible = iconTypeRow.selected === 3;
+        });
+        iconGroup.add(customImageControls.group);
+
         iconGroup.add(this._makeSpinRow(settings, 'icon-size',
             _('Icon size'), _('Size in pixels'), 8, 64, 1));
         iconGroup.add(this._makeSpinRow(settings, 'icon-spacing',
             _('Icon spacing'), _('Space between icon and text (px)'), 0, 32, 1));
 
-        const textGroup = new Adw.PreferencesGroup({ title: _('Text') });
+        const textGroup = new Adw.PreferencesGroup({
+            title: _('Text'),
+            description: _('Control what appears next to the indicator in the panel.'),
+        });
         page.add(textGroup);
 
         const separatorRow = new Adw.EntryRow({
@@ -114,13 +134,181 @@ export default class MedialinePreferences extends ExtensionPreferences {
         textGroup.add(this._makeSpinRow(settings, 'max-text-width',
             _('Max text width'), _('Maximum label width in pixels (0 = unlimited)'), 0, 1000, 10));
 
-        const fieldsGroup = new Adw.PreferencesGroup({ title: _('Visible fields') });
+        const fieldsGroup = new Adw.PreferencesGroup({
+            title: _('Visible fields'),
+            description: _('Choose which metadata fields are shown beside the panel icon.'),
+        });
         page.add(fieldsGroup);
         fieldsGroup.add(this._makeSwitchRow(settings, 'show-title', _('Show title')));
         fieldsGroup.add(this._makeSwitchRow(settings, 'show-artist', _('Show artist')));
         fieldsGroup.add(this._makeSwitchRow(settings, 'show-album', _('Show album')));
 
         return page;
+    }
+
+    _buildCustomImageControls(settings, parentWindow) {
+        const group = new Adw.PreferencesGroup({
+            title: _('Custom image'),
+            description: _('Pick an image to use when the icon source is set to Custom image.'),
+        });
+
+        let currentPath = settings.get_string('custom-icon-path');
+
+        const row = new Adw.ActionRow({
+            title: _('Image file'),
+            subtitle: currentPath || _('No file selected'),
+        });
+
+        const previewStack = new Gtk.Stack({
+            transition_type: Gtk.StackTransitionType.CROSSFADE,
+            valign: Gtk.Align.CENTER,
+            halign: Gtk.Align.CENTER,
+            width_request: 64,
+            height_request: 64,
+        });
+
+        const placeholder = new Gtk.Image({
+            icon_name: 'image-x-generic-symbolic',
+            pixel_size: 28,
+        });
+
+        const previewPicture = new Gtk.Picture({
+            can_shrink: true,
+            width_request: 64,
+            height_request: 64,
+        });
+
+        previewStack.add_named(placeholder, 'placeholder');
+        previewStack.add_named(previewPicture, 'preview');
+
+        const previewFrame = new Gtk.Frame({
+            child: previewStack,
+            width_request: 64,
+            height_request: 64,
+            margin_top: 8,
+            margin_bottom: 8,
+        });
+        previewFrame.add_css_class('card');
+        row.add_prefix(previewFrame);
+
+        const chooseButton = new Gtk.Button({
+            icon_name: 'document-open-symbolic',
+            tooltip_text: _('Choose image'),
+        });
+        chooseButton.add_css_class('flat');
+        row.add_suffix(chooseButton);
+        row.set_activatable_widget(chooseButton);
+
+        const refreshPreview = (path) => {
+            const hasPath = !!path;
+            row.subtitle = path || _('No file selected');
+
+            if (!hasPath) {
+                previewStack.visible_child_name = 'placeholder';
+                return;
+            }
+
+            try {
+                const file = Gio.File.new_for_path(path);
+                previewPicture.file = file;
+                previewStack.visible_child_name = 'preview';
+            } catch (_) {
+                previewStack.visible_child_name = 'placeholder';
+            }
+        };
+
+        refreshPreview(currentPath);
+
+        const fileFilter = new Gtk.FileFilter();
+        fileFilter.set_name(_('Images'));
+        if (fileFilter.add_pixbuf_formats)
+            fileFilter.add_pixbuf_formats();
+        else {
+            fileFilter.add_mime_type('image/png');
+            fileFilter.add_mime_type('image/jpeg');
+            fileFilter.add_mime_type('image/svg+xml');
+            fileFilter.add_mime_type('image/webp');
+        }
+
+        const openChooser = () => {
+            if (Gtk.FileDialog) {
+                const dialog = new Gtk.FileDialog({
+                    title: _('Select custom image'),
+                    default_filter: fileFilter,
+                });
+
+                try {
+                    if (currentPath) {
+                        const file = Gio.File.new_for_path(currentPath);
+                        if (file)
+                            dialog.initial_file = file;
+                    }
+                } catch (_) { }
+
+                dialog.open(parentWindow, null, (_dialog, result) => {
+                    try {
+                        const file = _dialog.open_finish(result);
+                        if (!file)
+                            return;
+
+                        const path = file.get_path();
+                        if (!path)
+                            return;
+
+                        currentPath = path;
+                        settings.set_string('custom-icon-path', path);
+                        refreshPreview(path);
+                    } catch (_) { }
+                });
+                return;
+            }
+
+            const chooser = new Gtk.FileChooserNative({
+                title: _('Select custom image'),
+                action: Gtk.FileChooserAction.OPEN,
+                accept_label: _('Open'),
+                cancel_label: _('Cancel'),
+                transient_for: parentWindow,
+                modal: true,
+            });
+            chooser.set_filter(fileFilter);
+
+            try {
+                if (currentPath) {
+                    const file = Gio.File.new_for_path(currentPath);
+                    chooser.set_file(file);
+                }
+            } catch (_) { }
+
+            chooser.connect('response', (_chooser, response) => {
+                if (response !== Gtk.ResponseType.ACCEPT) {
+                    chooser.destroy();
+                    return;
+                }
+
+                try {
+                    const file = chooser.get_file();
+                    const path = file?.get_path?.();
+                    if (path) {
+                        settings.set_string('custom-icon-path', path);
+                        refreshPreview(path);
+                    }
+                } catch (_) { }
+
+                chooser.destroy();
+            });
+
+            chooser.show();
+        };
+
+        chooseButton.connect('clicked', openChooser);
+
+        group.add(row);
+
+        return {
+            group,
+            refreshPreview,
+        };
     }
 
     _buildPanelPage(settings) {

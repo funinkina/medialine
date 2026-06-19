@@ -14,7 +14,7 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import {
-    ICON_TYPE_ART, ICON_TYPE_STATUS,
+    ICON_TYPE_ART, ICON_TYPE_STATUS, ICON_TYPE_CUSTOM,
     CLICK_NOTHING, CLICK_OPEN_POPUP, CLICK_PLAY_PAUSE, CLICK_OPEN_SETTINGS,
     CLICK_NEXT_TRACK, CLICK_PREV_TRACK, CLICK_VOLUME_UP, CLICK_VOLUME_DOWN, CLICK_RAISE_PLAYER,
     ART_SIZE, PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE, POPUP_MIN_WIDTH, POPUP_MAX_WIDTH,
@@ -951,6 +951,22 @@ export const Indicator = GObject.registerClass(
                 this._iconActor.icon_name = media.status === 'Playing'
                     ? 'media-playback-start-symbolic'
                     : 'media-playback-pause-symbolic';
+                return;
+            }
+
+            if (prefs.iconType === ICON_TYPE_CUSTOM) {
+                this._currentArtUrl = null;
+                this._iconActor.icon_name = null;
+                if (prefs.customIconPath) {
+                    try {
+                        const file = Gio.File.new_for_path(prefs.customIconPath);
+                        if (file.query_exists(null)) {
+                            this._iconActor.gicon = new Gio.FileIcon({ file });
+                            return;
+                        }
+                    } catch (_) { }
+                }
+                this._setAppIcon(media);
                 return;
             }
 

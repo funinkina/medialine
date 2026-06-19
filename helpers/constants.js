@@ -1,6 +1,7 @@
 export const ICON_TYPE_APP = 0;
 export const ICON_TYPE_ART = 1;
 export const ICON_TYPE_STATUS = 2;
+export const ICON_TYPE_CUSTOM = 3;
 
 export const CLICK_NOTHING = 0;
 export const CLICK_OPEN_POPUP = 1;

@@ -5,6 +5,7 @@ export class ExtensionSettings {
 
     get iconType() { return this._settings.get_enum('icon-type'); }
     get iconSize() { return this._settings.get_int('icon-size'); }
+    get customIconPath() { return this._settings.get_string('custom-icon-path'); }
     get separator() { return this._settings.get_string('separator'); }
     get iconSpacing() { return this._settings.get_int('icon-spacing'); }
     get panelPosition() { return this._settings.get_enum('panel-position'); }
