@@ -121,14 +121,29 @@ export const Indicator = GObject.registerClass(
         }
 
         _buildTopRow() {
-            this._popupArt = new St.Bin({ style: this._popupStyles.artFallback });
-            this._popupArtFallback = new St.Icon({
+            this._popupArt = new St.Bin({
+                style: this._popupStyles.artFallback,
+                reactive: true,
+            });
+            this._popupArt.connectObject(
+                'button-release-event', (_a, event) => {
+                    if (event.type() === Clutter.EventType.BUTTON_RELEASE) {
+                        this._launchCurrentMediaApp();
+                        return Clutter.EVENT_STOP;
+                    }
+                    return Clutter.EVENT_PROPAGATE;
+                },
+                this
+            );
+
+            this._popupArtAppIcon = new St.Icon({
                 icon_name: 'audio-x-generic-symbolic',
                 icon_size: ART_SIZE - 24,
                 x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,
             });
-            this._popupArt.set_child(this._popupArtFallback);
+
+            this._popupArt.set_child(this._popupArtAppIcon);
 
             this._popupTitle = new St.Label({
                 text: '',
@@ -670,30 +685,52 @@ export const Indicator = GObject.registerClass(
             if (cacheKey === this._currentPopupArtUrl) return;
             this._currentPopupArtUrl = cacheKey;
 
+            const appGicon = this._lookupAppGicon(media);
+
             if (artUrl && artUrl.startsWith('file://')) {
                 try {
                     const path = GLib.uri_unescape_string(artUrl.substring('file://'.length), null);
-                    const safePath = path.replace(/"/g, '\\"');
                     const dims = this._readImageDims(path);
                     if (dims) {
                         const [w, h] = this._fitBox(dims.width, dims.height);
-                        this._popupArt.set_child(null);
+                        const safePath = path.replace(/"/g, '\\"');
                         this._popupArt.style =
                             `width: ${w}px; height: ${h}px; min-width: ${w}px; min-height: ${h}px; ` +
                             `${this._popupStyles.artCommon} background-image: url("${safePath}");`;
+                        this._popupArtAppIcon.icon_size = 30;
+                        this._popupArtAppIcon.x_align = Clutter.ActorAlign.END;
+                        this._popupArtAppIcon.y_align = Clutter.ActorAlign.END;
+                        this._popupArtAppIcon.translation_x = 25;
+                        this._popupArtAppIcon.translation_y = 25;
+                        this._popupArtAppIcon.icon_name = null;
+                        this._popupArtAppIcon.gicon = null;
+                        if (appGicon) {
+                            this._popupArtAppIcon.gicon = appGicon;
+                        } else {
+                            this._popupArtAppIcon.icon_name = 'audio-x-generic-symbolic';
+                        }
                         return;
                     }
                 } catch (_) { /* fall through to fallback icon */ }
             }
 
             this._popupArt.style = this._popupStyles.artFallback;
-            this._popupArtFallback.icon_name = this._preferences.iconType === ICON_TYPE_STATUS
-                ? (media.status === 'Playing'
+            this._popupArtAppIcon.icon_size = ART_SIZE - 24;
+            this._popupArtAppIcon.x_align = Clutter.ActorAlign.CENTER;
+            this._popupArtAppIcon.y_align = Clutter.ActorAlign.CENTER;
+            this._popupArtAppIcon.translation_x = 0;
+            this._popupArtAppIcon.translation_y = 0;
+            this._popupArtAppIcon.icon_name = null;
+            this._popupArtAppIcon.gicon = null;
+            if (this._preferences.iconType === ICON_TYPE_STATUS) {
+                this._popupArtAppIcon.icon_name = media.status === 'Playing'
                     ? 'media-playback-start-symbolic'
-                    : 'media-playback-pause-symbolic')
-                : 'audio-x-generic-symbolic';
-            if (this._popupArt.get_child() !== this._popupArtFallback)
-                this._popupArt.set_child(this._popupArtFallback);
+                    : 'media-playback-pause-symbolic';
+            } else if (appGicon) {
+                this._popupArtAppIcon.gicon = appGicon;
+            } else {
+                this._popupArtAppIcon.icon_name = 'audio-x-generic-symbolic';
+            }
         }
 
         _readImageDims(path) {
@@ -799,6 +836,30 @@ export const Indicator = GObject.registerClass(
             return null;
         }
 
+        _launchCurrentMediaApp() {
+            const media = this._mprisManager.currentMedia;
+            if (!media || !media.busName) return;
+
+            Gio.DBus.session.call(
+                media.busName,
+                '/org/mpris/MediaPlayer2',
+                'org.mpris.MediaPlayer2',
+                'Raise',
+                null,
+                null,
+                Gio.DBusCallFlags.NONE,
+                -1,
+                null,
+                (conn, res) => {
+                    try {
+                        conn.call_finish(res);
+                    } catch (_) {
+                        // Player may not support the Raise method
+                    }
+                }
+            );
+        }
+
         destroy() {
             this._destroyed = true;
             this._stopPositionPolling();
@@ -809,6 +870,7 @@ export const Indicator = GObject.registerClass(
                 this._mixer = null;
             }
 
+            this._popupArt?.disconnectObject(this);
             this._progressTrack?.disconnectObject(this);
             this.menu.disconnectObject(this);
             this._mprisManager.disconnectObject(this);
