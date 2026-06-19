@@ -11,7 +11,7 @@ export default class MedialinePreferences extends ExtensionPreferences {
 
         this._registerIconPath();
 
-        window.add(this._buildDisplayPage(settings, window));
+        window.add(this._buildAppearancePage(settings, window));
         window.add(this._buildPanelPage(settings));
         window.add(this._buildMousePage(settings));
         window.add(this._buildPopupPage(settings));
@@ -59,7 +59,7 @@ export default class MedialinePreferences extends ExtensionPreferences {
             application_icon: 'medialine',
             developer_name: 'Aryan Kushwaha',
             version: String(this.metadata.version ?? ''),
-            comments: _('Shows currently playing media in the top bar via MPRIS.'),
+            comments: _('Shows currently playing media in the top bar in a minimal elegant way.'),
             website: 'https://github.com/funinkina/medialine',
             issue_url: 'https://github.com/funinkina/medialine/issues',
             support_url: 'https://www.buymeacoffee.com/funinkina',
@@ -77,10 +77,10 @@ export default class MedialinePreferences extends ExtensionPreferences {
         about.present(parent);
     }
 
-    _buildDisplayPage(settings, parentWindow) {
+    _buildAppearancePage(settings, parentWindow) {
         const page = new Adw.PreferencesPage({
-            title: _('Display'),
-            icon_name: 'video-display-symbolic',
+            title: _('Appearance'),
+            icon_name: 'preferences-desktop-appearance-symbolic',
         });
 
         const iconGroup = new Adw.PreferencesGroup({
@@ -89,33 +89,29 @@ export default class MedialinePreferences extends ExtensionPreferences {
         });
         page.add(iconGroup);
 
-        const iconTypeRow = new Adw.ComboRow({
-            title: _('Icon source'),
-            subtitle: _('Album art, app icon, playback status, or a custom image'),
-            model: this._makeStringList([
+        const iconTypeRow = this._makeComboRow(settings, 'icon-type', _('Icon source'),
+            _('Album art, app icon, playback status, or a custom image'),
+            this._makeStringList([
                 _('App icon'),
                 _('Album art'),
                 _('Playing status'),
                 _('Custom image'),
-            ]),
-            selected: settings.get_enum('icon-type'),
-        });
-        iconTypeRow.connect('notify::selected', () =>
-            settings.set_enum('icon-type', iconTypeRow.selected));
+            ]));
         iconGroup.add(iconTypeRow);
-
-        const customImageControls = this._buildCustomImageControls(settings, parentWindow);
-        customImageControls.group.margin_top = 12;
-        customImageControls.group.visible = iconTypeRow.selected === 3;
-        iconTypeRow.connect('notify::selected', () => {
-            customImageControls.group.visible = iconTypeRow.selected === 3;
-        });
-        iconGroup.add(customImageControls.group);
 
         iconGroup.add(this._makeSpinRow(settings, 'icon-size',
             _('Icon size'), _('Size in pixels'), 8, 64, 1));
         iconGroup.add(this._makeSpinRow(settings, 'icon-spacing',
-            _('Icon spacing'), _('Space between icon and text (px)'), 0, 32, 1));
+            _('Icon spacing'), _('Space between the icon and text in pixels'), 0, 32, 1));
+
+        // A sibling group, not nested inside iconGroup — Adw.PreferencesGroup
+        // is meant to sit directly on a page, not inside another group.
+        const customImageGroup = this._buildCustomImageGroup(settings, parentWindow);
+        customImageGroup.visible = iconTypeRow.selected === 3;
+        iconTypeRow.connect('notify::selected', () => {
+            customImageGroup.visible = iconTypeRow.selected === 3;
+        });
+        page.add(customImageGroup);
 
         const textGroup = new Adw.PreferencesGroup({
             title: _('Text'),
@@ -123,16 +119,9 @@ export default class MedialinePreferences extends ExtensionPreferences {
         });
         page.add(textGroup);
 
-        const separatorRow = new Adw.EntryRow({
-            title: _('Separator'),
-            text: settings.get_string('separator'),
-        });
-        separatorRow.connect('notify::text', () =>
-            settings.set_string('separator', separatorRow.text));
-        textGroup.add(separatorRow);
-
+        textGroup.add(this._makeEntryRow(settings, 'separator', _('Separator')));
         textGroup.add(this._makeSpinRow(settings, 'max-text-width',
-            _('Max text width'), _('Maximum label width in pixels (0 = unlimited)'), 0, 1000, 10));
+            _('Max text width'), _('Maximum label width in pixels (0 for unlimited)'), 0, 1000, 10));
 
         const fieldsGroup = new Adw.PreferencesGroup({
             title: _('Visible fields'),
@@ -146,10 +135,11 @@ export default class MedialinePreferences extends ExtensionPreferences {
         return page;
     }
 
-    _buildCustomImageControls(settings, parentWindow) {
+    _buildCustomImageGroup(settings, parentWindow) {
         const group = new Adw.PreferencesGroup({
             title: _('Custom image'),
             description: _('Pick an image to use when the icon source is set to Custom image.'),
+            margin_top: 12,
         });
 
         let currentPath = settings.get_string('custom-icon-path');
@@ -194,23 +184,22 @@ export default class MedialinePreferences extends ExtensionPreferences {
         const chooseButton = new Gtk.Button({
             icon_name: 'document-open-symbolic',
             tooltip_text: _('Choose image'),
+            valign: Gtk.Align.CENTER,
         });
         chooseButton.add_css_class('flat');
         row.add_suffix(chooseButton);
         row.set_activatable_widget(chooseButton);
 
         const refreshPreview = (path) => {
-            const hasPath = !!path;
             row.subtitle = path || _('No file selected');
 
-            if (!hasPath) {
+            if (!path) {
                 previewStack.visible_child_name = 'placeholder';
                 return;
             }
 
             try {
-                const file = Gio.File.new_for_path(path);
-                previewPicture.file = file;
+                previewPicture.file = Gio.File.new_for_path(path);
                 previewStack.visible_child_name = 'preview';
             } catch (_) {
                 previewStack.visible_child_name = 'placeholder';
@@ -221,94 +210,43 @@ export default class MedialinePreferences extends ExtensionPreferences {
 
         const fileFilter = new Gtk.FileFilter();
         fileFilter.set_name(_('Images'));
-        if (fileFilter.add_pixbuf_formats)
-            fileFilter.add_pixbuf_formats();
-        else {
-            fileFilter.add_mime_type('image/png');
-            fileFilter.add_mime_type('image/jpeg');
-            fileFilter.add_mime_type('image/svg+xml');
-            fileFilter.add_mime_type('image/webp');
-        }
+        fileFilter.add_mime_type('image/png');
+        fileFilter.add_mime_type('image/jpeg');
+        fileFilter.add_mime_type('image/svg+xml');
+        fileFilter.add_mime_type('image/webp');
 
         const openChooser = () => {
-            if (Gtk.FileDialog) {
-                const dialog = new Gtk.FileDialog({
-                    title: _('Select custom image'),
-                    default_filter: fileFilter,
-                });
+            const dialog = new Gtk.FileDialog({
+                title: _('Select custom image'),
+                default_filter: fileFilter,
+            });
 
+            if (currentPath) {
                 try {
-                    if (currentPath) {
-                        const file = Gio.File.new_for_path(currentPath);
-                        if (file)
-                            dialog.initial_file = file;
-                    }
+                    dialog.initial_file = Gio.File.new_for_path(currentPath);
                 } catch (_) { }
-
-                dialog.open(parentWindow, null, (_dialog, result) => {
-                    try {
-                        const file = _dialog.open_finish(result);
-                        if (!file)
-                            return;
-
-                        const path = file.get_path();
-                        if (!path)
-                            return;
-
-                        currentPath = path;
-                        settings.set_string('custom-icon-path', path);
-                        refreshPreview(path);
-                    } catch (_) { }
-                });
-                return;
             }
 
-            const chooser = new Gtk.FileChooserNative({
-                title: _('Select custom image'),
-                action: Gtk.FileChooserAction.OPEN,
-                accept_label: _('Open'),
-                cancel_label: _('Cancel'),
-                transient_for: parentWindow,
-                modal: true,
-            });
-            chooser.set_filter(fileFilter);
-
-            try {
-                if (currentPath) {
-                    const file = Gio.File.new_for_path(currentPath);
-                    chooser.set_file(file);
-                }
-            } catch (_) { }
-
-            chooser.connect('response', (_chooser, response) => {
-                if (response !== Gtk.ResponseType.ACCEPT) {
-                    chooser.destroy();
-                    return;
-                }
-
+            dialog.open(parentWindow, null, (_dialog, result) => {
                 try {
-                    const file = chooser.get_file();
-                    const path = file?.get_path?.();
-                    if (path) {
-                        settings.set_string('custom-icon-path', path);
-                        refreshPreview(path);
-                    }
-                } catch (_) { }
+                    const file = _dialog.open_finish(result);
+                    const path = file?.get_path();
+                    if (!path)
+                        return;
 
-                chooser.destroy();
+                    currentPath = path;
+                    settings.set_string('custom-icon-path', path);
+                    refreshPreview(path);
+                } catch (_) {
+                    // Dialog was cancelled or the selection failed; nothing to do.
+                }
             });
-
-            chooser.show();
         };
 
         chooseButton.connect('clicked', openChooser);
-
         group.add(row);
 
-        return {
-            group,
-            refreshPreview,
-        };
+        return group;
     }
 
     _buildPanelPage(settings) {
@@ -317,26 +255,28 @@ export default class MedialinePreferences extends ExtensionPreferences {
             icon_name: 'view-grid-symbolic',
         });
 
-        const group = new Adw.PreferencesGroup({ title: _('Position') });
-        page.add(group);
-
-        const positionRow = new Adw.ComboRow({
-            title: _('Panel section'),
-            subtitle: _('Which area of the top bar to place the indicator'),
-            model: this._makeStringList([_('Left'), _('Center'), _('Right')]),
-            selected: settings.get_enum('panel-position'),
+        const positionGroup = new Adw.PreferencesGroup({
+            title: _('Position'),
+            description: _('Where the indicator appears in the top bar.'),
         });
-        positionRow.connect('notify::selected', () =>
-            settings.set_enum('panel-position', positionRow.selected));
-        group.add(positionRow);
+        page.add(positionGroup);
 
-        group.add(this._makeSpinRow(settings, 'panel-index',
-            _('Position index'), _('Order within the panel section (0 = first)'), 0, 20, 1));
+        const positionRow = this._makeComboRow(settings, 'panel-position', _('Panel section'),
+            _('Which area of the top bar to place the indicator'),
+            this._makeStringList([_('Left'), _('Center'), _('Right')]));
+        positionGroup.add(positionRow);
 
-        const behaviorGroup = new Adw.PreferencesGroup({ title: _('Media Notification') });
-        page.add(behaviorGroup);
-        behaviorGroup.add(this._makeSwitchRow(settings, 'hide-default-notification',
-            _('Hide the default GNOME media notification')));
+        positionGroup.add(this._makeSpinRow(settings, 'panel-index',
+            _('Position index'), _('Order within the panel section (0 is first)'), 0, 20, 1));
+
+        const notificationsGroup = new Adw.PreferencesGroup({
+            title: _('Notifications'),
+            description: _('Manage visibility of GNOME\u2019s built-in media notifications.'),
+        });
+        page.add(notificationsGroup);
+        notificationsGroup.add(this._makeSwitchRow(settings, 'hide-default-notification',
+            _('Hide default notification'),
+            _('Remove GNOME\u2019s media notification while the panel indicator is shown')));
 
         return page;
     }
@@ -398,21 +338,24 @@ export default class MedialinePreferences extends ExtensionPreferences {
     _buildPopupPage(settings) {
         const page = new Adw.PreferencesPage({
             title: _('Popup'),
-            icon_name: 'applications-graphics-symbolic',
+            icon_name: 'preferences-color-symbolic',
         });
 
-        const group = new Adw.PreferencesGroup({
+        const colorsGroup = new Adw.PreferencesGroup({
             title: _('Colors'),
             description: _('Customize the popup color scheme'),
         });
-        page.add(group);
+        page.add(colorsGroup);
 
-        group.add(this._makeColorRow(settings, 'popup-primary-color',
+        colorsGroup.add(this._makeColorRow(settings, 'popup-primary-color',
             _('Primary color'), _('Color for text and controls')));
-        group.add(this._makeColorRow(settings, 'popup-secondary-color',
+        colorsGroup.add(this._makeColorRow(settings, 'popup-secondary-color',
             _('Secondary color'), _('Color for backgrounds and accents')));
 
-        const appIconGroup = new Adw.PreferencesGroup({ title: _('App icon') });
+        const appIconGroup = new Adw.PreferencesGroup({
+            title: _('App icon'),
+            description: _('Overlay the playing app\u2019s icon on the album art shown in the popup.'),
+        });
         page.add(appIconGroup);
         appIconGroup.add(this._makeSwitchRow(settings, 'popup-show-app-icon',
             _('Show app icon on album art')));
@@ -421,26 +364,25 @@ export default class MedialinePreferences extends ExtensionPreferences {
     }
 
     _makeColorRow(settings, key, title, subtitle) {
-        const hex = settings.get_string(key);
         const rgba = new Gdk.RGBA();
-        const r = parseInt(hex.substring(1, 3), 16) / 255;
-        const g = parseInt(hex.substring(3, 5), 16) / 255;
-        const b = parseInt(hex.substring(5, 7), 16) / 255;
-        rgba.red = r;
-        rgba.green = g;
-        rgba.blue = b;
-        rgba.alpha = 1;
+        rgba.parse(settings.get_string(key));
 
-        const button = new Gtk.ColorButton({ rgba });
+        const button = new Gtk.ColorDialogButton({
+            dialog: new Gtk.ColorDialog({
+                title: _('Choose a color'),
+                with_alpha: false,
+            }),
+            rgba,
+            valign: Gtk.Align.CENTER,
+        });
+
         const row = new Adw.ActionRow({ title, subtitle, activatable_widget: button });
         row.add_suffix(button);
 
         button.connect('notify::rgba', () => {
             const c = button.rgba;
-            const hr = Math.round(c.red * 255).toString(16).padStart(2, '0');
-            const hg = Math.round(c.green * 255).toString(16).padStart(2, '0');
-            const hb = Math.round(c.blue * 255).toString(16).padStart(2, '0');
-            settings.set_string(key, `#${hr}${hg}${hb}`.toUpperCase());
+            const toHex = (channel) => Math.round(channel * 255).toString(16).padStart(2, '0');
+            settings.set_string(key, `#${toHex(c.red)}${toHex(c.green)}${toHex(c.blue)}`.toUpperCase());
         });
 
         return row;
@@ -465,10 +407,15 @@ export default class MedialinePreferences extends ExtensionPreferences {
         return row;
     }
 
-    _makeSwitchRow(settings, key, title) {
-        const row = new Adw.SwitchRow({ title });
-        row.active = settings.get_boolean(key);
-        row.connect('notify::active', () => settings.set_boolean(key, row.active));
+    _makeSwitchRow(settings, key, title, subtitle = null) {
+        const row = new Adw.SwitchRow({ title, subtitle: subtitle ?? '' });
+        settings.bind(key, row, 'active', Gio.SettingsBindFlags.DEFAULT);
+        return row;
+    }
+
+    _makeEntryRow(settings, key, title) {
+        const row = new Adw.EntryRow({ title });
+        settings.bind(key, row, 'text', Gio.SettingsBindFlags.DEFAULT);
         return row;
     }
 

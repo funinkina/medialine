@@ -4,7 +4,7 @@
 
 # Medialine
 
-A GNOME Shell extension that shows the currently playing media track in the top bar via MPRIS.
+A GNOME Shell extension that shows the currently playing media track in the top bar in a elegant minimal way.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-46%E2%80%9350-4A86CF?logo=gnome&logoColor=white)](https://www.gnome.org/)

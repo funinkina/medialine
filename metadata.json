@@ -1,6 +1,6 @@
 {
   "name": "Medialine",
-  "description": "Shows currently playing media in the top bar via MPRIS",
+  "description": "Shows currently playing media in the top bar in a minimal elegant way.",
   "uuid": "medialine@funinkina.co.in",
   "url": "https://github.com/funinkina/medialine",
   "donations": {
