@@ -142,11 +142,12 @@ Open the extension preferences via:
 Assign an action to left, middle, right click, and scroll up/down individually.
 
 ### Popup tab
-| Setting                    | Description                                    |
-| -------------------------- | ---------------------------------------------- |
-| Primary color              | Text and control color in the popup            |
-| Secondary color            | Background and accent color in the popup       |
-| Show app icon on album art | Overlay the player's app icon badge on the art |
+| Setting                    | Description                                          |
+| -------------------------- | ---------------------------------------------------- |
+| Primary color              | Text and control color in the popup (with reset)     |
+| Secondary color            | Background and accent color in the popup (with reset)|
+| Background color           | Custom background for the popup (with reset)         |
+| Show app icon on album art | Overlay the player's app icon badge on the art       |
 
 ## License
 
