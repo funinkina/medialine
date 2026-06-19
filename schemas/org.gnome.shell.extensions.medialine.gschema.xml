@@ -125,5 +125,11 @@
       <description>Secondary color for popup backgrounds and accents</description>
     </key>
 
+    <key name="popup-show-app-icon" type="b">
+      <default>true</default>
+      <summary>Show source app icon on album art</summary>
+      <description>Show the media player app icon badge on the album art thumbnail in the popup</description>
+    </key>
+
   </schema>
 </schemalist>

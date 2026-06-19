@@ -211,6 +211,11 @@ export default class MedialinePreferences extends ExtensionPreferences {
         group.add(this._makeColorRow(settings, 'popup-secondary-color',
             _('Secondary color'), _('Color for backgrounds and accents')));
 
+        const appIconGroup = new Adw.PreferencesGroup({ title: _('App icon') });
+        page.add(appIconGroup);
+        appIconGroup.add(this._makeSwitchRow(settings, 'popup-show-app-icon',
+            _('Show app icon on album art')));
+
         return page;
     }
 

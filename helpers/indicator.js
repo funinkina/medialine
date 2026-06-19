@@ -889,6 +889,8 @@ export const Indicator = GObject.registerClass(
             const appGicon = this._lookupAppGicon(media);
             const art = this._tryGetArtBackgroundCss(media);
 
+            const showAppIcon = this._preferences.popupShowAppIcon;
+
             if (art) {
                 const [w, h] = opts.boxSize
                     ? [opts.boxSize, opts.boxSize]
@@ -902,11 +904,8 @@ export const Indicator = GObject.registerClass(
                 badgeIcon.icon_size = badgeSize;
                 badgeIcon.icon_name = null;
                 badgeIcon.gicon = appGicon || null;
-                badgeIcon.visible = !!appGicon;
+                badgeIcon.visible = showAppIcon && !!appGicon;
                 badgeIcon.set_size(badgeSize, badgeSize);
-                // Computed from this box's actual w/h, so it always lands in the
-                // true bottom-right corner regardless of aspect ratio — alignment
-                // + translation was inconsistent for non-square (e.g. 16:9) art.
                 badgeIcon.set_position(w - badgeSize + overlap, h - badgeSize + overlap);
                 return;
             }
