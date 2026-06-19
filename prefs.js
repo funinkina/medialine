@@ -165,18 +165,31 @@ export default class MedialinePreferences extends ExtensionPreferences {
         });
         page.add(group);
 
-        const actionModel = this._makeStringList([
+        const clickActionModel = this._makeStringList([
             _('Nothing'), _('Open popup'), _('Play / Pause'), _('Open settings'),
-            _('Next track'), _('Previous track'), _('Volume up'), _('Volume down'),
+            _('Next track'), _('Previous track'), _('Raise player'),
         ]);
+
+        const clickActionValues = [0, 1, 2, 3, 4, 5, 8];
 
         for (const [key, title, subtitle] of [
             ['left-click-action', _('Left click'), _('Action when left-clicking the indicator')],
             ['middle-click-action', _('Middle click'), _('Action when middle-clicking the indicator')],
             ['right-click-action', _('Right click'), _('Action when right-clicking the indicator')],
         ]) {
-            group.add(this._makeComboRow(settings, key, title, subtitle, actionModel));
+            const enumValue = settings.get_enum(key);
+            const modelIndex = clickActionValues.indexOf(enumValue);
+            const row = new Adw.ComboRow({ title, subtitle, model: clickActionModel, selected: modelIndex });
+            row.connect('notify::selected', () =>
+                settings.set_enum(key, clickActionValues[row.selected]));
+            group.add(row);
         }
+
+        const scrollActionModel = this._makeStringList([
+            _('Nothing'), _('Open popup'), _('Play / Pause'), _('Open settings'),
+            _('Next track'), _('Previous track'),
+            _('Volume up'), _('Volume down'), _('Raise player'),
+        ]);
 
         const scrollGroup = new Adw.PreferencesGroup({
             title: _('Scroll actions'),
@@ -188,7 +201,7 @@ export default class MedialinePreferences extends ExtensionPreferences {
             ['scroll-up-action', _('Scroll up'), _('Action when scrolling up over the indicator')],
             ['scroll-down-action', _('Scroll down'), _('Action when scrolling down over the indicator')],
         ]) {
-            scrollGroup.add(this._makeComboRow(settings, key, title, subtitle, actionModel));
+            scrollGroup.add(this._makeComboRow(settings, key, title, subtitle, scrollActionModel));
         }
 
         return page;

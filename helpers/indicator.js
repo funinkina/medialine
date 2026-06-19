@@ -16,7 +16,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {
     ICON_TYPE_ART, ICON_TYPE_STATUS,
     CLICK_NOTHING, CLICK_OPEN_POPUP, CLICK_PLAY_PAUSE, CLICK_OPEN_SETTINGS,
-    CLICK_NEXT_TRACK, CLICK_PREV_TRACK, CLICK_VOLUME_UP, CLICK_VOLUME_DOWN,
+    CLICK_NEXT_TRACK, CLICK_PREV_TRACK, CLICK_VOLUME_UP, CLICK_VOLUME_DOWN, CLICK_RAISE_PLAYER,
     ART_SIZE, PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE, POPUP_MIN_WIDTH, POPUP_MAX_WIDTH,
 } from './constants.js';
 
@@ -398,6 +398,7 @@ export const Indicator = GObject.registerClass(
                 case CLICK_PREV_TRACK: this._mprisManager.previous(); break;
                 case CLICK_VOLUME_UP: this._adjustVolume(5); break;
                 case CLICK_VOLUME_DOWN: this._adjustVolume(-5); break;
+                case CLICK_RAISE_PLAYER: this._focusPlayerWindow(this._mprisManager.currentMedia); break;
             }
         }
 

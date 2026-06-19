@@ -10,6 +10,7 @@ export const CLICK_NEXT_TRACK = 4;
 export const CLICK_PREV_TRACK = 5;
 export const CLICK_VOLUME_UP = 6;
 export const CLICK_VOLUME_DOWN = 7;
+export const CLICK_RAISE_PLAYER = 8;
 
 export const ART_SIZE = 68;
 export const PROGRESS_HEIGHT = 4;

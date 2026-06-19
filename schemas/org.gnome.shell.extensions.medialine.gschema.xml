@@ -21,6 +21,7 @@
     <value value="5" nick="previous-track"/>
     <value value="6" nick="volume-up"/>
     <value value="7" nick="volume-down"/>
+    <value value="8" nick="raise-player"/>
   </enum>
 
   <schema id="org.gnome.shell.extensions.medialine"
