@@ -46,7 +46,8 @@ Click the indicator to open a media popup with:
 - Live **progress bar** with elapsed and total time (updates every second)
 - **Click or drag** anywhere on the progress bar to seek (a thumb appears on hover when the player supports seeking)
 - **Playback controls** — shuffle, previous, play/pause, next, repeat (off / track / playlist) — with greyed-out state when unavailable
-- Customizable popup colors (primary text and secondary accent)
+- Customizable popup colors (primary text, secondary accent, and background)
+- **Dynamic background** — optionally extract the dominant color from album art and use it as the popup background, with adjustable intensity to control brightness
 
 ### Multi-Source View
 When multiple media players are active, the popup switches to a **compact list view** showing each player with:
@@ -147,12 +148,14 @@ Open the extension preferences via:
 Assign an action to left, middle, right click, and scroll up/down individually.
 
 ### Popup tab
-| Setting                    | Description                                          |
-| -------------------------- | ---------------------------------------------------- |
-| Primary color              | Text and control color in the popup (with reset)     |
-| Secondary color            | Background and accent color in the popup (with reset)|
-| Background color           | Custom background for the popup (with reset)         |
-| Show app icon on album art | Overlay the player's app icon badge on the art       |
+| Setting                    | Description                                                                |
+| -------------------------- | -------------------------------------------------------------------------- |
+| Primary color              | Text and control color in the popup (with reset)                           |
+| Secondary color            | Background and accent color in the popup (with reset)                      |
+| Background color           | Custom background for the popup (with reset)                               |
+| Dynamic background         | Extract the dominant color from album art as the popup background          |
+| Intensity                  | How bright or dark the dynamic background appears (0 = dark, 100 = bright) |
+| Show app icon on album art | Overlay the player's app icon badge on the art                             |
 
 ## License
 
