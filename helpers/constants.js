@@ -18,3 +18,5 @@ export const PROGRESS_HEIGHT = 4;
 export const PROGRESS_THUMB_SIZE = 12;
 export const POPUP_MIN_WIDTH = 320;
 export const POPUP_MAX_WIDTH = 400;
+export const POPUP_ART_MAX_W = 120;
+export const POPUP_ART_MAX_H = ART_SIZE;
