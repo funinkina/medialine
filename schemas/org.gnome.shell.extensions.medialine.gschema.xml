@@ -146,5 +146,18 @@
       <description>Show the media player app icon badge on the album art thumbnail in the popup</description>
     </key>
 
+    <key name="popup-dynamic-bg" type="b">
+      <default>false</default>
+      <summary>Dynamic background from album art</summary>
+      <description>Extract the dominant color from album art and use it as the popup background</description>
+    </key>
+
+    <key name="popup-dynamic-bg-intensity" type="d">
+      <default>0.5</default>
+      <range min="0.0" max="1.0"/>
+      <summary>Dynamic background intensity</summary>
+      <description>Controls how bright or dark the dynamic background appears. Lower values are darker, higher values are brighter.</description>
+    </key>
+
   </schema>
 </schemalist>

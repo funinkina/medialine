@@ -109,6 +109,8 @@ export const Indicator = GObject.registerClass(
             const secondary = this._preferences.popupSecondaryColor;
             const bgColor = this._preferences.popupBackgroundColor;
             this._popupBgActive = false;
+            this._extractedArtColorUrl = null;
+            this._extractedArtColor = null;
             this._popupStyles = {
                 primary,
                 secondary,
@@ -521,7 +523,19 @@ export const Indicator = GObject.registerClass(
 
             this._popupStyles.primary = primary;
             this._popupStyles.secondary = secondary;
-            this._popupStyles.popupBg = bgColor && bgColor !== 'transparent' ? `background-color: ${bgColor};` : '';
+            const dynamicBg = this._preferences.popupDynamicBg;
+            if (dynamicBg) {
+                const media = this._mprisManager.currentMedia;
+                const extracted = this._extractArtColor(media);
+                if (extracted) {
+                    const intensity = this._preferences.popupDynamicBgIntensity;
+                    this._popupStyles.popupBg = `background-color: ${this._adjustColorBrightness(extracted, intensity)};`;
+                } else {
+                    this._popupStyles.popupBg = bgColor && bgColor !== 'transparent' ? `background-color: ${bgColor};` : '';
+                }
+            } else {
+                this._popupStyles.popupBg = bgColor && bgColor !== 'transparent' ? `background-color: ${bgColor};` : '';
+            }
             this._popupStyles.artCommon = `border-radius: 6px; background-color: ${hexToRgba(secondary, 0.08)}; background-size: contain; background-repeat: no-repeat; background-position: center;`;
             this._popupStyles.artFallback = `width: ${ART_SIZE}px; height: ${ART_SIZE}px; min-width: ${ART_SIZE}px; min-height: ${ART_SIZE}px; border-radius: 6px; background-color: ${hexToRgba(secondary, 0.08)}; background-size: contain; background-repeat: no-repeat; background-position: center;`;
             this._popupStyles.title = `font-weight: 700; font-size: 16px; color: ${primary};`;
@@ -961,6 +975,53 @@ export const Indicator = GObject.registerClass(
             if (r > maxR) { outW = POPUP_ART_MAX_W; outH = outW / r; }
             else { outH = POPUP_ART_MAX_H; outW = outH * r; }
             return [Math.round(outW), Math.round(outH)];
+        }
+
+        _extractArtColor(media) {
+            if (!media?.artUrl || !media.artUrl.startsWith('file://')) return null;
+
+            const artUrl = media.artUrl;
+            if (artUrl === this._extractedArtColorUrl) return this._extractedArtColor;
+            this._extractedArtColorUrl = artUrl;
+
+            try {
+                const path = GLib.uri_unescape_string(artUrl.substring('file://'.length), null);
+                const pb = GdkPixbuf.Pixbuf.new_from_file(path);
+                const small = pb.scale_simple(1, 1, GdkPixbuf.InterpType.BILINEAR);
+                const pixels = small.get_pixels();
+                const nChannels = small.get_n_channels();
+                const r = pixels[0];
+                const g = nChannels > 1 ? pixels[1] : r;
+                const b = nChannels > 2 ? pixels[2] : r;
+                this._extractedArtColor = `#${[r, g, b].map(c => c.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+                return this._extractedArtColor;
+            } catch (_) {
+                this._extractedArtColorUrl = null;
+                this._extractedArtColor = null;
+                return null;
+            }
+        }
+
+        _adjustColorBrightness(hex, intensity) {
+            const h = hex.replace('#', '');
+            const r = parseInt(h.substring(0, 2), 16);
+            const g = parseInt(h.substring(2, 4), 16);
+            const b = parseInt(h.substring(4, 6), 16);
+
+            let fr, fg, fb;
+            if (intensity <= 0.5) {
+                const t = intensity * 2;
+                fr = Math.round(r * t);
+                fg = Math.round(g * t);
+                fb = Math.round(b * t);
+            } else {
+                const t = (intensity - 0.5) * 2;
+                fr = Math.round(r + (255 - r) * t);
+                fg = Math.round(g + (255 - g) * t);
+                fb = Math.round(b + (255 - b) * t);
+            }
+
+            return `#${[fr, fg, fb].map(c => c.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
         }
 
         _updateIcon(media, prefs) {

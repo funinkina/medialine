@@ -24,6 +24,8 @@ export class ExtensionSettings {
     get popupSecondaryColor() { return this._settings.get_string('popup-secondary-color'); }
     get popupBackgroundColor() { return this._settings.get_string('popup-background-color'); }
     get popupShowAppIcon() { return this._settings.get_boolean('popup-show-app-icon'); }
+    get popupDynamicBg() { return this._settings.get_boolean('popup-dynamic-bg'); }
+    get popupDynamicBgIntensity() { return this._settings.get_double('popup-dynamic-bg-intensity'); }
 
     connectObject(...args) {
         this._settings.connectObject(...args);

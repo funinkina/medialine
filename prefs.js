@@ -357,6 +357,29 @@ export default class MedialinePreferences extends ExtensionPreferences {
             _('Background color'), _('Background color for the popup'),
             ''));
 
+        const dynamicBgGroup = new Adw.PreferencesGroup({
+            title: _('Dynamic Background'),
+            description: _('Extract the dominant color from album art to use as the popup background color.'),
+        });
+        page.add(dynamicBgGroup);
+
+        dynamicBgGroup.add(this._makeSwitchRow(settings, 'popup-dynamic-bg',
+            _('Dynamic background'),
+            _('Use the dominant color from album art as background')));
+
+        const intensityRow = new Adw.SpinRow({
+            title: _('Intensity'),
+            subtitle: _('How bright or dark the background appears'),
+            adjustment: new Gtk.Adjustment({
+                lower: 0, upper: 100, step_increment: 5,
+                value: Math.round(settings.get_double('popup-dynamic-bg-intensity') * 100),
+            }),
+        });
+        intensityRow.connect('notify::value', () => {
+            settings.set_double('popup-dynamic-bg-intensity', intensityRow.value / 100.0);
+        });
+        dynamicBgGroup.add(intensityRow);
+
         const appIconGroup = new Adw.PreferencesGroup({
             title: _('App icon'),
             description: _('Overlay the playing app\u2019s icon on the album art shown in the popup.'),
