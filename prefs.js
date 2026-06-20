@@ -13,8 +13,8 @@ export default class MedialinePreferences extends ExtensionPreferences {
 
         window.add(this._buildAppearancePage(settings, window));
         window.add(this._buildPanelPage(settings));
-        window.add(this._buildMousePage(settings));
         window.add(this._buildPopupPage(settings));
+        window.add(this._buildMousePage(settings));
 
         this._addAboutButton(window);
     }
