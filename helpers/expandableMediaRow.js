@@ -1,0 +1,582 @@
+import GLib from 'gi://GLib';
+import Clutter from 'gi://Clutter';
+import Pango from 'gi://Pango';
+import St from 'gi://St';
+
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+
+import {
+    ART_SIZE, COMPACT_EXPAND_CLICK, COMPACT_EXPAND_HOVER,
+    POPUP_MIN_WIDTH, PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE,
+} from './constants.js';
+import { formatTime } from './colorUtils.js';
+import { applyArtBin } from './artDisplay.js';
+import { lookupAppGicon, focusPlayerWindow } from './windowFocus.js';
+
+const ANIM_MS = 220;
+const POLL_MS = 1000;
+const COMPACT_WIDTH = 388;
+const EXPANDED_WIDTH = POPUP_MIN_WIDTH;
+const COMPACT_HEIGHT = ART_SIZE + 6;
+const EXPANDED_HEIGHT = 162;
+const BUTTON_SIZE = 40;
+const COMPACT_BUTTON_SIZE = 32;
+const EASE = Clutter.AnimationMode.EASE_OUT_CUBIC;
+
+function esc(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function loopNext(current) {
+    const order = ['None', 'Track', 'Playlist'];
+    const idx = order.indexOf(current);
+    return order[(idx >= 0 ? idx + 1 : 1) % order.length];
+}
+
+export class ExpandableMediaRow {
+    constructor(indicator, media) {
+        this._indicator = indicator;
+        this.media = media;
+        this._expanded = false;
+        this._hiddenForExpansion = false;
+        this._position = 0;
+        this._dragging = false;
+        this._dragRatio = 0;
+        this._pollId = null;
+        this._destroyed = false;
+
+        this.actor = new St.Widget({
+            layout_manager: new Clutter.FixedLayout(),
+            x_expand: true,
+            reactive: true,
+            track_hover: true,
+            clip_to_allocation: true,
+            width: COMPACT_WIDTH,
+            height: COMPACT_HEIGHT,
+        });
+
+        this._buildActors();
+        this._connectEvents();
+        this.updateMedia(media);
+        this.setExpanded(false, false, true);
+    }
+
+    _buildActors() {
+        const styles = this._indicator._popupStyles;
+
+        this._art = new St.Widget({
+            layout_manager: new Clutter.FixedLayout(),
+            reactive: true,
+            style: styles.artFallback,
+        });
+        this._appIcon = new St.Icon({
+            icon_name: 'audio-x-generic-symbolic',
+            icon_size: 32,
+        });
+        this._art.add_child(this._appIcon);
+
+        this._title = new St.Label({
+            text: '',
+            style: styles.title,
+        });
+        this._title.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+
+        this._subtitle = new St.Label({
+            text: '',
+            style: styles.subtitle,
+        });
+        this._subtitle.clutter_text.use_markup = true;
+        this._subtitle.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+
+        this._timeCurrent = new St.Label({ text: '0:00', style: styles.time });
+        this._timeTotal = new St.Label({
+            text: '0:00',
+            style: styles.time,
+            x_align: Clutter.ActorAlign.END,
+        });
+
+        this._progressTrack = new St.Widget({
+            reactive: true,
+            track_hover: true,
+            style: styles.progressTrack,
+            height: PROGRESS_HEIGHT,
+        });
+        this._progressFill = new St.Widget({
+            style: styles.progressFill,
+            width: 0,
+            height: PROGRESS_HEIGHT,
+        });
+        this._progressThumb = new St.Widget({
+            style: styles.progressThumb,
+            width: PROGRESS_THUMB_SIZE,
+            height: PROGRESS_THUMB_SIZE,
+            visible: false,
+        });
+        this._progressTrack.add_child(this._progressFill);
+        this._progressTrack.add_child(this._progressThumb);
+
+        this._shuffleBtn = this._makeButton('media-playlist-shuffle-symbolic', 16,
+            () => this._toggleShuffle());
+        this._prevBtn = this._makeButton('media-skip-backward-symbolic', 18,
+            () => this._indicator._mprisManager.previous(this.media.busName));
+        this._playBtn = this._makeButton('media-playback-start-symbolic', 24,
+            () => this._indicator._mprisManager.playPause(this.media.busName));
+        this._nextBtn = this._makeButton('media-skip-forward-symbolic', 18,
+            () => this._indicator._mprisManager.next(this.media.busName));
+        this._repeatBtn = this._makeButton('media-playlist-repeat-symbolic', 16,
+            () => this._cycleRepeat());
+
+        for (const actor of [
+            this._art, this._title, this._subtitle, this._timeCurrent, this._timeTotal,
+            this._progressTrack, this._shuffleBtn, this._prevBtn, this._playBtn,
+            this._nextBtn, this._repeatBtn,
+        ])
+            this.actor.add_child(actor);
+    }
+
+    _connectEvents() {
+        this._art.connectObject('button-release-event', (_a, event) => {
+            if (event.type() === Clutter.EventType.BUTTON_RELEASE) {
+                focusPlayerWindow(this._indicator, this.media);
+                return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
+        }, this.actor);
+
+        this.actor.connectObject(
+            'notify::hover', () => this._onHoverChanged(),
+            'button-release-event', (_a, event) => this._onRowButtonRelease(event),
+            'notify::allocation', () => this._updateProgress(),
+            this.actor);
+
+        this._progressTrack.connectObject(
+            'button-press-event', (_a, event) => this._onProgressPress(event),
+            'motion-event', (_a, event) => this._onProgressMotion(event),
+            'button-release-event', (_a, event) => this._onProgressRelease(event),
+            'notify::hover', () => this._updateProgress(),
+            this.actor);
+    }
+
+    _makeButton(iconName, iconSize, onClick) {
+        const btn = new St.Button({
+            can_focus: true,
+            track_hover: true,
+            reactive: true,
+            style_class: 'medialine-control-button',
+            style: this._indicator._popupStyles.btn,
+            x_align: Clutter.ActorAlign.CENTER,
+            y_align: Clutter.ActorAlign.CENTER,
+        });
+        const icon = new St.Icon({
+            icon_name: iconName,
+            icon_size: iconSize,
+            style: this._indicator._popupStyles.iconColor,
+            x_align: Clutter.ActorAlign.CENTER,
+            y_align: Clutter.ActorAlign.CENTER,
+        });
+        btn.set_child(icon);
+        btn._active = false;
+        btn.connectObject(
+            'notify::hover', () => this._syncButtonStyle(btn),
+            'clicked', onClick,
+            this.actor);
+        return btn;
+    }
+
+    updateMedia(media) {
+        this.media = media;
+        this._updateInfo();
+        this._updateArt();
+        this._syncControlState();
+        this._syncColors();
+        this._updateProgress();
+    }
+
+    _updateInfo() {
+        const media = this.media;
+        this._title.text = media.title || (media.identity ? `${media.identity} is playing media` : _('Unknown'));
+        const artist = media.artist ? esc(media.artist) : '';
+        const album = media.album ? esc(media.album) : '';
+        const on = (artist && album) ? `<span foreground="${this._indicator._popupStyles.secondary}"> on </span>` : '';
+        this._subtitle.clutter_text.set_markup(artist + on + album);
+        this._subtitle.visible = !!(artist || album);
+    }
+
+    _updateArt() {
+        const appGicon = lookupAppGicon(this._indicator, this.media);
+        applyArtBin(this._art, this._appIcon, this.media, {
+            boxSize: ART_SIZE,
+            fallbackIconSize: 32,
+        }, this._indicator._popupStyles, this._indicator._preferences, appGicon);
+    }
+
+    _syncControlState() {
+        const media = this.media;
+        this._playBtn.get_child().icon_name = media.status === 'Playing'
+            ? 'media-playback-pause-symbolic'
+            : 'media-playback-start-symbolic';
+
+        this._prevBtn.reactive = media.canGoPrevious !== false;
+        this._nextBtn.reactive = media.canGoNext !== false;
+        this._prevBtn.opacity = this._prevBtn.reactive ? 255 : 110;
+        this._nextBtn.opacity = this._nextBtn.reactive ? 255 : 110;
+
+        const shuffleAvail = media.shuffle !== null && media.canControl;
+        this._shuffleBtn.reactive = shuffleAvail;
+        this._shuffleBtn.opacity = shuffleAvail ? 255 : 110;
+        this._shuffleBtn._active = shuffleAvail && media.shuffle;
+
+        const repeatAvail = media.loopStatus !== null && media.canControl;
+        this._repeatBtn.reactive = repeatAvail;
+        this._repeatBtn.opacity = repeatAvail ? 255 : 110;
+        this._repeatBtn.get_child().icon_name = media.loopStatus === 'Track'
+            ? 'media-playlist-repeat-song-symbolic'
+            : 'media-playlist-repeat-symbolic';
+        this._repeatBtn._active = repeatAvail && media.loopStatus !== 'None';
+
+        for (const btn of [this._shuffleBtn, this._prevBtn, this._playBtn, this._nextBtn, this._repeatBtn])
+            this._syncButtonStyle(btn);
+    }
+
+    _syncColors() {
+        const styles = this._indicator._popupStyles;
+        this._title.style = styles.title;
+        this._subtitle.style = styles.subtitle;
+        this._timeCurrent.style = styles.time;
+        this._timeTotal.style = styles.time;
+        this._progressTrack.style = styles.progressTrack;
+        this._progressFill.style = styles.progressFill;
+        this._progressThumb.style = styles.progressThumb;
+        for (const btn of [this._shuffleBtn, this._prevBtn, this._playBtn, this._nextBtn, this._repeatBtn]) {
+            btn.get_child().style = styles.iconColor;
+            this._syncButtonStyle(btn);
+        }
+    }
+
+    _syncButtonStyle(btn) {
+        const styles = this._indicator._popupStyles;
+        if (btn.hover)
+            btn.style = this._expanded ? styles.btnHover : styles.compactBtnHover;
+        else if (btn._active)
+            btn.style = styles.btnActive;
+        else
+            btn.style = this._expanded ? styles.btn : styles.compactBtn;
+    }
+
+    setExpanded(expanded, hideBecauseOtherExpanded = false, immediate = false) {
+        this._expanded = expanded;
+        this._hiddenForExpansion = hideBecauseOtherExpanded;
+        this.actor.visible = true;
+        this.actor.reactive = !hideBecauseOtherExpanded;
+
+        const layout = expanded ? this._expandedLayout() : this._compactLayout();
+        const duration = immediate ? 0 : ANIM_MS;
+        const rowHeight = hideBecauseOtherExpanded ? 0 : layout.rowHeight;
+        const rowWidth = hideBecauseOtherExpanded ? 0 : layout.rowWidth;
+        const rowOpacity = hideBecauseOtherExpanded ? 0 : 255;
+
+        this.actor.ease({
+            width: rowWidth,
+            height: rowHeight,
+            opacity: rowOpacity,
+            duration,
+            mode: EASE,
+            onComplete: () => {
+                if (!this._destroyed)
+                    this.actor.visible = !hideBecauseOtherExpanded;
+            },
+        });
+
+        if (hideBecauseOtherExpanded) {
+            this._stopPolling();
+            return;
+        }
+
+        this._animateActor(this._art, layout.art, 255, duration);
+        this._animateActor(this._title, layout.title, 255, duration);
+        this._animateActor(this._subtitle, layout.subtitle, this._subtitle.visible ? 255 : 0, duration);
+        this._animateActor(this._playBtn, layout.play, 255, duration);
+        this._animateActor(this._nextBtn, layout.next, 255, duration);
+        this._setExpandedControlsVisible(expanded, layout, duration);
+
+        for (const btn of [this._shuffleBtn, this._prevBtn, this._playBtn, this._nextBtn, this._repeatBtn])
+            this._syncButtonStyle(btn);
+
+        if (expanded) {
+            this._startPolling();
+            this._pollPosition();
+        } else {
+            this._stopPolling();
+        }
+    }
+
+    _compactLayout() {
+        return {
+            rowWidth: COMPACT_WIDTH,
+            rowHeight: COMPACT_HEIGHT,
+            art: { x: 0, y: 0, w: ART_SIZE, h: ART_SIZE },
+            title: { x: 78, y: 13, w: 224, h: 24 },
+            subtitle: { x: 78, y: 39, w: 224, h: 22 },
+            play: { x: 312, y: 21, w: COMPACT_BUTTON_SIZE, h: COMPACT_BUTTON_SIZE },
+            next: { x: 350, y: 21, w: COMPACT_BUTTON_SIZE, h: COMPACT_BUTTON_SIZE },
+        };
+    }
+
+    _expandedLayout() {
+        return {
+            rowWidth: EXPANDED_WIDTH,
+            rowHeight: EXPANDED_HEIGHT,
+            art: { x: 0, y: 0, w: ART_SIZE, h: ART_SIZE },
+            title: { x: 80, y: 8, w: EXPANDED_WIDTH - 80, h: 26 },
+            subtitle: { x: 80, y: 38, w: EXPANDED_WIDTH - 80, h: 24 },
+            timeCurrent: { x: 0, y: 82, w: 80, h: 18 },
+            timeTotal: { x: EXPANDED_WIDTH - 80, y: 82, w: 80, h: 18 },
+            progress: { x: 0, y: 106, w: EXPANDED_WIDTH, h: PROGRESS_HEIGHT },
+            shuffle: { x: 28, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
+            prev: { x: 84, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
+            play: { x: 140, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
+            next: { x: 196, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
+            repeat: { x: 252, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
+        };
+    }
+
+    _animateActor(actor, box, opacity = 255, duration = ANIM_MS) {
+        actor.show();
+        actor.ease({
+            x: box.x,
+            y: box.y,
+            width: box.w,
+            height: box.h,
+            opacity,
+            duration,
+            mode: EASE,
+        });
+    }
+
+    _setExpandedControlsVisible(expanded, layout, duration) {
+        const expandedActors = [
+            [this._timeCurrent, layout.timeCurrent],
+            [this._timeTotal, layout.timeTotal],
+            [this._progressTrack, layout.progress],
+            [this._shuffleBtn, layout.shuffle],
+            [this._prevBtn, layout.prev],
+            [this._repeatBtn, layout.repeat],
+        ];
+
+        for (const [actor, box] of expandedActors) {
+            if (expanded) {
+                this._animateActor(actor, box, 255, duration);
+                actor.reactive = true;
+            } else {
+                actor.reactive = false;
+                actor.ease({
+                    opacity: 0,
+                    duration,
+                    mode: EASE,
+                    onComplete: () => {
+                        if (!this._expanded)
+                            actor.hide();
+                    },
+                });
+            }
+        }
+    }
+
+    _onHoverChanged() {
+        if (this._indicator._preferences.popupCompactExpandMode !== COMPACT_EXPAND_HOVER)
+            return;
+
+        if (this.actor.hover)
+            this._indicator._setExpandedBusName(this.media.busName);
+        else if (this._indicator._expandedBusName === this.media.busName)
+            this._indicator._setExpandedBusName(null);
+    }
+
+    _onRowButtonRelease(event) {
+        if (event.get_button && event.get_button() !== Clutter.BUTTON_PRIMARY)
+            return Clutter.EVENT_PROPAGATE;
+        if (this._indicator._preferences.popupCompactExpandMode !== COMPACT_EXPAND_CLICK)
+            return Clutter.EVENT_PROPAGATE;
+        if (this._eventFromInteractiveChild(event))
+            return Clutter.EVENT_PROPAGATE;
+
+        this._indicator._setExpandedBusName(this.media.busName);
+        return Clutter.EVENT_STOP;
+    }
+
+    _eventFromInteractiveChild(event) {
+        const source = event.get_source?.();
+        return this._contains(this._art, source) ||
+            this._contains(this._playBtn, source) ||
+            this._contains(this._nextBtn, source) ||
+            this._contains(this._shuffleBtn, source) ||
+            this._contains(this._prevBtn, source) ||
+            this._contains(this._repeatBtn, source) ||
+            this._contains(this._progressTrack, source);
+    }
+
+    _contains(root, actor) {
+        for (let cur = actor; cur; cur = cur.get_parent?.()) {
+            if (cur === root)
+                return true;
+        }
+        return false;
+    }
+
+    _toggleShuffle() {
+        if (!this.media || this.media.shuffle === null || !this.media.canControl)
+            return;
+        this._indicator._mprisManager.setShuffle(!this.media.shuffle, this.media.busName);
+    }
+
+    _cycleRepeat() {
+        if (!this.media || this.media.loopStatus === null || !this.media.canControl)
+            return;
+        this._indicator._mprisManager.setLoopStatus(loopNext(this.media.loopStatus), this.media.busName);
+    }
+
+    _startPolling() {
+        if (this._pollId)
+            return;
+        this._pollId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, POLL_MS, () => {
+            this._pollPosition();
+            return GLib.SOURCE_CONTINUE;
+        });
+    }
+
+    _stopPolling() {
+        if (this._pollId) {
+            GLib.Source.remove(this._pollId);
+            this._pollId = null;
+        }
+        this._dragging = false;
+    }
+
+    _pollPosition() {
+        if (!this._expanded || !this.media?.busName)
+            return;
+        if (this._dragging) {
+            this._updateProgress();
+            return;
+        }
+        this._indicator._mprisManager.getPositionAsync((position) => {
+            if (this._destroyed)
+                return;
+            this._position = position;
+            this._updateProgress();
+        }, this.media.busName);
+    }
+
+    _updateProgress() {
+        const media = this.media;
+        if (!media) {
+            this._timeCurrent.text = '0:00';
+            this._timeTotal.text = '0:00';
+            this._progressFill.width = 0;
+            this._progressThumb.visible = false;
+            return;
+        }
+
+        const length = media.length || 0;
+        const trackWidth = Math.max(0, this._progressTrack.width || 0);
+        let ratio;
+        if (this._dragging) {
+            ratio = this._dragRatio;
+            this._timeCurrent.text = formatTime(Math.floor(ratio * length));
+        } else {
+            ratio = length > 0 ? Math.max(0, Math.min(1, this._position / length)) : 0;
+            this._timeCurrent.text = formatTime(this._position);
+        }
+        this._timeTotal.text = formatTime(length);
+
+        const fillWidth = Math.floor(ratio * trackWidth);
+        this._progressFill.set_position(0, 0);
+        this._progressFill.width = fillWidth;
+
+        const canSeek = !!media.canSeek && length > 0 && !!media.trackId;
+        const showThumb = canSeek && (this._dragging || this._progressTrack.hover);
+        this._progressThumb.visible = showThumb;
+        if (showThumb) {
+            this._progressThumb.set_position(
+                Math.floor(fillWidth - PROGRESS_THUMB_SIZE / 2),
+                (PROGRESS_HEIGHT - PROGRESS_THUMB_SIZE) / 2);
+        }
+    }
+
+    _ratioFromEvent(event) {
+        if (!this.media || !this.media.length)
+            return null;
+        const trackWidth = Math.max(1, this._progressTrack.width || 1);
+        const [stageX] = event.get_coords();
+        const [trackStageX] = this._progressTrack.get_transformed_position();
+        return Math.max(0, Math.min(1, (stageX - trackStageX) / trackWidth));
+    }
+
+    _onProgressPress(event) {
+        if (event.get_button() !== Clutter.BUTTON_PRIMARY)
+            return Clutter.EVENT_PROPAGATE;
+        if (!this.media || !this.media.canSeek || !this.media.length || !this.media.trackId)
+            return Clutter.EVENT_PROPAGATE;
+        const ratio = this._ratioFromEvent(event);
+        if (ratio === null)
+            return Clutter.EVENT_PROPAGATE;
+        this._dragging = true;
+        this._dragRatio = ratio;
+        this._updateProgress();
+        return Clutter.EVENT_STOP;
+    }
+
+    _onProgressMotion(event) {
+        if (!this._dragging)
+            return Clutter.EVENT_PROPAGATE;
+        const ratio = this._ratioFromEvent(event);
+        if (ratio === null)
+            return Clutter.EVENT_PROPAGATE;
+        this._dragRatio = ratio;
+        this._updateProgress();
+        return Clutter.EVENT_STOP;
+    }
+
+    _onProgressRelease(event) {
+        if (!this._dragging)
+            return Clutter.EVENT_PROPAGATE;
+        if (event.get_button() !== Clutter.BUTTON_PRIMARY)
+            return Clutter.EVENT_PROPAGATE;
+        const ratio = this._ratioFromEvent(event) ?? this._dragRatio;
+        this._dragging = false;
+        if (this.media?.length)
+            this._indicator._mprisManager.setPosition(Math.floor(ratio * this.media.length), this.media.busName);
+        this._updateProgress();
+        return Clutter.EVENT_STOP;
+    }
+
+    stop() {
+        this._stopPolling();
+        this.setExpanded(false, false);
+    }
+
+    animateOutAndDestroy() {
+        this._stopPolling();
+        this.actor.reactive = false;
+        this.actor.ease({
+            height: 0,
+            opacity: 0,
+            duration: ANIM_MS,
+            mode: EASE,
+            onComplete: () => this.destroy(),
+        });
+    }
+
+    destroy() {
+        if (this._destroyed)
+            return;
+        this._destroyed = true;
+        this._stopPolling();
+        this.actor.disconnectObject(this.actor);
+        this._art.disconnectObject(this.actor);
+        this._progressTrack.disconnectObject(this.actor);
+        for (const btn of [this._shuffleBtn, this._prevBtn, this._playBtn, this._nextBtn, this._repeatBtn])
+            btn.disconnectObject(this.actor);
+        this.actor.destroy();
+    }
+}

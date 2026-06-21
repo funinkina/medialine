@@ -264,13 +264,16 @@ export const MprisManager = GObject.registerClass({
         }
     }
 
-    setPosition(positionMicros) {
-        if (!this._currentMedia || !this._currentMedia.canSeek) return;
-        const trackId = this._currentMedia.trackId;
+    setPosition(positionMicros, busName = this._currentMedia?.busName) {
+        const media = busName
+            ? this._allMedia.find(m => m.busName === busName)
+            : this._currentMedia;
+        if (!media || !media.canSeek) return;
+        const trackId = media.trackId;
         if (!trackId) return;
         const clamped = Math.max(0, Math.floor(positionMicros));
         Gio.DBus.session.call(
-            this._currentMedia.busName,
+            media.busName,
             '/org/mpris/MediaPlayer2',
             'org.mpris.MediaPlayer2.Player',
             'SetPosition',
@@ -289,13 +292,13 @@ export const MprisManager = GObject.registerClass({
         );
     }
 
-    getPositionAsync(callback) {
-        if (!this._currentMedia || !this._currentMedia.busName) {
+    getPositionAsync(callback, busName = this._currentMedia?.busName) {
+        if (!busName) {
             callback(0);
             return;
         }
         Gio.DBus.session.call(
-            this._currentMedia.busName,
+            busName,
             '/org/mpris/MediaPlayer2',
             'org.freedesktop.DBus.Properties',
             'Get',

@@ -13,6 +13,10 @@ export const CLICK_VOLUME_UP = 6;
 export const CLICK_VOLUME_DOWN = 7;
 export const CLICK_RAISE_PLAYER = 8;
 
+export const COMPACT_EXPAND_OFF = 0;
+export const COMPACT_EXPAND_HOVER = 1;
+export const COMPACT_EXPAND_CLICK = 2;
+
 export const ART_SIZE = 68;
 export const PROGRESS_HEIGHT = 4;
 export const PROGRESS_THUMB_SIZE = 12;

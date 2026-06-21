@@ -26,6 +26,7 @@ export class ExtensionSettings {
     get popupShowAppIcon() { return this._settings.get_boolean('popup-show-app-icon'); }
     get popupDynamicBg() { return this._settings.get_boolean('popup-dynamic-bg'); }
     get popupDynamicBgIntensity() { return this._settings.get_double('popup-dynamic-bg-intensity'); }
+    get popupCompactExpandMode() { return this._settings.get_enum('popup-compact-expand-mode'); }
 
     connectObject(...args) {
         this._settings.connectObject(...args);

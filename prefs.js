@@ -388,6 +388,16 @@ export default class MedialinePreferences extends ExtensionPreferences {
         appIconGroup.add(this._makeSwitchRow(settings, 'popup-show-app-icon',
             _('Show app icon on the bottom right of the album art')));
 
+        const compactGroup = new Adw.PreferencesGroup({
+            title: _('Compact layout'),
+            description: _('Control how multi-source compact rows expand in the popup.'),
+        });
+        page.add(compactGroup);
+
+        compactGroup.add(this._makeComboRow(settings, 'popup-compact-expand-mode',
+            _('Expand layout on'), _('When multiple media sources are shown'),
+            this._makeStringList([_('Off'), _('Hover'), _('Click')])));
+
         return page;
     }
 

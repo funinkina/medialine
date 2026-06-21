@@ -10,11 +10,13 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import {
     ICON_TYPE_ART, ICON_TYPE_STATUS, ICON_TYPE_CUSTOM,
-    ART_SIZE, PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE, POPUP_MIN_WIDTH, POPUP_MAX_WIDTH,
+    ART_SIZE, COMPACT_EXPAND_CLICK, COMPACT_EXPAND_OFF,
+    PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE, POPUP_MIN_WIDTH, POPUP_MAX_WIDTH,
 } from './constants.js';
 import { hexToRgba, adjustColorBrightness } from './colorUtils.js';
 import { setupClickHandling, toggleShuffle, cycleRepeat } from './inputActions.js';
 import { applyArtBin, extractArtColor } from './artDisplay.js';
+import { ExpandableMediaRow } from './expandableMediaRow.js';
 import {
     startPositionPolling, stopPositionPolling, pollPosition,
     updateProgress, onProgressPress, onProgressMotion, onProgressRelease,
@@ -67,6 +69,10 @@ export const Indicator = GObject.registerClass(
             this._pidCache = new Map();
             this._pendingPidLookups = new Set();
             this._windowClassCache = new Map();
+            this._compactRows = new Map();
+            this._compactSeparators = new Map();
+            this._expandedBusName = null;
+            this._lastCompactExpandMode = this._preferences.popupCompactExpandMode;
 
             this._initPopupColors();
             this._buildUI();
@@ -295,8 +301,14 @@ export const Indicator = GObject.registerClass(
 
             this.menu.connectObject('open-state-changed',
                 (_m, open) => {
-                    if (open) startPositionPolling(this);
-                    else stopPositionPolling(this);
+                    if (open) {
+                        startPositionPolling(this);
+                    } else {
+                        stopPositionPolling(this);
+                        this._setExpandedBusName(null, true);
+                        for (const row of this._compactRows.values())
+                            row.stop();
+                    }
                 }, this);
         }
 
@@ -326,35 +338,6 @@ export const Indicator = GObject.registerClass(
                     btn.style = btn.hover
                         ? this._popupStyles.btnHover
                         : (btn._active ? this._popupStyles.btnActive : this._popupStyles.btn);
-                },
-                'clicked', onClick,
-                this);
-            return btn;
-        }
-
-        _makeCompactButton(iconName, iconSize, onClick) {
-            const btn = new St.Button({
-                can_focus: true,
-                track_hover: true,
-                reactive: true,
-                style_class: 'medialine-control-button',
-                style: this._popupStyles.compactBtn,
-                x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER,
-            });
-            const icon = new St.Icon({
-                icon_name: iconName,
-                icon_size: iconSize,
-                style: this._popupStyles.iconColor,
-                x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER,
-            });
-            btn.set_child(icon);
-            btn.connectObject(
-                'notify::hover', () => {
-                    btn.style = btn.hover
-                        ? this._popupStyles.compactBtnHover
-                        : this._popupStyles.compactBtn;
                 },
                 'clicked', onClick,
                 this);
@@ -419,10 +402,12 @@ export const Indicator = GObject.registerClass(
             if (allMedia.length === 0) {
                 this.hide();
                 stopPositionPolling(this);
+                this._clearCompactRows();
                 return;
             }
 
             this.show();
+            this._syncCompactExpandMode();
 
             const media = allMedia[0];
             const prefs = this._preferences;
@@ -443,6 +428,7 @@ export const Indicator = GObject.registerClass(
             this._updatePopupColors();
 
             if (allMedia.length === 1) {
+                this._clearCompactRows();
                 this._listContainer.hide();
                 this._richContainer.show();
                 this._updatePopup(media);
@@ -506,116 +492,121 @@ export const Indicator = GObject.registerClass(
         }
 
         _updateMediaList(allMedia) {
-            this._listContainer.destroy_all_children();
+            const live = new Set(allMedia.map(m => m.busName));
 
-            allMedia.forEach((media, idx) => {
-                if (idx > 0) {
-                    this._listContainer.add_child(new St.Widget({
-                        style: this._popupStyles.separator,
-                        x_expand: true,
-                    }));
+            for (const [busName, row] of this._compactRows) {
+                if (!live.has(busName)) {
+                    row.animateOutAndDestroy();
+                    this._compactRows.delete(busName);
                 }
-                const row = this._buildCompactRow(media);
-                this._listContainer.add_child(row);
-                this._applyCompactArt(row, media);
-                this._applyCompactInfo(row, media);
-            });
-        }
+            }
+            for (const [busName, separator] of this._compactSeparators) {
+                if (!live.has(busName)) {
+                    separator.destroy();
+                    this._compactSeparators.delete(busName);
+                }
+            }
 
-        _buildCompactRow(media) {
-            const art = new St.Widget({
-                layout_manager: new Clutter.FixedLayout(),
-                style: this._popupStyles.artFallback,
-                reactive: true,
-            });
-            const appIcon = new St.Icon({
-                icon_name: 'audio-x-generic-symbolic',
-                icon_size: 32,
-            });
-            art.add_child(appIcon);
-            art.connectObject(
-                'button-release-event', (_a, event) => {
-                    if (event.type() === Clutter.EventType.BUTTON_RELEASE) {
-                        focusPlayerWindow(this, media);
-                        return Clutter.EVENT_STOP;
+            if (this._expandedBusName && !live.has(this._expandedBusName))
+                this._expandedBusName = null;
+
+            let childIndex = 0;
+            allMedia.forEach((media, index) => {
+                let separator = this._compactSeparators.get(media.busName);
+                if (index === 0) {
+                    if (separator) {
+                        separator.destroy();
+                        this._compactSeparators.delete(media.busName);
                     }
-                    return Clutter.EVENT_PROPAGATE;
-                },
-                this
-            );
+                } else {
+                    if (!separator) {
+                        separator = this._makeCompactSeparator();
+                        this._compactSeparators.set(media.busName, separator);
+                        this._listContainer.add_child(separator);
+                    }
+                    separator.style = this._popupStyles.separator;
+                    this._listContainer.set_child_at_index(separator, childIndex++);
+                }
 
-            const title = new St.Label({
-                text: '',
-                x_expand: true,
-                style: this._popupStyles.title,
+                let row = this._compactRows.get(media.busName);
+                if (!row) {
+                    row = new ExpandableMediaRow(this, media);
+                    this._compactRows.set(media.busName, row);
+                    this._listContainer.add_child(row.actor);
+                }
+                row.updateMedia(media);
+                this._listContainer.set_child_at_index(row.actor, childIndex++);
             });
-            title.clutter_text.ellipsize = Pango.EllipsizeMode.END;
 
-            const subtitle = new St.Label({
-                text: '',
-                x_expand: true,
-                style: this._popupStyles.subtitle,
-            });
-            subtitle.clutter_text.use_markup = true;
-            subtitle.clutter_text.ellipsize = Pango.EllipsizeMode.END;
-
-            const textBox = new St.BoxLayout({
-                vertical: true,
-                x_expand: true,
-                y_align: Clutter.ActorAlign.CENTER,
-                style: 'spacing: 2px;',
-            });
-            textBox.add_child(title);
-            textBox.add_child(subtitle);
-
-            const playBtn = this._makeCompactButton('media-playback-start-symbolic', 18,
-                () => this._mprisManager.playPause(media.busName));
-            const nextBtn = this._makeCompactButton('media-skip-forward-symbolic', 16,
-                () => this._mprisManager.next(media.busName));
-
-            const row = new St.BoxLayout({
-                x_expand: true,
-                y_align: Clutter.ActorAlign.CENTER,
-                style: 'spacing: 10px;',
-            });
-            row.add_child(art);
-            row.add_child(textBox);
-            row.add_child(playBtn);
-            row.add_child(nextBtn);
-
-            row._art = art;
-            row._appIcon = appIcon;
-            row._title = title;
-            row._subtitle = subtitle;
-            row._playBtn = playBtn;
-            row._nextBtn = nextBtn;
-            return row;
+            this._applyExpandedBusState();
         }
 
-        _applyCompactInfo(row, media) {
-            row._title.text = media.title || (media.identity ? `${media.identity} is playing media` : _('Unknown'));
-            const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            const artist = media.artist ? esc(media.artist) : '';
-            const album = media.album ? esc(media.album) : '';
-            const on = (artist && album) ? `<span foreground="${this._popupStyles.secondary}"> on </span>` : '';
-            row._subtitle.clutter_text.set_markup(artist + on + album);
-            row._subtitle.visible = !!(artist || album);
-
-            row._playBtn.get_child().icon_name = media.status === 'Playing'
-                ? 'media-playback-pause-symbolic'
-                : 'media-playback-start-symbolic';
-
-            const nextAvail = media.canGoNext !== false;
-            row._nextBtn.reactive = nextAvail;
-            row._nextBtn.opacity = nextAvail ? 255 : 110;
+        _setExpandedBusName(busName, immediate = false) {
+            this._expandedBusName = busName;
+            this._applyExpandedBusState(immediate);
         }
 
-        _applyCompactArt(row, media) {
-            const appGicon = lookupAppGicon(this, media);
-            applyArtBin(row._art, row._appIcon, media, {
-                boxSize: ART_SIZE,
-                fallbackIconSize: 32,
-            }, this._popupStyles, this._preferences, appGicon);
+        _syncCompactExpandMode() {
+            const mode = this._preferences.popupCompactExpandMode;
+            if (mode === this._lastCompactExpandMode)
+                return;
+
+            this._lastCompactExpandMode = mode;
+            if (mode !== COMPACT_EXPAND_CLICK)
+                this._expandedBusName = null;
+        }
+
+        _applyExpandedBusState(immediate = false) {
+            const mode = this._preferences.popupCompactExpandMode;
+            if (mode === COMPACT_EXPAND_OFF) {
+                this._expandedBusName = null;
+                for (const row of this._compactRows.values())
+                    row.setExpanded(false, false, immediate);
+                this._syncCompactSeparators(false, immediate);
+                return;
+            }
+
+            const expandedBusName = this._expandedBusName;
+            for (const [busName, row] of this._compactRows) {
+                const isExpanded = !!expandedBusName && busName === expandedBusName;
+                const hidden = !!expandedBusName && busName !== expandedBusName;
+                row.setExpanded(isExpanded, hidden, immediate);
+            }
+            this._syncCompactSeparators(!!expandedBusName, immediate);
+        }
+
+        _makeCompactSeparator() {
+            return new St.Widget({
+                x_expand: true,
+                height: 1,
+                style: this._popupStyles.separator,
+            });
+        }
+
+        _syncCompactSeparators(hidden, immediate = false) {
+            const duration = immediate ? 0 : 220;
+            for (const separator of this._compactSeparators.values()) {
+                separator.visible = true;
+                separator.ease({
+                    height: hidden ? 0 : 1,
+                    opacity: hidden ? 0 : 255,
+                    duration,
+                    mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+                    onComplete: () => {
+                        separator.visible = !hidden;
+                    },
+                });
+            }
+        }
+
+        _clearCompactRows() {
+            this._expandedBusName = null;
+            for (const row of this._compactRows.values())
+                row.destroy();
+            this._compactRows.clear();
+            for (const separator of this._compactSeparators.values())
+                separator.destroy();
+            this._compactSeparators.clear();
         }
 
         _updateIcon(media, prefs) {

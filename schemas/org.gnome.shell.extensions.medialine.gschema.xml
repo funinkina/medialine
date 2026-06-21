@@ -25,6 +25,12 @@
     <value value="8" nick="raise-player" />
   </enum>
 
+  <enum id="org.gnome.shell.extensions.medialine.popup-compact-expand-mode">
+    <value value="0" nick="off" />
+    <value value="1" nick="hover" />
+    <value value="2" nick="click" />
+  </enum>
+
   <schema id="org.gnome.shell.extensions.medialine"
     path="/org/gnome/shell/extensions/medialine/">
 
@@ -157,6 +163,13 @@
       <range min="0.0" max="1.0"/>
       <summary>Dynamic background intensity</summary>
       <description>Controls how bright or dark the dynamic background appears. Lower values are darker, higher values are brighter.</description>
+    </key>
+
+    <key name="popup-compact-expand-mode"
+      enum="org.gnome.shell.extensions.medialine.popup-compact-expand-mode">
+      <default>'off'</default>
+      <summary>Expand compact layout on</summary>
+      <description>Choose whether multi-source compact rows expand on hover, click, or stay compact.</description>
     </key>
 
   </schema>
