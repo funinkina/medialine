@@ -1,12 +1,14 @@
 import GLib from 'gi://GLib';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
+import * as MprisModule from 'resource:///org/gnome/shell/ui/mpris.js';
 
 import { ExtensionSettings } from './helpers/settings.js';
 import { MprisManager } from './helpers/mprisManager.js';
 import { Indicator } from './helpers/indicator.js';
 
 const PANEL_POSITIONS = ['left', 'center', 'right'];
+const MprisSource = MprisModule.MprisSource ?? MprisModule.MediaSection;
 
 export default class MedialineExtension extends Extension {
     enable() {
@@ -37,15 +39,8 @@ export default class MedialineExtension extends Extension {
         this._updateDefaultNotification();
     }
 
-    async _updateDefaultNotification() {
+    _updateDefaultNotification() {
         const shouldHide = this._preferences.hideDefaultNotification;
-        let MprisModule;
-        try {
-            MprisModule = await import('resource:///org/gnome/shell/ui/mpris.js');
-        } catch (_) {
-            return;
-        }
-        const MprisSource = MprisModule.MprisSource ?? MprisModule.MediaSection;
         if (!MprisSource) return;
 
         const mediaSource =
@@ -94,7 +89,7 @@ export default class MedialineExtension extends Extension {
         targetBox.insert_child_at_index(container, index);
     }
 
-    async disable() {
+    disable() {
         if (this._enableIdleId) {
             GLib.Source.remove(this._enableIdleId);
             this._enableIdleId = null;
@@ -102,19 +97,13 @@ export default class MedialineExtension extends Extension {
 
         this._preferences.disconnectObject(this);
 
-        if (this._origAddPlayer) {
-            try {
-                const MprisModule = await import('resource:///org/gnome/shell/ui/mpris.js');
-                const MprisSource = MprisModule.MprisSource ?? MprisModule.MediaSection;
-                if (MprisSource) {
-                    MprisSource.prototype._addPlayer = this._origAddPlayer;
-                    const mediaSource =
-                        Main.panel.statusArea.dateMenu?._messageList?._messageView?._mediaSource ??
-                        Main.panel.statusArea.dateMenu?._messageList?._mediaSection;
-                    if (mediaSource)
-                        mediaSource._onProxyReady();
-                }
-            } catch (_) { }
+        if (this._origAddPlayer && MprisSource) {
+            MprisSource.prototype._addPlayer = this._origAddPlayer;
+            const mediaSource =
+                Main.panel.statusArea.dateMenu?._messageList?._messageView?._mediaSource ??
+                Main.panel.statusArea.dateMenu?._messageList?._mediaSection;
+            if (mediaSource)
+                mediaSource._onProxyReady();
             this._origAddPlayer = null;
         }
 
