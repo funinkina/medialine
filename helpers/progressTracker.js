@@ -2,12 +2,12 @@ import GLib from 'gi://GLib';
 import Clutter from 'gi://Clutter';
 
 import { formatTime } from './colorUtils.js';
-import { PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE } from './constants.js';
+import { POLL_MS, PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE } from './constants.js';
 
 export function startPositionPolling(self) {
     pollPosition(self);
     if (self._positionTimerId) return;
-    self._positionTimerId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1000, () => {
+    self._positionTimerId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, POLL_MS, () => {
         pollPosition(self);
         return GLib.SOURCE_CONTINUE;
     });

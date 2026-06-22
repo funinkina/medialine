@@ -1,3 +1,5 @@
+import Clutter from 'gi://Clutter';
+
 export const ICON_TYPE_APP = 0;
 export const ICON_TYPE_ART = 1;
 export const ICON_TYPE_STATUS = 2;
@@ -24,3 +26,16 @@ export const POPUP_MIN_WIDTH = 320;
 export const POPUP_MAX_WIDTH = 400;
 export const POPUP_ART_MAX_W = 120;
 export const POPUP_ART_MAX_H = ART_SIZE;
+
+export const ANIM_MS = 220;
+export const POLL_MS = 1000;
+export const COMPACT_WIDTH = 388;
+export const EXPANDED_WIDTH = POPUP_MIN_WIDTH;
+export const COMPACT_HEIGHT = ART_SIZE + 6;
+export const EXPANDED_HEIGHT = 162;
+export const BUTTON_SIZE = 40;
+export const COMPACT_BUTTON_SIZE = 32;
+export const EASE = Clutter.AnimationMode.EASE_OUT_CUBIC;
+
+export const SCROLL_NOTCH = 1.0;
+export const MPRIS_PREFIX = 'org.mpris.MediaPlayer2.';

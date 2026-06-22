@@ -6,22 +6,14 @@ import St from 'gi://St';
 import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import {
-    ART_SIZE, COMPACT_EXPAND_CLICK, COMPACT_EXPAND_HOVER,
-    POPUP_MIN_WIDTH, PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE,
+    ANIM_MS, ART_SIZE, BUTTON_SIZE, COMPACT_BUTTON_SIZE,
+    COMPACT_EXPAND_CLICK, COMPACT_EXPAND_HOVER, COMPACT_HEIGHT,
+    COMPACT_WIDTH, EASE, EXPANDED_HEIGHT, EXPANDED_WIDTH,
+    POLL_MS, PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE,
 } from './constants.js';
 import { formatTime } from './colorUtils.js';
 import { applyArtBin } from './artDisplay.js';
 import { lookupAppGicon, focusPlayerWindow } from './windowFocus.js';
-
-const ANIM_MS = 220;
-const POLL_MS = 1000;
-const COMPACT_WIDTH = 388;
-const EXPANDED_WIDTH = POPUP_MIN_WIDTH;
-const COMPACT_HEIGHT = ART_SIZE + 6;
-const EXPANDED_HEIGHT = 162;
-const BUTTON_SIZE = 40;
-const COMPACT_BUTTON_SIZE = 32;
-const EASE = Clutter.AnimationMode.EASE_OUT_CUBIC;
 
 function esc(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

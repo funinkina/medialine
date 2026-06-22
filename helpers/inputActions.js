@@ -6,11 +6,9 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {
     CLICK_NOTHING, CLICK_OPEN_POPUP, CLICK_PLAY_PAUSE, CLICK_OPEN_SETTINGS,
     CLICK_NEXT_TRACK, CLICK_PREV_TRACK, CLICK_VOLUME_UP, CLICK_VOLUME_DOWN,
-    CLICK_RAISE_PLAYER,
+    CLICK_RAISE_PLAYER, SCROLL_NOTCH,
 } from './constants.js';
 import { focusPlayerWindow } from './windowFocus.js';
-
-const SCROLL_NOTCH = 1.0;
 
 export function setupClickHandling(self) {
     self.connectObject('captured-event',

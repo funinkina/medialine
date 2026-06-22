@@ -2,6 +2,8 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 
+import { MPRIS_PREFIX } from './constants.js';
+
 const DBusInterface = `<node>
     <interface name="org.freedesktop.DBus">
         <method name="ListNames">
@@ -51,8 +53,6 @@ const MprisRootInterface = `<node>
 const DBusProxy = Gio.DBusProxy.makeProxyWrapper(DBusInterface);
 const MprisPlayerProxy = Gio.DBusProxy.makeProxyWrapper(MprisPlayerInterface);
 const MprisRootProxy = Gio.DBusProxy.makeProxyWrapper(MprisRootInterface);
-
-const MPRIS_PREFIX = 'org.mpris.MediaPlayer2.';
 
 export const MprisManager = GObject.registerClass({
     Signals: {
