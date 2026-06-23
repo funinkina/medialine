@@ -363,9 +363,10 @@ export default class MedialinePreferences extends ExtensionPreferences {
         });
         page.add(dynamicBgGroup);
 
-        dynamicBgGroup.add(this._makeSwitchRow(settings, 'popup-dynamic-bg',
+        const dynamicBgSwitch = this._makeSwitchRow(settings, 'popup-dynamic-bg',
             _('Dynamic background'),
-            _('Use the dominant color from album art as background')));
+            _('Use the dominant color from album art as background'));
+        dynamicBgGroup.add(dynamicBgSwitch);
 
         const intensityRow = new Adw.SpinRow({
             title: _('Intensity'),
@@ -377,6 +378,10 @@ export default class MedialinePreferences extends ExtensionPreferences {
         });
         intensityRow.connect('notify::value', () => {
             settings.set_double('popup-dynamic-bg-intensity', intensityRow.value / 100.0);
+        });
+        intensityRow.visible = settings.get_boolean('popup-dynamic-bg');
+        dynamicBgSwitch.connect('notify::active', () => {
+            intensityRow.visible = dynamicBgSwitch.active;
         });
         dynamicBgGroup.add(intensityRow);
 
