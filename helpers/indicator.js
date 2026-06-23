@@ -23,6 +23,20 @@ import {
 } from './progressTracker.js';
 import { lookupAppGicon, focusPlayerWindow } from './windowFocus.js';
 
+function _getSymbolicGicon(gicon) {
+    if (!gicon) return null;
+    if (!(gicon instanceof Gio.ThemedIcon)) return gicon;
+    const names = gicon.get_names();
+    if (names.length === 0) return gicon;
+    const firstName = names[0].endsWith('-symbolic') ? names[0] : `${names[0]}-symbolic`;
+    const icon = new Gio.ThemedIcon({ name: firstName });
+    for (let i = 0; i < names.length; i++) {
+        if (names[i] !== firstName)
+            icon.append_name(names[i]);
+    }
+    return icon;
+}
+
 function buildPopupStyles(primary, secondary, popupBg) {
     return {
         primary,
@@ -447,8 +461,8 @@ export const Indicator = GObject.registerClass(
             const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             const artist = media.artist ? esc(media.artist) : '';
             const album = media.album ? esc(media.album) : '';
-            const on = (artist && album) ? `<span foreground="${this._popupStyles.secondary}"> on </span>` : '';
-            this._popupSubtitle.clutter_text.set_markup(artist + on + album);
+            const separator = (artist && album) ? ` — ` : '';
+            this._popupSubtitle.clutter_text.set_markup(artist + separator + album);
             this._popupSubtitle.visible = !!(artist || album);
 
             this._playBtn.get_child().icon_name = media.status === 'Playing'
@@ -659,7 +673,7 @@ export const Indicator = GObject.registerClass(
 
             const gicon = lookupAppGicon(this, media);
             if (gicon) {
-                this._iconActor.gicon = gicon;
+                this._iconActor.gicon = _getSymbolicGicon(gicon);
                 return;
             }
             this._iconActor.icon_name = 'audio-x-generic-symbolic';

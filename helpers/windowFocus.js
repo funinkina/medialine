@@ -125,6 +125,10 @@ export function lookupAppGiconByString(media) {
 export function lookupAppGicon(self, media) {
     if (!media) return null;
 
+    if (!self._preferences.enhancedPwaSupport) {
+        return lookupAppGiconByString(media);
+    }
+
     const pid = self._pidCache.get(media.busName);
     if (pid === undefined) {
         ensurePidResolved(self, media.busName);

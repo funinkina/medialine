@@ -172,5 +172,11 @@
       <description>Choose whether multi-source compact rows expand on hover, click, or stay compact.</description>
     </key>
 
+    <key name="enhanced-pwa-support" type="b">
+      <default>true</default>
+      <summary>Enhanced PWA support</summary>
+      <description>When enabled, use advanced detection to find the correct PWA window for app icons. When disabled, use the app icon as reported by MPRIS.</description>
+    </key>
+
   </schema>
 </schemalist>

@@ -398,6 +398,15 @@ export default class MedialinePreferences extends ExtensionPreferences {
             _('Expand layout on'), _('When multiple media sources are shown'),
             this._makeStringList([_('Off'), _('Hover'), _('Click')])));
 
+        const pwaGroup = new Adw.PreferencesGroup({
+            title: _('PWA'),
+            description: _('Whether or not to use some workaround for displaying PWA icons.'),
+        });
+        page.add(pwaGroup);
+        pwaGroup.add(this._makeSwitchRow(settings, 'enhanced-pwa-support',
+            _('Enhanced PWA support'),
+            _('Use advanced detection to find the active PWA window for the correct icon. Might have unintended consequences of displaying the wrong icon.')));
+
         return page;
     }
 

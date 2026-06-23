@@ -27,6 +27,7 @@ export class ExtensionSettings {
     get popupDynamicBg() { return this._settings.get_boolean('popup-dynamic-bg'); }
     get popupDynamicBgIntensity() { return this._settings.get_double('popup-dynamic-bg-intensity'); }
     get popupCompactExpandMode() { return this._settings.get_enum('popup-compact-expand-mode'); }
+    get enhancedPwaSupport() { return this._settings.get_boolean('enhanced-pwa-support'); }
 
     connectObject(...args) {
         this._settings.connectObject(...args);
