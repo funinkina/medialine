@@ -13,9 +13,8 @@ export default class MedialinePreferences extends ExtensionPreferences {
         this._registerIconPath();
 
         window.add(this._buildAppearancePage(settings, window));
-        window.add(this._buildPanelPage(settings));
         window.add(this._buildPopupPage(settings));
-        window.add(this._buildMousePage(settings));
+        window.add(this._buildBehaviourPage(settings));
 
         this._addAboutButton(window);
     }
@@ -80,13 +79,26 @@ export default class MedialinePreferences extends ExtensionPreferences {
 
     _buildAppearancePage(settings, parentWindow) {
         const page = new Adw.PreferencesPage({
-            title: _('Appearance'),
-            icon_name: 'preferences-desktop-appearance-symbolic',
+            title: _('Top Bar'),
+            icon_name: 'view-grid-symbolic',
         });
+
+        // Position first — "where" before "how it looks"
+        const placementGroup = new Adw.PreferencesGroup({
+            title: _('Panel placement'),
+            description: _('Where the indicator appears in the top bar.'),
+        });
+        page.add(placementGroup);
+
+        placementGroup.add(this._makeComboRow(settings, 'panel-position', _('Panel section'),
+            _('Which area of the top bar to place the indicator'),
+            this._makeStringList([_('Left'), _('Center'), _('Right')])));
+        placementGroup.add(this._makeSpinRow(settings, 'panel-index',
+            _('Position index'), _('Order within the panel section (0 is first)'), 0, 20, 1));
 
         const iconGroup = new Adw.PreferencesGroup({
             title: _('Icon'),
-            description: _('Choose how Medialine represents the currently playing media in the panel and popup.'),
+            description: _('How Medialine represents the currently playing media in the panel and popup.'),
         });
         page.add(iconGroup);
 
@@ -105,8 +117,6 @@ export default class MedialinePreferences extends ExtensionPreferences {
         iconGroup.add(this._makeSpinRow(settings, 'icon-spacing',
             _('Icon spacing'), _('Space between the icon and text in pixels'), 0, 32, 1));
 
-        // A sibling group, not nested inside iconGroup — Adw.PreferencesGroup
-        // is meant to sit directly on a page, not inside another group.
         const customImageGroup = this._buildCustomImageGroup(settings, parentWindow);
         customImageGroup.visible = iconTypeRow.selected === 3;
         iconTypeRow.connect('notify::selected', () => {
@@ -114,24 +124,19 @@ export default class MedialinePreferences extends ExtensionPreferences {
         });
         page.add(customImageGroup);
 
-        const textGroup = new Adw.PreferencesGroup({
-            title: _('Text'),
-            description: _('Control what appears next to the indicator in the panel.'),
+        // Merged "Text" + "Visible fields" — both answer "what text shows up"
+        const labelGroup = new Adw.PreferencesGroup({
+            title: _('Label'),
+            description: _('Control what text appears next to the icon in the panel.'),
         });
-        page.add(textGroup);
+        page.add(labelGroup);
 
-        textGroup.add(this._makeEntryRow(settings, 'separator', _('Separator')));
-        textGroup.add(this._makeSpinRow(settings, 'max-text-width',
+        labelGroup.add(this._makeSwitchRow(settings, 'show-title', _('Show title')));
+        labelGroup.add(this._makeSwitchRow(settings, 'show-artist', _('Show artist')));
+        labelGroup.add(this._makeSwitchRow(settings, 'show-album', _('Show album')));
+        labelGroup.add(this._makeEntryRow(settings, 'separator', _('Separator')));
+        labelGroup.add(this._makeSpinRow(settings, 'max-text-width',
             _('Max text width'), _('Maximum label width in pixels (0 for unlimited)'), 0, 1000, 10));
-
-        const fieldsGroup = new Adw.PreferencesGroup({
-            title: _('Visible fields'),
-            description: _('Choose which metadata fields are shown beside the panel icon.'),
-        });
-        page.add(fieldsGroup);
-        fieldsGroup.add(this._makeSwitchRow(settings, 'show-title', _('Show title')));
-        fieldsGroup.add(this._makeSwitchRow(settings, 'show-artist', _('Show artist')));
-        fieldsGroup.add(this._makeSwitchRow(settings, 'show-album', _('Show album')));
 
         return page;
     }
@@ -239,7 +244,7 @@ export default class MedialinePreferences extends ExtensionPreferences {
                     settings.set_string('custom-icon-path', path);
                     refreshPreview(path);
                 } catch (_) {
-                    // Dialog was cancelled or the selection failed; nothing to do.
+                    // Dialog cancelled or selection failed.
                 }
             });
         };
@@ -248,92 +253,6 @@ export default class MedialinePreferences extends ExtensionPreferences {
         group.add(row);
 
         return group;
-    }
-
-    _buildPanelPage(settings) {
-        const page = new Adw.PreferencesPage({
-            title: _('Panel'),
-            icon_name: 'view-grid-symbolic',
-        });
-
-        const positionGroup = new Adw.PreferencesGroup({
-            title: _('Position'),
-            description: _('Where the indicator appears in the top bar.'),
-        });
-        page.add(positionGroup);
-
-        const positionRow = this._makeComboRow(settings, 'panel-position', _('Panel section'),
-            _('Which area of the top bar to place the indicator'),
-            this._makeStringList([_('Left'), _('Center'), _('Right')]));
-        positionGroup.add(positionRow);
-
-        positionGroup.add(this._makeSpinRow(settings, 'panel-index',
-            _('Position index'), _('Order within the panel section (0 is first)'), 0, 20, 1));
-
-        const notificationsGroup = new Adw.PreferencesGroup({
-            title: _('Notifications'),
-            description: _('Manage visibility of GNOME\u2019s built-in media notifications.'),
-        });
-        page.add(notificationsGroup);
-        notificationsGroup.add(this._makeSwitchRow(settings, 'hide-default-notification',
-            _('Hide default notification'),
-            _('Remove GNOME\u2019s media notification while the panel indicator is shown')));
-
-        return page;
-    }
-
-    _buildMousePage(settings) {
-        const page = new Adw.PreferencesPage({
-            title: _('Mouse'),
-            icon_name: 'input-mouse-symbolic',
-        });
-
-        const group = new Adw.PreferencesGroup({
-            title: _('Click actions'),
-            description: _('What happens when you click the media bar indicator'),
-        });
-        page.add(group);
-
-        const clickActionModel = this._makeStringList([
-            _('Nothing'), _('Open popup'), _('Play / Pause'), _('Open settings'),
-            _('Next track'), _('Previous track'), _('Raise player'),
-        ]);
-
-        const clickActionValues = [0, 1, 2, 3, 4, 5, 8];
-
-        for (const [key, title, subtitle] of [
-            ['left-click-action', _('Left click'), _('Action when left-clicking the indicator')],
-            ['middle-click-action', _('Middle click'), _('Action when middle-clicking the indicator')],
-            ['right-click-action', _('Right click'), _('Action when right-clicking the indicator')],
-        ]) {
-            const enumValue = settings.get_enum(key);
-            const modelIndex = clickActionValues.indexOf(enumValue);
-            const row = new Adw.ComboRow({ title, subtitle, model: clickActionModel, selected: modelIndex });
-            row.connect('notify::selected', () =>
-                settings.set_enum(key, clickActionValues[row.selected]));
-            group.add(row);
-        }
-
-        const scrollActionModel = this._makeStringList([
-            _('Nothing'), _('Open popup'), _('Play / Pause'), _('Open settings'),
-            _('Next track'), _('Previous track'),
-            _('Volume up'), _('Volume down'), _('Raise player'),
-        ]);
-
-        const scrollGroup = new Adw.PreferencesGroup({
-            title: _('Scroll actions'),
-            description: _('What happens when you scroll over the media bar indicator'),
-        });
-        page.add(scrollGroup);
-
-        for (const [key, title, subtitle] of [
-            ['scroll-up-action', _('Scroll up'), _('Action when scrolling up over the indicator')],
-            ['scroll-down-action', _('Scroll down'), _('Action when scrolling down over the indicator')],
-        ]) {
-            scrollGroup.add(this._makeComboRow(settings, key, title, subtitle, scrollActionModel));
-        }
-
-        return page;
     }
 
     _buildPopupPage(settings) {
@@ -359,8 +278,8 @@ export default class MedialinePreferences extends ExtensionPreferences {
             ''));
 
         const dynamicBgGroup = new Adw.PreferencesGroup({
-            title: _('Dynamic Background'),
-            description: _('Extract the dominant color from album art to use as the popup background color.'),
+            title: _('Dynamic background'),
+            description: _('Extract the dominant color from album art to use as the popup background.'),
         });
         page.add(dynamicBgGroup);
 
@@ -386,7 +305,7 @@ export default class MedialinePreferences extends ExtensionPreferences {
 
         const appIconGroup = new Adw.PreferencesGroup({
             title: _('App icon'),
-            description: _('Overlay the playing app\u2019s icon on the album art shown in the popup.'),
+            description: _('Overlay the playing app’s icon on the album art shown in the popup.'),
         });
         page.add(appIconGroup);
         appIconGroup.add(this._makeSwitchRow(settings, 'popup-show-app-icon',
@@ -402,12 +321,75 @@ export default class MedialinePreferences extends ExtensionPreferences {
             _('Expand layout on'), _('When multiple media sources are shown'),
             this._makeStringList([_('Off'), _('Hover'), _('Click')])));
 
-        const pwaGroup = new Adw.PreferencesGroup({
-            title: _('PWA'),
-            description: _('Whether or not to use some workaround for displaying PWA icons.'),
+        return page;
+    }
+
+    _buildBehaviourPage(settings) {
+        const page = new Adw.PreferencesPage({
+            title: _('Behaviour'),
+            icon_name: 'preferences-system-symbolic',
         });
-        page.add(pwaGroup);
-        pwaGroup.add(this._makeSwitchRow(settings, 'enhanced-pwa-support',
+
+        const clickGroup = new Adw.PreferencesGroup({
+            title: _('Click actions'),
+            description: _('What happens when you click the media bar indicator'),
+        });
+        page.add(clickGroup);
+
+        const clickActionModel = this._makeStringList([
+            _('Nothing'), _('Open popup'), _('Play / Pause'), _('Open settings'),
+            _('Next track'), _('Previous track'), _('Raise player'),
+        ]);
+
+        const clickActionValues = [0, 1, 2, 3, 4, 5, 8];
+
+        for (const [key, title, subtitle] of [
+            ['left-click-action', _('Left click'), _('Action when left-clicking the indicator')],
+            ['middle-click-action', _('Middle click'), _('Action when middle-clicking the indicator')],
+            ['right-click-action', _('Right click'), _('Action when right-clicking the indicator')],
+        ]) {
+            const enumValue = settings.get_enum(key);
+            const modelIndex = clickActionValues.indexOf(enumValue);
+            const row = new Adw.ComboRow({ title, subtitle, model: clickActionModel, selected: modelIndex });
+            row.connect('notify::selected', () =>
+                settings.set_enum(key, clickActionValues[row.selected]));
+            clickGroup.add(row);
+        }
+
+        const scrollGroup = new Adw.PreferencesGroup({
+            title: _('Scroll actions'),
+            description: _('What happens when you scroll over the media bar indicator'),
+        });
+        page.add(scrollGroup);
+
+        const scrollActionModel = this._makeStringList([
+            _('Nothing'), _('Open popup'), _('Play / Pause'), _('Open settings'),
+            _('Next track'), _('Previous track'),
+            _('Volume up'), _('Volume down'), _('Raise player'),
+        ]);
+
+        for (const [key, title, subtitle] of [
+            ['scroll-up-action', _('Scroll up'), _('Action when scrolling up over the indicator')],
+            ['scroll-down-action', _('Scroll down'), _('Action when scrolling down over the indicator')],
+        ]) {
+            scrollGroup.add(this._makeComboRow(settings, key, title, subtitle, scrollActionModel));
+        }
+
+        const notificationsGroup = new Adw.PreferencesGroup({
+            title: _('Notifications'),
+            description: _('Manage visibility of GNOME’s built-in media notifications.'),
+        });
+        page.add(notificationsGroup);
+        notificationsGroup.add(this._makeSwitchRow(settings, 'hide-default-notification',
+            _('Hide default notification'),
+            _('Remove GNOME’s media notification while the panel indicator is shown')));
+
+        const compatGroup = new Adw.PreferencesGroup({
+            title: _('Compatibility'),
+            description: _('Workarounds for specific apps and environments.'),
+        });
+        page.add(compatGroup);
+        compatGroup.add(this._makeSwitchRow(settings, 'enhanced-pwa-support',
             _('Enhanced PWA support'),
             _('Use advanced detection to find the active PWA window for the correct icon. Might have unintended consequences of displaying the wrong icon.')));
 
@@ -420,7 +402,7 @@ export default class MedialinePreferences extends ExtensionPreferences {
         if (currentValue)
             rgba.parse(currentValue);
         else
-            rgba.parse('#7F7F7F'); // neutral placeholder for "no custom color"
+            rgba.parse('#7F7F7F');
 
         const button = new Gtk.ColorDialogButton({
             dialog: new Gtk.ColorDialog({
