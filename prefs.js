@@ -70,6 +70,7 @@ export default class MedialinePreferences extends ExtensionPreferences {
 
         const about = new Adw.AboutDialog(props);
 
+        about.add_link(_('Donate'), 'https://buymeacoffee.com/funinkina');
         about.add_link(_('GitHub'), 'https://github.com/funinkina');
         about.add_link(_('Twitter'), 'https://x.com/funinkina');
         about.add_link(_('Email'), 'mailto:hello@funinkina.co.in');
