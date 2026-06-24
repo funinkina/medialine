@@ -316,8 +316,6 @@ export const Indicator = GObject.registerClass(
                 (_m, open) => {
                     if (open) {
                         startPositionPolling(this);
-                        if (this._compactRows.size)
-                            this._applyExpandedBusState(true);
                     } else {
                         stopPositionPolling(this);
                         this._setExpandedBusName(null, true);
@@ -501,7 +499,7 @@ export const Indicator = GObject.registerClass(
 
             const appGicon = lookupAppGicon(this, media);
             applyArtBin(this._popupArt, this._popupArtAppIcon, media, {
-                boxSize: null,
+                boxSize: ART_SIZE,
                 fallbackIconSize: 40,
             }, this._popupStyles, this._preferences, appGicon);
         }
@@ -539,7 +537,7 @@ export const Indicator = GObject.registerClass(
                         this._compactSeparators.set(media.busName, separator);
                         this._listContainer.add_child(separator);
                     }
-                    separator.style = this._popupStyles.separator;
+                    separator._line.style = this._popupStyles.separator;
                     this._listContainer.set_child_at_index(separator, childIndex++);
                 }
 
@@ -591,13 +589,19 @@ export const Indicator = GObject.registerClass(
         }
 
         _makeCompactSeparator() {
-            return new St.Widget({
+            const sep = new St.Widget({
                 x_expand: true,
+                height: 17,
+                layout_manager: new Clutter.BinLayout(),
+            });
+            sep._line = new St.Widget({
+                x_expand: true,
+                y_align: Clutter.ActorAlign.CENTER,
                 height: 1,
-                margin_top: 8,
-                margin_bottom: 8,
                 style: this._popupStyles.separator,
             });
+            sep.add_child(sep._line);
+            return sep;
         }
 
         _syncCompactSeparators(hidden, immediate = false) {
@@ -605,9 +609,7 @@ export const Indicator = GObject.registerClass(
             for (const separator of this._compactSeparators.values()) {
                 separator.visible = true;
                 separator.ease({
-                    height: hidden ? 0 : 1,
-                    margin_top: hidden ? 0 : 8,
-                    margin_bottom: hidden ? 0 : 8,
+                    height: hidden ? 0 : 17,
                     opacity: hidden ? 0 : 255,
                     duration,
                     mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
