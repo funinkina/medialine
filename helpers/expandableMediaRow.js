@@ -8,7 +8,7 @@ import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.j
 import {
     ANIM_MS, ART_SIZE, BUTTON_SIZE, COMPACT_BUTTON_SIZE,
     COMPACT_EXPAND_CLICK, COMPACT_EXPAND_HOVER, COMPACT_HEIGHT,
-    COMPACT_WIDTH, EASE, EXPANDED_HEIGHT, EXPANDED_WIDTH,
+    COMPACT_WIDTH, EXPANDED_HEIGHT, EXPANDED_WIDTH,
     POLL_MS, PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE,
 } from './constants.js';
 import { formatTime } from './colorUtils.js';
@@ -272,7 +272,7 @@ export class ExpandableMediaRow {
             height: rowHeight,
             opacity: rowOpacity,
             duration,
-            mode: EASE,
+            mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
             onComplete: () => {
                 if (!this._destroyed)
                     this.actor.visible = !hideBecauseOtherExpanded;
@@ -341,7 +341,7 @@ export class ExpandableMediaRow {
             height: box.h,
             opacity,
             duration,
-            mode: EASE,
+            mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
         });
     }
 
@@ -364,7 +364,7 @@ export class ExpandableMediaRow {
                 actor.ease({
                     opacity: 0,
                     duration,
-                    mode: EASE,
+                    mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
                     onComplete: () => {
                         if (!this._expanded)
                             actor.hide();
@@ -554,7 +554,7 @@ export class ExpandableMediaRow {
             height: 0,
             opacity: 0,
             duration: ANIM_MS,
-            mode: EASE,
+            mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
             onComplete: () => this.destroy(),
         });
     }

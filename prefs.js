@@ -1,6 +1,7 @@
 import Adw from 'gi://Adw';
 import Gdk from 'gi://Gdk';
 import Gio from 'gi://Gio';
+import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
 
 import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
@@ -379,10 +380,8 @@ export default class MedialinePreferences extends ExtensionPreferences {
         intensityRow.connect('notify::value', () => {
             settings.set_double('popup-dynamic-bg-intensity', intensityRow.value / 100.0);
         });
-        intensityRow.visible = settings.get_boolean('popup-dynamic-bg');
-        dynamicBgSwitch.connect('notify::active', () => {
-            intensityRow.visible = dynamicBgSwitch.active;
-        });
+        dynamicBgSwitch.bind_property('active', intensityRow, 'visible',
+            GObject.BindingFlags.SYNC_CREATE);
         dynamicBgGroup.add(intensityRow);
 
         const appIconGroup = new Adw.PreferencesGroup({

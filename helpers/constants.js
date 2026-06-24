@@ -1,5 +1,3 @@
-import Clutter from 'gi://Clutter';
-
 export const ICON_TYPE_APP = 0;
 export const ICON_TYPE_ART = 1;
 export const ICON_TYPE_STATUS = 2;
@@ -35,7 +33,6 @@ export const COMPACT_HEIGHT = ART_SIZE + 6;
 export const EXPANDED_HEIGHT = 162;
 export const BUTTON_SIZE = 40;
 export const COMPACT_BUTTON_SIZE = 32;
-export const EASE = Clutter.AnimationMode.EASE_OUT_CUBIC;
 
 export const SCROLL_NOTCH = 1.0;
 export const MPRIS_PREFIX = 'org.mpris.MediaPlayer2.';
