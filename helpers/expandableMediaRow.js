@@ -11,13 +11,10 @@ import {
     COMPACT_WIDTH, EXPANDED_HEIGHT, EXPANDED_WIDTH,
     POLL_MS, PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE,
 } from './constants.js';
-import { formatTime } from './colorUtils.js';
+import { escMarkup, formatTime } from './colorUtils.js';
 import { applyArtBin } from './artDisplay.js';
+import { makeButton, buildProgressWidgets } from './widgetFactory.js';
 import { lookupAppGicon, focusPlayerWindow } from './windowFocus.js';
-
-function esc(s) {
-    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
 
 function loopNext(current) {
     const order = ['None', 'Track', 'Playlist'];
@@ -61,67 +58,29 @@ export class ExpandableMediaRow {
             reactive: true,
             style: styles.artFallback,
         });
-        this._appIcon = new St.Icon({
-            icon_name: 'audio-x-generic-symbolic',
-            icon_size: 32,
-        });
+        this._appIcon = new St.Icon({ icon_name: 'audio-x-generic-symbolic', icon_size: 32 });
         this._art.add_child(this._appIcon);
 
-        this._title = new St.Label({
-            text: '',
-            style: styles.title,
-        });
+        this._title = new St.Label({ text: '', style: styles.title });
         this._title.clutter_text.ellipsize = Pango.EllipsizeMode.END;
 
-        this._subtitle = new St.Label({
-            text: '',
-            style: styles.subtitle,
-        });
+        this._subtitle = new St.Label({ text: '', style: styles.subtitle });
         this._subtitle.clutter_text.use_markup = true;
         this._subtitle.clutter_text.ellipsize = Pango.EllipsizeMode.END;
 
-        this._timeCurrent = new St.Label({ text: '0:00', style: styles.time });
-        this._timeTotal = new St.Label({
-            text: '0:00',
-            style: styles.time,
-            x_expand: true,
-            x_align: Clutter.ActorAlign.END,
-        });
-        this._timeTotal.clutter_text.ellipsize = Pango.EllipsizeMode.END;
-        this._timeRow = new St.BoxLayout({ x_expand: true });
-        this._timeRow.add_child(this._timeCurrent);
-        this._timeRow.add_child(this._timeTotal);
+        const pw = buildProgressWidgets(styles);
+        this._timeCurrent = pw.timeCurrent;
+        this._timeTotal = pw.timeTotal;
+        this._timeRow = pw.timeRow;
+        this._progressTrack = pw.progressTrack;
+        this._progressFill = pw.progressFill;
+        this._progressThumb = pw.progressThumb;
 
-        this._progressTrack = new St.Widget({
-            reactive: true,
-            track_hover: true,
-            style: styles.progressTrack,
-            height: PROGRESS_HEIGHT,
-        });
-        this._progressFill = new St.Widget({
-            style: styles.progressFill,
-            width: 0,
-            height: PROGRESS_HEIGHT,
-        });
-        this._progressThumb = new St.Widget({
-            style: styles.progressThumb,
-            width: PROGRESS_THUMB_SIZE,
-            height: PROGRESS_THUMB_SIZE,
-            visible: false,
-        });
-        this._progressTrack.add_child(this._progressFill);
-        this._progressTrack.add_child(this._progressThumb);
-
-        this._shuffleBtn = this._makeButton('media-playlist-shuffle-symbolic', 16,
-            () => this._toggleShuffle());
-        this._prevBtn = this._makeButton('media-skip-backward-symbolic', 18,
-            () => this._indicator._mprisManager.previous(this.media.busName));
-        this._playBtn = this._makeButton('media-playback-start-symbolic', 24,
-            () => this._indicator._mprisManager.playPause(this.media.busName));
-        this._nextBtn = this._makeButton('media-skip-forward-symbolic', 18,
-            () => this._indicator._mprisManager.next(this.media.busName));
-        this._repeatBtn = this._makeButton('media-playlist-repeat-symbolic', 16,
-            () => this._cycleRepeat());
+        this._shuffleBtn = this._makeButton('media-playlist-shuffle-symbolic', 16, () => this._toggleShuffle());
+        this._prevBtn = this._makeButton('media-skip-backward-symbolic', 18, () => this._indicator._mprisManager.previous(this.media.busName));
+        this._playBtn = this._makeButton('media-playback-start-symbolic', 24, () => this._indicator._mprisManager.playPause(this.media.busName));
+        this._nextBtn = this._makeButton('media-skip-forward-symbolic', 18, () => this._indicator._mprisManager.next(this.media.busName));
+        this._repeatBtn = this._makeButton('media-playlist-repeat-symbolic', 16, () => this._cycleRepeat());
 
         for (const actor of [
             this._art, this._title, this._subtitle, this._timeRow,
@@ -155,24 +114,7 @@ export class ExpandableMediaRow {
     }
 
     _makeButton(iconName, iconSize, onClick) {
-        const btn = new St.Button({
-            can_focus: true,
-            track_hover: true,
-            reactive: true,
-            style_class: 'medialine-control-button',
-            style: this._indicator._popupStyles.btn,
-            x_align: Clutter.ActorAlign.CENTER,
-            y_align: Clutter.ActorAlign.CENTER,
-        });
-        const icon = new St.Icon({
-            icon_name: iconName,
-            icon_size: iconSize,
-            style: this._indicator._popupStyles.iconColor,
-            x_align: Clutter.ActorAlign.CENTER,
-            y_align: Clutter.ActorAlign.CENTER,
-        });
-        btn.set_child(icon);
-        btn._active = false;
+        const btn = makeButton(this._indicator._popupStyles, iconName, iconSize);
         btn.connectObject(
             'notify::hover', () => this._syncButtonStyle(btn),
             'clicked', onClick,
@@ -192,8 +134,8 @@ export class ExpandableMediaRow {
     _updateInfo() {
         const media = this.media;
         this._title.text = media.title || (media.identity ? `${media.identity} is playing media` : _('Unknown'));
-        const artist = media.artist ? esc(media.artist) : '';
-        const album = media.album ? esc(media.album) : '';
+        const artist = media.artist ? escMarkup(media.artist) : '';
+        const album = media.album ? escMarkup(media.album) : '';
         const separator = (artist && album) ? ` — ` : '';
         this._subtitle.clutter_text.set_markup(artist + separator + album);
         this._subtitle.visible = !!(artist || album);

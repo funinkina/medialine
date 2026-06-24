@@ -14,6 +14,10 @@ export function formatTime(microseconds) {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
+export function escMarkup(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 export function adjustColorBrightness(hex, intensity) {
     const h = hex.replace('#', '');
     const r = parseInt(h.substring(0, 2), 16);

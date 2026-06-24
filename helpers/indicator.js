@@ -13,7 +13,8 @@ import {
     ART_SIZE, COMPACT_EXPAND_CLICK, COMPACT_EXPAND_OFF,
     PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE, COMPACT_WIDTH,
 } from './constants.js';
-import { hexToRgba, adjustColorBrightness } from './colorUtils.js';
+import { hexToRgba, adjustColorBrightness, escMarkup } from './colorUtils.js';
+import { makeButton, buildProgressWidgets } from './widgetFactory.js';
 import { setupClickHandling, toggleShuffle, cycleRepeat } from './inputActions.js';
 import { applyArtBin, extractArtColor } from './artDisplay.js';
 import { ExpandableMediaRow } from './expandableMediaRow.js';
@@ -190,42 +191,13 @@ export const Indicator = GObject.registerClass(
         }
 
         _buildProgressSection() {
-            this._timeCurrent = new St.Label({ text: '0:00', style: this._popupStyles.time });
-            this._timeTotal = new St.Label({
-                text: '0:00',
-                style: this._popupStyles.time,
-                x_align: Clutter.ActorAlign.END,
-                x_expand: true,
-            });
-            const timeRow = new St.BoxLayout({ x_expand: true });
-            timeRow.add_child(this._timeCurrent);
-            timeRow.add_child(this._timeTotal);
+            const pw = buildProgressWidgets(this._popupStyles);
+            this._timeCurrent = pw.timeCurrent;
+            this._timeTotal = pw.timeTotal;
+            this._progressTrack = pw.progressTrack;
+            this._progressFill = pw.progressFill;
+            this._progressThumb = pw.progressThumb;
 
-            this._progressTrack = new St.Widget({
-                x_expand: true,
-                y_align: Clutter.ActorAlign.CENTER,
-                reactive: true,
-                track_hover: true,
-                style: this._popupStyles.progressTrack,
-                height: PROGRESS_HEIGHT,
-            });
-            this._progressFill = new St.Widget({
-                style: this._popupStyles.progressFill,
-                width: 0,
-                height: PROGRESS_HEIGHT,
-            });
-            this._progressFill.set_position(0, 0);
-            this._progressThumb = new St.Widget({
-                style: this._popupStyles.progressThumb,
-                width: PROGRESS_THUMB_SIZE,
-                height: PROGRESS_THUMB_SIZE,
-                visible: false,
-            });
-            this._progressThumb.set_position(
-                -PROGRESS_THUMB_SIZE / 2,
-                (PROGRESS_HEIGHT - PROGRESS_THUMB_SIZE) / 2);
-            this._progressTrack.add_child(this._progressFill);
-            this._progressTrack.add_child(this._progressThumb);
             this._progressTrack.connectObject(
                 'notify::allocation', () => updateProgress(this),
                 'button-press-event', (_a, event) => onProgressPress(this, event),
@@ -234,12 +206,8 @@ export const Indicator = GObject.registerClass(
                 'notify::hover', () => updateProgress(this),
                 this);
 
-            const section = new St.BoxLayout({
-                vertical: true,
-                x_expand: true,
-                style: 'spacing: 4px;',
-            });
-            section.add_child(timeRow);
+            const section = new St.BoxLayout({ vertical: true, x_expand: true, style: 'spacing: 4px;' });
+            section.add_child(pw.timeRow);
             section.add_child(this._progressTrack);
             return section;
         }
@@ -326,30 +294,12 @@ export const Indicator = GObject.registerClass(
         }
 
         _makeControlButton(iconName, iconSize, onClick) {
-            const btn = new St.Button({
-                can_focus: true,
-                track_hover: true,
-                reactive: true,
-                style_class: 'medialine-control-button',
-                style: this._popupStyles.btn,
-                x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER,
-            });
-            const icon = new St.Icon({
-                icon_name: iconName,
-                icon_size: iconSize,
-                style: this._popupStyles.iconColor,
-                x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER,
-            });
-            btn.set_child(icon);
-            btn._active = false;
+            const btn = makeButton(this._popupStyles, iconName, iconSize);
             this._controlButtons.push(btn);
-            this._controlIcons.push(icon);
+            this._controlIcons.push(btn.get_child());
             btn.connectObject(
                 'notify::hover', () => {
-                    btn.style = btn.hover
-                        ? this._popupStyles.btnHover
+                    btn.style = btn.hover ? this._popupStyles.btnHover
                         : (btn._active ? this._popupStyles.btnActive : this._popupStyles.btn);
                 },
                 'clicked', onClick,
@@ -457,9 +407,8 @@ export const Indicator = GObject.registerClass(
 
         _updatePopup(media) {
             this._popupTitle.text = media.title || (media.identity ? `${media.identity} is playing media` : _('Unknown'));
-            const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            const artist = media.artist ? esc(media.artist) : '';
-            const album = media.album ? esc(media.album) : '';
+            const artist = media.artist ? escMarkup(media.artist) : '';
+            const album = media.album ? escMarkup(media.album) : '';
             const separator = (artist && album) ? ` — ` : '';
             this._popupSubtitle.clutter_text.set_markup(artist + separator + album);
             this._popupSubtitle.visible = !!(artist || album);
