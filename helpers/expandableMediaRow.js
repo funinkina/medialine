@@ -84,8 +84,13 @@ export class ExpandableMediaRow {
         this._timeTotal = new St.Label({
             text: '0:00',
             style: styles.time,
+            x_expand: true,
             x_align: Clutter.ActorAlign.END,
         });
+        this._timeTotal.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+        this._timeRow = new St.BoxLayout({ x_expand: true });
+        this._timeRow.add_child(this._timeCurrent);
+        this._timeRow.add_child(this._timeTotal);
 
         this._progressTrack = new St.Widget({
             reactive: true,
@@ -119,7 +124,7 @@ export class ExpandableMediaRow {
             () => this._cycleRepeat());
 
         for (const actor of [
-            this._art, this._title, this._subtitle, this._timeCurrent, this._timeTotal,
+            this._art, this._title, this._subtitle, this._timeRow,
             this._progressTrack, this._shuffleBtn, this._prevBtn, this._playBtn,
             this._nextBtn, this._repeatBtn,
         ])
@@ -189,8 +194,8 @@ export class ExpandableMediaRow {
         this._title.text = media.title || (media.identity ? `${media.identity} is playing media` : _('Unknown'));
         const artist = media.artist ? esc(media.artist) : '';
         const album = media.album ? esc(media.album) : '';
-        const on = (artist && album) ? `<span foreground="${this._indicator._popupStyles.secondary}"> on </span>` : '';
-        this._subtitle.clutter_text.set_markup(artist + on + album);
+        const separator = (artist && album) ? ` — ` : '';
+        this._subtitle.clutter_text.set_markup(artist + separator + album);
         this._subtitle.visible = !!(artist || album);
     }
 
@@ -321,14 +326,13 @@ export class ExpandableMediaRow {
             art: { x: 0, y: 0, w: ART_SIZE, h: ART_SIZE },
             title: { x: 80, y: 8, w: EXPANDED_WIDTH - 80, h: 26 },
             subtitle: { x: 80, y: 38, w: EXPANDED_WIDTH - 80, h: 24 },
-            timeCurrent: { x: 0, y: 82, w: 80, h: 18 },
-            timeTotal: { x: EXPANDED_WIDTH - 80, y: 82, w: 80, h: 18 },
+            time: { x: 0, y: 82, w: EXPANDED_WIDTH, h: 18 },
             progress: { x: 0, y: 106, w: EXPANDED_WIDTH, h: PROGRESS_HEIGHT },
-            shuffle: { x: 28, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
-            prev: { x: 84, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
-            play: { x: 140, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
-            next: { x: 196, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
-            repeat: { x: 252, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
+            shuffle: { x: 62, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
+            prev: { x: 118, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
+            play: { x: 174, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
+            next: { x: 230, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
+            repeat: { x: 286, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
         };
     }
 
@@ -347,8 +351,7 @@ export class ExpandableMediaRow {
 
     _setExpandedControlsVisible(expanded, layout, duration) {
         const expandedActors = [
-            [this._timeCurrent, layout.timeCurrent],
-            [this._timeTotal, layout.timeTotal],
+            [this._timeRow, layout.time],
             [this._progressTrack, layout.progress],
             [this._shuffleBtn, layout.shuffle],
             [this._prevBtn, layout.prev],

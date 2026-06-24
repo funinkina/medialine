@@ -20,15 +20,13 @@ export const COMPACT_EXPAND_CLICK = 2;
 export const ART_SIZE = 68;
 export const PROGRESS_HEIGHT = 4;
 export const PROGRESS_THUMB_SIZE = 12;
-export const POPUP_MIN_WIDTH = 320;
-export const POPUP_MAX_WIDTH = 400;
 export const POPUP_ART_MAX_W = 120;
 export const POPUP_ART_MAX_H = ART_SIZE;
 
 export const ANIM_MS = 220;
 export const POLL_MS = 1000;
 export const COMPACT_WIDTH = 388;
-export const EXPANDED_WIDTH = POPUP_MIN_WIDTH;
+export const EXPANDED_WIDTH = COMPACT_WIDTH;
 export const COMPACT_HEIGHT = ART_SIZE + 6;
 export const EXPANDED_HEIGHT = 162;
 export const BUTTON_SIZE = 40;

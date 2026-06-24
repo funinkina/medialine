@@ -11,7 +11,7 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import {
     ICON_TYPE_ART, ICON_TYPE_STATUS, ICON_TYPE_CUSTOM,
     ART_SIZE, COMPACT_EXPAND_CLICK, COMPACT_EXPAND_OFF,
-    PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE, POPUP_MIN_WIDTH, POPUP_MAX_WIDTH,
+    PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE, COMPACT_WIDTH,
 } from './constants.js';
 import { hexToRgba, adjustColorBrightness } from './colorUtils.js';
 import { setupClickHandling, toggleShuffle, cycleRepeat } from './inputActions.js';
@@ -283,7 +283,7 @@ export const Indicator = GObject.registerClass(
             const container = new St.BoxLayout({
                 vertical: true,
                 x_expand: true,
-                style: `spacing: 12px; min-width: ${POPUP_MIN_WIDTH}px; max-width: ${POPUP_MAX_WIDTH}px;`,
+                style: `spacing: 12px; min-width: ${COMPACT_WIDTH}px; max-width: ${COMPACT_WIDTH}px;`,
             });
 
             this._richContainer = new St.BoxLayout({
@@ -298,7 +298,6 @@ export const Indicator = GObject.registerClass(
             this._listContainer = new St.BoxLayout({
                 vertical: true,
                 x_expand: true,
-                style: 'spacing: 8px;',
             });
             this._listContainer.hide();
 
@@ -317,6 +316,8 @@ export const Indicator = GObject.registerClass(
                 (_m, open) => {
                     if (open) {
                         startPositionPolling(this);
+                        if (this._compactRows.size)
+                            this._applyExpandedBusState(true);
                     } else {
                         stopPositionPolling(this);
                         this._setExpandedBusName(null, true);
@@ -552,7 +553,7 @@ export const Indicator = GObject.registerClass(
                 this._listContainer.set_child_at_index(row.actor, childIndex++);
             });
 
-            this._applyExpandedBusState();
+            this._applyExpandedBusState(!this.menu.isOpen);
         }
 
         _setExpandedBusName(busName, immediate = false) {
@@ -593,6 +594,8 @@ export const Indicator = GObject.registerClass(
             return new St.Widget({
                 x_expand: true,
                 height: 1,
+                margin_top: 8,
+                margin_bottom: 8,
                 style: this._popupStyles.separator,
             });
         }
@@ -603,6 +606,8 @@ export const Indicator = GObject.registerClass(
                 separator.visible = true;
                 separator.ease({
                     height: hidden ? 0 : 1,
+                    margin_top: hidden ? 0 : 8,
+                    margin_bottom: hidden ? 0 : 8,
                     opacity: hidden ? 0 : 255,
                     duration,
                     mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
