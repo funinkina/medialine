@@ -17,9 +17,13 @@ export default class MedialineExtension extends Extension {
         this._indicator = null;
         this._enableIdleId = null;
         this._origAddPlayer = null;
+        this._panelSignalIds = [];
 
         this._preferences.connectObject(
-            'changed::panel-position', () => this._updateIndicatorPosition(),
+            'changed::panel-position', () => {
+                this._updateIndicatorPosition();
+                this._connectPanelBoxSignals();
+            },
             'changed::panel-index', () => this._updateIndicatorPosition(),
             'changed::hide-default-notification', () => this._updateDefaultNotification(),
             this
@@ -31,12 +35,37 @@ export default class MedialineExtension extends Extension {
                 const index = this._preferences.panelIndex || 0;
                 this._indicator = new Indicator(this._preferences, this, this._mprisManager);
                 Main.panel.addToStatusArea(this.uuid, this._indicator, index, position);
+                this._connectPanelBoxSignals();
             }
             this._enableIdleId = null;
             return GLib.SOURCE_REMOVE;
         });
 
         this._updateDefaultNotification();
+    }
+
+    _connectPanelBoxSignals() {
+        for (const [box, id] of this._panelSignalIds)
+            box.disconnect(id);
+        this._panelSignalIds = [];
+
+        const positionName = PANEL_POSITIONS[this._preferences?.panelPosition] ?? 'right';
+        const boxes = {
+            left: Main.panel._leftBox,
+            center: Main.panel._centerBox,
+            right: Main.panel._rightBox,
+        };
+        const targetBox = boxes[positionName];
+        if (!targetBox) return;
+
+        // Re-enforce our index whenever another extension (e.g. AppIndicator)
+        // adds an actor to the same box after us, shifting our position.
+        const id = targetBox.connect('actor-added', (_box, actor) => {
+            const myContainer = this._indicator?.container ?? this._indicator;
+            if (myContainer && actor !== myContainer)
+                this._updateIndicatorPosition();
+        });
+        this._panelSignalIds.push([targetBox, id]);
     }
 
     _updateDefaultNotification() {
@@ -94,6 +123,10 @@ export default class MedialineExtension extends Extension {
             GLib.Source.remove(this._enableIdleId);
             this._enableIdleId = null;
         }
+
+        for (const [box, id] of this._panelSignalIds)
+            box.disconnect(id);
+        this._panelSignalIds = [];
 
         this._preferences.disconnectObject(this);
 
