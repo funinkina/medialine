@@ -1,0 +1,426 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Aryan Kushwaha
+# This file is distributed under the same license as the Medialine package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Medialine 6\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-24 22:23+0530\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: prefs.js:34
+msgid "About Medialine"
+msgstr ""
+
+#: prefs.js:58 helpers/indicator.js:67
+msgid "Medialine"
+msgstr ""
+
+#: prefs.js:62
+msgid "Shows currently playing media in the top bar in a minimal elegant way."
+msgstr ""
+
+#: prefs.js:73
+msgid "Donate"
+msgstr ""
+
+#: prefs.js:74
+msgid "GitHub"
+msgstr ""
+
+#: prefs.js:75
+msgid "Twitter"
+msgstr ""
+
+#: prefs.js:76
+msgid "Email"
+msgstr ""
+
+#: prefs.js:83
+msgid "Top Bar"
+msgstr ""
+
+#: prefs.js:89
+msgid "Panel placement"
+msgstr ""
+
+#: prefs.js:90
+msgid "Where the indicator appears in the top bar."
+msgstr ""
+
+#: prefs.js:94
+msgid "Panel section"
+msgstr ""
+
+#: prefs.js:95
+msgid "Which area of the top bar to place the indicator"
+msgstr ""
+
+#: prefs.js:96
+msgid "Left"
+msgstr ""
+
+#: prefs.js:96
+msgid "Center"
+msgstr ""
+
+#: prefs.js:96
+msgid "Right"
+msgstr ""
+
+#: prefs.js:98
+msgid "Position index"
+msgstr ""
+
+#: prefs.js:98
+msgid "Order within the panel section (0 is first)"
+msgstr ""
+
+#: prefs.js:101
+msgid "Icon"
+msgstr ""
+
+#: prefs.js:102
+msgid ""
+"How Medialine represents the currently playing media in the panel and popup."
+msgstr ""
+
+#: prefs.js:106
+msgid "Icon source"
+msgstr ""
+
+#: prefs.js:107
+msgid "Album art, app icon, playback status, or a custom image"
+msgstr ""
+
+#: prefs.js:109 prefs.js:308
+msgid "App icon"
+msgstr ""
+
+#: prefs.js:110
+msgid "Album art"
+msgstr ""
+
+#: prefs.js:111
+msgid "Playing status"
+msgstr ""
+
+#: prefs.js:112 prefs.js:147
+msgid "Custom image"
+msgstr ""
+
+#: prefs.js:117
+msgid "Icon size"
+msgstr ""
+
+#: prefs.js:117
+msgid "Size in pixels"
+msgstr ""
+
+#: prefs.js:119
+msgid "Icon spacing"
+msgstr ""
+
+#: prefs.js:119
+msgid "Space between the icon and text in pixels"
+msgstr ""
+
+#: prefs.js:130
+msgid "Label"
+msgstr ""
+
+#: prefs.js:131
+msgid "Control what text appears next to the icon in the panel."
+msgstr ""
+
+#: prefs.js:135
+msgid "Show title"
+msgstr ""
+
+#: prefs.js:136
+msgid "Show artist"
+msgstr ""
+
+#: prefs.js:137
+msgid "Show album"
+msgstr ""
+
+#: prefs.js:138
+msgid "Separator"
+msgstr ""
+
+#: prefs.js:140
+msgid "Max text width"
+msgstr ""
+
+#: prefs.js:140
+msgid "Maximum label width in pixels (0 for unlimited)"
+msgstr ""
+
+#: prefs.js:148
+msgid "Pick an image to use when the icon source is set to Custom image."
+msgstr ""
+
+#: prefs.js:155
+msgid "Image file"
+msgstr ""
+
+#: prefs.js:156 prefs.js:201
+msgid "No file selected"
+msgstr ""
+
+#: prefs.js:193
+msgid "Choose image"
+msgstr ""
+
+#: prefs.js:219
+msgid "Images"
+msgstr ""
+
+#: prefs.js:227
+msgid "Select custom image"
+msgstr ""
+
+#: prefs.js:261
+msgid "Popup"
+msgstr ""
+
+#: prefs.js:266
+msgid "Colors"
+msgstr ""
+
+#: prefs.js:267
+msgid "Customize the popup color scheme"
+msgstr ""
+
+#: prefs.js:272
+msgid "Primary color"
+msgstr ""
+
+#: prefs.js:272
+msgid "Color for text and controls"
+msgstr ""
+
+#: prefs.js:275
+msgid "Secondary color"
+msgstr ""
+
+#: prefs.js:275
+msgid "Color for backgrounds and accents"
+msgstr ""
+
+#: prefs.js:278
+msgid "Background color"
+msgstr ""
+
+#: prefs.js:278
+msgid "Background color for the popup"
+msgstr ""
+
+#: prefs.js:282 prefs.js:288
+msgid "Dynamic background"
+msgstr ""
+
+#: prefs.js:283
+msgid ""
+"Extract the dominant color from album art to use as the popup background."
+msgstr ""
+
+#: prefs.js:289
+msgid "Use the dominant color from album art as background"
+msgstr ""
+
+#: prefs.js:293
+msgid "Intensity"
+msgstr ""
+
+#: prefs.js:294
+msgid "How bright or dark the background appears"
+msgstr ""
+
+#: prefs.js:309
+msgid "Overlay the playing app’s icon on the album art shown in the popup."
+msgstr ""
+
+#: prefs.js:313
+msgid "Show app icon on the bottom right of the album art"
+msgstr ""
+
+#: prefs.js:316
+msgid "Compact layout"
+msgstr ""
+
+#: prefs.js:317
+msgid "Control how multi-source compact rows expand in the popup."
+msgstr ""
+
+#: prefs.js:322
+msgid "Expand layout on"
+msgstr ""
+
+#: prefs.js:322
+msgid "When multiple media sources are shown"
+msgstr ""
+
+#: prefs.js:323
+msgid "Off"
+msgstr ""
+
+#: prefs.js:323
+msgid "Hover"
+msgstr ""
+
+#: prefs.js:323
+msgid "Click"
+msgstr ""
+
+#: prefs.js:330
+msgid "Behaviour"
+msgstr ""
+
+#: prefs.js:335
+msgid "Click actions"
+msgstr ""
+
+#: prefs.js:336
+msgid "What happens when you click the media bar indicator"
+msgstr ""
+
+#: prefs.js:341 prefs.js:367
+msgid "Nothing"
+msgstr ""
+
+#: prefs.js:341 prefs.js:367
+msgid "Open popup"
+msgstr ""
+
+#: prefs.js:341 prefs.js:367
+msgid "Play / Pause"
+msgstr ""
+
+#: prefs.js:341 prefs.js:367
+msgid "Open settings"
+msgstr ""
+
+#: prefs.js:342 prefs.js:368
+msgid "Next track"
+msgstr ""
+
+#: prefs.js:342 prefs.js:368
+msgid "Previous track"
+msgstr ""
+
+#: prefs.js:342 prefs.js:369
+msgid "Raise player"
+msgstr ""
+
+#: prefs.js:348
+msgid "Left click"
+msgstr ""
+
+#: prefs.js:348
+msgid "Action when left-clicking the indicator"
+msgstr ""
+
+#: prefs.js:349
+msgid "Middle click"
+msgstr ""
+
+#: prefs.js:349
+msgid "Action when middle-clicking the indicator"
+msgstr ""
+
+#: prefs.js:350
+msgid "Right click"
+msgstr ""
+
+#: prefs.js:350
+msgid "Action when right-clicking the indicator"
+msgstr ""
+
+#: prefs.js:361
+msgid "Scroll actions"
+msgstr ""
+
+#: prefs.js:362
+msgid "What happens when you scroll over the media bar indicator"
+msgstr ""
+
+#: prefs.js:369
+msgid "Volume up"
+msgstr ""
+
+#: prefs.js:369
+msgid "Volume down"
+msgstr ""
+
+#: prefs.js:373
+msgid "Scroll up"
+msgstr ""
+
+#: prefs.js:373
+msgid "Action when scrolling up over the indicator"
+msgstr ""
+
+#: prefs.js:374
+msgid "Scroll down"
+msgstr ""
+
+#: prefs.js:374
+msgid "Action when scrolling down over the indicator"
+msgstr ""
+
+#: prefs.js:380
+msgid "Notifications"
+msgstr ""
+
+#: prefs.js:381
+msgid "Manage visibility of GNOME’s built-in media notifications."
+msgstr ""
+
+#: prefs.js:385
+msgid "Hide default notification"
+msgstr ""
+
+#: prefs.js:386
+msgid "Remove GNOME’s media notification while the panel indicator is shown"
+msgstr ""
+
+#: prefs.js:389
+msgid "Compatibility"
+msgstr ""
+
+#: prefs.js:390
+msgid "Workarounds for specific apps and environments."
+msgstr ""
+
+#: prefs.js:394
+msgid "Enhanced PWA support"
+msgstr ""
+
+#: prefs.js:395
+msgid ""
+"Use advanced detection to find the active PWA window for the correct icon. "
+"Might have unintended consequences of displaying the wrong icon."
+msgstr ""
+
+#: prefs.js:410
+msgid "Choose a color"
+msgstr ""
+
+#: prefs.js:431
+msgid "Reset to default"
+msgstr ""
+
+#: helpers/indicator.js:409 helpers/expandableMediaRow.js:136
+msgid "Unknown"
+msgstr ""
