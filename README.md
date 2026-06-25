@@ -109,15 +109,18 @@ Then log out and back in (or restart GNOME Shell on X11 with `Alt+F2` → `r`).
 
 #### Other make targets
 
-| Command          | Description                                                                    |
-| ---------------- | ------------------------------------------------------------------------------ |
-| `make`           | Compile GSettings schemas only                                                 |
-| `make install`   | Compile schemas and copy extension to `~/.local/share/gnome-shell/extensions/` |
-| `make uninstall` | Remove the extension from the install directory                                |
-| `make enable`    | Enable the extension via `gnome-extensions`                                    |
-| `make disable`   | Disable the extension via `gnome-extensions`                                   |
-| `make pack`      | Create a distributable zip in `dist/` for extensions.gnome.org                 |
-| `make clean`     | Remove compiled schema and `dist/`                                             |
+| Command          | Description                                                                                  |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| `make`           | Compile GSettings schemas and translation files                                              |
+| `make install`   | Compile schemas and translations, copy extension to `~/.local/share/gnome-shell/extensions/` |
+| `make uninstall` | Remove the extension from the install directory                                              |
+| `make enable`    | Enable the extension via `gnome-extensions`                                                  |
+| `make disable`   | Disable the extension via `gnome-extensions`                                                 |
+| `make pack`      | Create a distributable zip in `dist/` for extensions.gnome.org                               |
+| `make clean`     | Remove compiled schema, translations, and `dist/`                                            |
+| `make pot`       | Regenerate the `.pot` translation template from source files                                 |
+| `make update-po` | Merge new strings from `.pot` into all existing `.po` files                                  |
+| `make locale`    | Compile all `.po` translation files to binary `.mo` files                                    |
 
 ## Configuration
 

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Medialine 6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-24 22:23+0530\n"
+"POT-Creation-Date: 2026-06-24 23:56+0530\n"
 "PO-Revision-Date: 2026-06-24 22:23+0530\n"
 "Last-Translator: Aryan Kushwaha <hello@funinkina.co.in>\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -26,7 +26,8 @@ msgstr "Medialine"
 
 #: prefs.js:62
 msgid "Shows currently playing media in the top bar in a minimal elegant way."
-msgstr "Exibe a mídia em reprodução na barra superior de forma mínima e elegante."
+msgstr ""
+"Exibe a mídia em reprodução na barra superior de forma mínima e elegante."
 
 #: prefs.js:73
 msgid "Donate"
@@ -91,7 +92,8 @@ msgstr "Ícone"
 #: prefs.js:102
 msgid ""
 "How Medialine represents the currently playing media in the panel and popup."
-msgstr "Como o Medialine representa a mídia em reprodução no painel e no popup."
+msgstr ""
+"Como o Medialine representa a mídia em reprodução no painel e no popup."
 
 #: prefs.js:106
 msgid "Icon source"
@@ -99,7 +101,9 @@ msgstr "Fonte do ícone"
 
 #: prefs.js:107
 msgid "Album art, app icon, playback status, or a custom image"
-msgstr "Capa do álbum, ícone do aplicativo, status de reprodução ou uma imagem personalizada"
+msgstr ""
+"Capa do álbum, ícone do aplicativo, status de reprodução ou uma imagem "
+"personalizada"
 
 #: prefs.js:109 prefs.js:308
 msgid "App icon"
@@ -167,7 +171,9 @@ msgstr "Largura máxima do rótulo em pixels (0 para ilimitado)"
 
 #: prefs.js:148
 msgid "Pick an image to use when the icon source is set to Custom image."
-msgstr "Escolha uma imagem quando a fonte do ícone estiver definida como «Imagem personalizada»."
+msgstr ""
+"Escolha uma imagem quando a fonte do ícone estiver definida como «Imagem "
+"personalizada»."
 
 #: prefs.js:155
 msgid "Image file"
@@ -247,8 +253,10 @@ msgid "How bright or dark the background appears"
 msgstr "Quão claro ou escuro o fundo aparece"
 
 #: prefs.js:309
-msgid "Overlay the playing app's icon on the album art shown in the popup."
-msgstr "Sobrepor o ícone do aplicativo em reprodução sobre a capa do álbum no popup."
+#, fuzzy
+msgid "Overlay the playing app’s icon on the album art shown in the popup."
+msgstr ""
+"Sobrepor o ícone do aplicativo em reprodução sobre a capa do álbum no popup."
 
 #: prefs.js:313
 msgid "Show app icon on the bottom right of the album art"
@@ -260,7 +268,8 @@ msgstr "Layout compacto"
 
 #: prefs.js:317
 msgid "Control how multi-source compact rows expand in the popup."
-msgstr "Controla como as linhas compactas de múltiplas fontes se expandem no popup."
+msgstr ""
+"Controla como as linhas compactas de múltiplas fontes se expandem no popup."
 
 #: prefs.js:322
 msgid "Expand layout on"
@@ -383,7 +392,8 @@ msgid "Notifications"
 msgstr "Notificações"
 
 #: prefs.js:381
-msgid "Manage visibility of GNOME's built-in media notifications."
+#, fuzzy
+msgid "Manage visibility of GNOME’s built-in media notifications."
 msgstr "Gerencia a visibilidade das notificações de mídia integradas ao GNOME."
 
 #: prefs.js:385
@@ -391,8 +401,11 @@ msgid "Hide default notification"
 msgstr "Ocultar notificação padrão"
 
 #: prefs.js:386
-msgid "Remove GNOME's media notification while the panel indicator is shown"
-msgstr "Remover a notificação de mídia do GNOME enquanto o indicador do painel está visível"
+#, fuzzy
+msgid "Remove GNOME’s media notification while the panel indicator is shown"
+msgstr ""
+"Remover a notificação de mídia do GNOME enquanto o indicador do painel está "
+"visível"
 
 #: prefs.js:389
 msgid "Compatibility"
@@ -410,7 +423,9 @@ msgstr "Suporte aprimorado a PWA"
 msgid ""
 "Use advanced detection to find the active PWA window for the correct icon. "
 "Might have unintended consequences of displaying the wrong icon."
-msgstr "Usar detecção avançada para encontrar a janela PWA ativa e exibir o ícone correto. Pode ter consequências indesejadas ao exibir o ícone errado."
+msgstr ""
+"Usar detecção avançada para encontrar a janela PWA ativa e exibir o ícone "
+"correto. Pode ter consequências indesejadas ao exibir o ícone errado."
 
 #: prefs.js:410
 msgid "Choose a color"

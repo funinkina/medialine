@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Medialine 6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-24 22:23+0530\n"
+"POT-Creation-Date: 2026-06-24 23:56+0530\n"
 "PO-Revision-Date: 2026-06-24 22:23+0530\n"
 "Last-Translator: Aryan Kushwaha <hello@funinkina.co.in>\n"
 "Language-Team: Simplified Chinese\n"
@@ -247,7 +247,8 @@ msgid "How bright or dark the background appears"
 msgstr "背景的明暗程度"
 
 #: prefs.js:309
-msgid "Overlay the playing app's icon on the album art shown in the popup."
+#, fuzzy
+msgid "Overlay the playing app’s icon on the album art shown in the popup."
 msgstr "在弹窗的专辑封面上叠加正在播放的应用图标。"
 
 #: prefs.js:313
@@ -383,7 +384,8 @@ msgid "Notifications"
 msgstr "通知"
 
 #: prefs.js:381
-msgid "Manage visibility of GNOME's built-in media notifications."
+#, fuzzy
+msgid "Manage visibility of GNOME’s built-in media notifications."
 msgstr "管理 GNOME 内置媒体通知的显示。"
 
 #: prefs.js:385
@@ -391,7 +393,8 @@ msgid "Hide default notification"
 msgstr "隐藏默认通知"
 
 #: prefs.js:386
-msgid "Remove GNOME's media notification while the panel indicator is shown"
+#, fuzzy
+msgid "Remove GNOME’s media notification while the panel indicator is shown"
 msgstr "在面板指示器显示时隐藏 GNOME 媒体通知"
 
 #: prefs.js:389
@@ -410,7 +413,9 @@ msgstr "增强 PWA 支持"
 msgid ""
 "Use advanced detection to find the active PWA window for the correct icon. "
 "Might have unintended consequences of displaying the wrong icon."
-msgstr "使用高级检测找到活跃的 PWA 窗口以显示正确图标。可能会导致显示错误图标的意外情况。"
+msgstr ""
+"使用高级检测找到活跃的 PWA 窗口以显示正确图标。可能会导致显示错误图标的意外情"
+"况。"
 
 #: prefs.js:410
 msgid "Choose a color"

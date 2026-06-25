@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Medialine 6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-24 22:23+0530\n"
+"POT-Creation-Date: 2026-06-24 23:56+0530\n"
 "PO-Revision-Date: 2026-06-24 22:23+0530\n"
 "Last-Translator: Aryan Kushwaha <hello@funinkina.co.in>\n"
 "Language-Team: Spanish\n"
@@ -26,7 +26,9 @@ msgstr "Medialine"
 
 #: prefs.js:62
 msgid "Shows currently playing media in the top bar in a minimal elegant way."
-msgstr "Muestra el medio en reproducción en la barra superior de forma mínima y elegante."
+msgstr ""
+"Muestra el medio en reproducción en la barra superior de forma mínima y "
+"elegante."
 
 #: prefs.js:73
 msgid "Donate"
@@ -91,7 +93,9 @@ msgstr "Icono"
 #: prefs.js:102
 msgid ""
 "How Medialine represents the currently playing media in the panel and popup."
-msgstr "Cómo Medialine representa el medio en reproducción en el panel y en la ventana emergente."
+msgstr ""
+"Cómo Medialine representa el medio en reproducción en el panel y en la "
+"ventana emergente."
 
 #: prefs.js:106
 msgid "Icon source"
@@ -99,7 +103,9 @@ msgstr "Fuente del icono"
 
 #: prefs.js:107
 msgid "Album art, app icon, playback status, or a custom image"
-msgstr "Portada del álbum, icono de la app, estado de reproducción o una imagen personalizada"
+msgstr ""
+"Portada del álbum, icono de la app, estado de reproducción o una imagen "
+"personalizada"
 
 #: prefs.js:109 prefs.js:308
 msgid "App icon"
@@ -167,7 +173,8 @@ msgstr "Ancho máximo de la etiqueta en píxeles (0 para ilimitado)"
 
 #: prefs.js:148
 msgid "Pick an image to use when the icon source is set to Custom image."
-msgstr "Elige una imagen cuando la fuente del icono sea «Imagen personalizada»."
+msgstr ""
+"Elige una imagen cuando la fuente del icono sea «Imagen personalizada»."
 
 #: prefs.js:155
 msgid "Image file"
@@ -232,7 +239,9 @@ msgstr "Fondo dinámico"
 #: prefs.js:283
 msgid ""
 "Extract the dominant color from album art to use as the popup background."
-msgstr "Extrae el color dominante de la portada del álbum para usarlo como fondo de la ventana emergente."
+msgstr ""
+"Extrae el color dominante de la portada del álbum para usarlo como fondo de "
+"la ventana emergente."
 
 #: prefs.js:289
 msgid "Use the dominant color from album art as background"
@@ -247,8 +256,11 @@ msgid "How bright or dark the background appears"
 msgstr "Qué tan brillante u oscuro aparece el fondo"
 
 #: prefs.js:309
-msgid "Overlay the playing app's icon on the album art shown in the popup."
-msgstr "Superponer el icono de la app en reproducción sobre la portada del álbum en la ventana emergente."
+#, fuzzy
+msgid "Overlay the playing app’s icon on the album art shown in the popup."
+msgstr ""
+"Superponer el icono de la app en reproducción sobre la portada del álbum en "
+"la ventana emergente."
 
 #: prefs.js:313
 msgid "Show app icon on the bottom right of the album art"
@@ -260,7 +272,9 @@ msgstr "Diseño compacto"
 
 #: prefs.js:317
 msgid "Control how multi-source compact rows expand in the popup."
-msgstr "Controla cómo se expanden las filas compactas de múltiples fuentes en la ventana emergente."
+msgstr ""
+"Controla cómo se expanden las filas compactas de múltiples fuentes en la "
+"ventana emergente."
 
 #: prefs.js:322
 msgid "Expand layout on"
@@ -383,16 +397,21 @@ msgid "Notifications"
 msgstr "Notificaciones"
 
 #: prefs.js:381
-msgid "Manage visibility of GNOME's built-in media notifications."
-msgstr "Gestiona la visibilidad de las notificaciones de medios integradas en GNOME."
+#, fuzzy
+msgid "Manage visibility of GNOME’s built-in media notifications."
+msgstr ""
+"Gestiona la visibilidad de las notificaciones de medios integradas en GNOME."
 
 #: prefs.js:385
 msgid "Hide default notification"
 msgstr "Ocultar notificación predeterminada"
 
 #: prefs.js:386
-msgid "Remove GNOME's media notification while the panel indicator is shown"
-msgstr "Eliminar la notificación de medios de GNOME mientras se muestra el indicador del panel"
+#, fuzzy
+msgid "Remove GNOME’s media notification while the panel indicator is shown"
+msgstr ""
+"Eliminar la notificación de medios de GNOME mientras se muestra el indicador "
+"del panel"
 
 #: prefs.js:389
 msgid "Compatibility"
@@ -410,7 +429,10 @@ msgstr "Compatibilidad mejorada con PWA"
 msgid ""
 "Use advanced detection to find the active PWA window for the correct icon. "
 "Might have unintended consequences of displaying the wrong icon."
-msgstr "Usar detección avanzada para encontrar la ventana PWA activa y mostrar el icono correcto. Puede tener consecuencias no deseadas al mostrar el icono incorrecto."
+msgstr ""
+"Usar detección avanzada para encontrar la ventana PWA activa y mostrar el "
+"icono correcto. Puede tener consecuencias no deseadas al mostrar el icono "
+"incorrecto."
 
 #: prefs.js:410
 msgid "Choose a color"

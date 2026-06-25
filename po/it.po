@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Medialine 6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-24 22:23+0530\n"
+"POT-Creation-Date: 2026-06-24 23:56+0530\n"
 "PO-Revision-Date: 2026-06-24 22:23+0530\n"
 "Last-Translator: Aryan Kushwaha <hello@funinkina.co.in>\n"
 "Language-Team: Italian\n"
@@ -26,7 +26,9 @@ msgstr "Medialine"
 
 #: prefs.js:62
 msgid "Shows currently playing media in the top bar in a minimal elegant way."
-msgstr "Mostra il contenuto multimediale in riproduzione nella barra superiore in modo minimale ed elegante."
+msgstr ""
+"Mostra il contenuto multimediale in riproduzione nella barra superiore in "
+"modo minimale ed elegante."
 
 #: prefs.js:73
 msgid "Donate"
@@ -91,7 +93,9 @@ msgstr "Icona"
 #: prefs.js:102
 msgid ""
 "How Medialine represents the currently playing media in the panel and popup."
-msgstr "Come Medialine rappresenta il contenuto in riproduzione nel pannello e nella finestra popup."
+msgstr ""
+"Come Medialine rappresenta il contenuto in riproduzione nel pannello e nella "
+"finestra popup."
 
 #: prefs.js:106
 msgid "Icon source"
@@ -99,7 +103,8 @@ msgstr "Sorgente icona"
 
 #: prefs.js:107
 msgid "Album art, app icon, playback status, or a custom image"
-msgstr "Copertina album, icona app, stato di riproduzione o immagine personalizzata"
+msgstr ""
+"Copertina album, icona app, stato di riproduzione o immagine personalizzata"
 
 #: prefs.js:109 prefs.js:308
 msgid "App icon"
@@ -167,7 +172,9 @@ msgstr "Larghezza massima etichetta in pixel (0 per illimitato)"
 
 #: prefs.js:148
 msgid "Pick an image to use when the icon source is set to Custom image."
-msgstr "Scegli un'immagine da usare quando la sorgente icona è «Immagine personalizzata»."
+msgstr ""
+"Scegli un'immagine da usare quando la sorgente icona è «Immagine "
+"personalizzata»."
 
 #: prefs.js:155
 msgid "Image file"
@@ -232,7 +239,9 @@ msgstr "Sfondo dinamico"
 #: prefs.js:283
 msgid ""
 "Extract the dominant color from album art to use as the popup background."
-msgstr "Estrae il colore dominante dalla copertina dell'album da usare come sfondo del popup."
+msgstr ""
+"Estrae il colore dominante dalla copertina dell'album da usare come sfondo "
+"del popup."
 
 #: prefs.js:289
 msgid "Use the dominant color from album art as background"
@@ -247,8 +256,10 @@ msgid "How bright or dark the background appears"
 msgstr "Quanto è luminoso o scuro lo sfondo"
 
 #: prefs.js:309
-msgid "Overlay the playing app's icon on the album art shown in the popup."
-msgstr "Sovrapporre l'icona dell'app in riproduzione sulla copertina nel popup."
+#, fuzzy
+msgid "Overlay the playing app’s icon on the album art shown in the popup."
+msgstr ""
+"Sovrapporre l'icona dell'app in riproduzione sulla copertina nel popup."
 
 #: prefs.js:313
 msgid "Show app icon on the bottom right of the album art"
@@ -260,7 +271,8 @@ msgstr "Layout compatto"
 
 #: prefs.js:317
 msgid "Control how multi-source compact rows expand in the popup."
-msgstr "Controlla come si espandono le righe compatte multi-sorgente nel popup."
+msgstr ""
+"Controlla come si espandono le righe compatte multi-sorgente nel popup."
 
 #: prefs.js:322
 msgid "Expand layout on"
@@ -383,16 +395,21 @@ msgid "Notifications"
 msgstr "Notifiche"
 
 #: prefs.js:381
-msgid "Manage visibility of GNOME's built-in media notifications."
-msgstr "Gestisce la visibilità delle notifiche multimediali integrate in GNOME."
+#, fuzzy
+msgid "Manage visibility of GNOME’s built-in media notifications."
+msgstr ""
+"Gestisce la visibilità delle notifiche multimediali integrate in GNOME."
 
 #: prefs.js:385
 msgid "Hide default notification"
 msgstr "Nascondi notifica predefinita"
 
 #: prefs.js:386
-msgid "Remove GNOME's media notification while the panel indicator is shown"
-msgstr "Rimuovere la notifica multimediale di GNOME mentre l'indicatore del pannello è visibile"
+#, fuzzy
+msgid "Remove GNOME’s media notification while the panel indicator is shown"
+msgstr ""
+"Rimuovere la notifica multimediale di GNOME mentre l'indicatore del pannello "
+"è visibile"
 
 #: prefs.js:389
 msgid "Compatibility"
@@ -410,7 +427,9 @@ msgstr "Supporto PWA migliorato"
 msgid ""
 "Use advanced detection to find the active PWA window for the correct icon. "
 "Might have unintended consequences of displaying the wrong icon."
-msgstr "Usa il rilevamento avanzato per trovare la finestra PWA attiva e mostrare l'icona corretta. Potrebbe visualizzare icone non corrette."
+msgstr ""
+"Usa il rilevamento avanzato per trovare la finestra PWA attiva e mostrare "
+"l'icona corretta. Potrebbe visualizzare icone non corrette."
 
 #: prefs.js:410
 msgid "Choose a color"
