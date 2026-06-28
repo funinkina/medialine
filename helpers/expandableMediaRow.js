@@ -337,7 +337,10 @@ export class ExpandableMediaRow {
         if (this._eventFromInteractiveChild(event))
             return Clutter.EVENT_PROPAGATE;
 
-        this._indicator._setExpandedBusName(this.media.busName);
+        const alreadyExpanded =
+            this._indicator._expandedBusName === this.media.busName;
+        this._indicator._setExpandedBusName(
+            alreadyExpanded ? null : this.media.busName);
         return Clutter.EVENT_STOP;
     }
 
