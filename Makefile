@@ -52,7 +52,7 @@ disable:
 pack: schemas/gschemas.compiled locale
 	mkdir -p dist
 	rm -f dist/$(UUID).zip
-	zip -r dist/$(UUID).zip $(SRC_FILES) helpers schemas/*.gschema.xml icons $(LOCALE_DIR)
+	zip -r dist/$(UUID).zip $(SRC_FILES) helpers schemas/*.gschema.xml icons $(LOCALE_DIR) -x '*.test.js'
 
 clean:
 	rm -f schemas/gschemas.compiled

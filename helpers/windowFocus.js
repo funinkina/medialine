@@ -2,6 +2,8 @@ import Gio from 'gi://Gio';
 import GioUnix from 'gi://GioUnix';
 import Shell from 'gi://Shell';
 
+import { chromiumAppId, pwaDesktopCandidates, pickWindowIndex } from './pwaUtils.js';
+
 export function identityCandidates(media) {
     const out = [];
     const push = (v) => { if (v) out.push(v); };
@@ -38,53 +40,54 @@ export function findWindowForMedia(media, pid, windowClassCache) {
         return candidates[0];
     }
 
-    const knownClass = windowClassCache.get(media.busName);
-    if (knownClass) {
-        const match = candidates.find(w => w.get_wm_class() === knownClass);
-        if (match) return match;
-    }
+    const descriptors = candidates.map(w => ({
+        title: w.get_title() || '',
+        wmClass: w.get_wm_class() || '',
+        userTime: w.get_user_time(),
+    }));
 
-    let best = null;
-    let bestScore = -1;
+    const idx = pickWindowIndex(descriptors, {
+        title: media.title || '',
+        needles: identityCandidates(media),
+        knownClass: windowClassCache.get(media.busName) || '',
+    });
 
-    const knownAppTitles = [
-        'youtube music', 'spotify', 'tidal', 'deezer', 'music',
-        'soundcloud', 'pandora', 'amazon music', 'apple music',
-    ];
-    const needles = identityCandidates(media)
-        .map(s => s.toLowerCase())
-        .filter(Boolean);
+    const best = candidates[idx] || candidates[0];
+    windowClassCache.set(media.busName, best.get_wm_class());
+    return best;
+}
 
-    for (const w of candidates) {
-        let score = 0;
-        const title = (w.get_title() || '').toLowerCase();
-        const wmclass = (w.get_wm_class() || '').toLowerCase();
+export function lookupPwaGiconByWmClass(win) {
+    const classes = [win.get_wm_class(), win.get_wm_class_instance()].filter(Boolean);
+    if (classes.length === 0) return null;
 
-        if (media.title && title.includes(media.title.toLowerCase()))
-            score += 1000;
+    const appids = [...new Set(classes.map(chromiumAppId).filter(Boolean))];
 
-        if (knownAppTitles.some(kw => title.includes(kw)))
-            score += 500;
-
-        if (needles.some(n => wmclass.includes(n) || n.includes(wmclass)))
-            score += 100;
-
-        score += w.get_user_time() / 10000000;
-
-        if (score > bestScore) {
-            bestScore = score;
-            best = w;
+    // Fast path: build the PWA's .desktop id straight from the app id.
+    for (const appid of appids) {
+        for (const id of pwaDesktopCandidates(appid)) {
+            const info = GioUnix.DesktopAppInfo.new(id);
+            const icon = info && info.get_icon();
+            if (icon) return icon;
         }
     }
 
-    if (best) return best;
-
-    let fallback = candidates[0];
-    for (const w of candidates) {
-        if (w.get_user_time() > fallback.get_user_time())
-            fallback = w;
+    for (const info of Gio.AppInfo.get_all()) {
+        if (typeof info.get_startup_wm_class === 'function') {
+            const swc = info.get_startup_wm_class();
+            if (swc && classes.includes(swc)) {
+                const icon = info.get_icon();
+                if (icon) return icon;
+            }
+        }
+        const id = info.get_id();
+        if (id && appids.some(a => id.includes(a))) {
+            const icon = info.get_icon();
+            if (icon) return icon;
+        }
     }
-    return fallback;
+
+    return null;
 }
 
 export function lookupAppGiconByString(media) {
@@ -135,12 +138,15 @@ export function lookupAppGicon(self, media) {
     } else if (pid) {
         try {
             const win = findWindowForMedia(media, pid, self._windowClassCache);
-            const app = win
-                ? Shell.WindowTracker.get_default().get_window_app(win)
-                : null;
-            const appInfo = app ? app.get_app_info() : null;
-            const icon = appInfo ? appInfo.get_icon() : null;
-            if (icon) return icon;
+            if (win) {
+                const pwaIcon = lookupPwaGiconByWmClass(win);
+                if (pwaIcon) return pwaIcon;
+
+                const app = Shell.WindowTracker.get_default().get_window_app(win);
+                const appInfo = app ? app.get_app_info() : null;
+                const icon = appInfo ? appInfo.get_icon() : null;
+                if (icon) return icon;
+            }
         } catch (_) { }
     }
 
