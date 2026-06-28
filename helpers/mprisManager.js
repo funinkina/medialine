@@ -67,76 +67,98 @@ export const MprisManager = GObject.registerClass({
         this._currentEntry = null;
         this._nameOwnerChangedId = null;
         this._dbusProxy = null;
+        this._destroyed = false;
+        this._pendingAdds = new Set();
 
-        try {
-            this._dbusProxy = new DBusProxy(
-                Gio.DBus.session,
-                'org.freedesktop.DBus',
-                '/org/freedesktop/DBus',
-                null,
-                null,
-                Gio.DBusProxyFlags.DO_NOT_LOAD_PROPERTIES
-            );
-
-            this._nameOwnerChangedId = this._dbusProxy.connectSignal(
-                'NameOwnerChanged',
-                (_proxy, _sender, [name, oldOwner, newOwner]) => {
-                    if (!name.startsWith(MPRIS_PREFIX)) return;
-
-                    if (newOwner === '') {
-                        this._removePlayer(name);
-                    } else if (oldOwner === '') {
-                        this._addPlayer(name);
-                    }
+        new DBusProxy(
+            Gio.DBus.session,
+            'org.freedesktop.DBus',
+            '/org/freedesktop/DBus',
+            (proxy, error) => {
+                if (this._destroyed) return;
+                if (error) {
+                    logError(error, 'Medialine: Failed to initialize MPRIS manager');
+                    return;
                 }
-            );
+                this._dbusProxy = proxy;
 
-            const [names] = this._dbusProxy.ListNamesSync();
-            for (const name of names) {
-                if (name.startsWith(MPRIS_PREFIX))
-                    this._addPlayer(name);
-            }
-        } catch (e) {
-            logError(e, 'Medialine: Failed to initialize MPRIS manager');
-        }
+                this._nameOwnerChangedId = proxy.connectSignal(
+                    'NameOwnerChanged',
+                    (_p, _s, [name, oldOwner, newOwner]) => {
+                        if (!name.startsWith(MPRIS_PREFIX)) return;
+                        if (newOwner === '') this._removePlayer(name);
+                        else if (oldOwner === '') this._addPlayer(name);
+                    }
+                );
+
+                proxy.ListNamesRemote((result, err) => {
+                    if (this._destroyed || err || !result) return;
+                    for (const name of result[0]) {
+                        if (name.startsWith(MPRIS_PREFIX))
+                            this._addPlayer(name);
+                    }
+                });
+            },
+            null,
+            Gio.DBusProxyFlags.DO_NOT_LOAD_PROPERTIES
+        );
     }
 
     _addPlayer(busName) {
-        if (this._players.has(busName)) return;
+        if (this._players.has(busName) || this._pendingAdds.has(busName)) return;
+        this._pendingAdds.add(busName);
 
-        try {
-            const proxy = new MprisPlayerProxy(
-                Gio.DBus.session,
-                busName,
-                '/org/mpris/MediaPlayer2',
-                null,
-                null,
-                Gio.DBusProxyFlags.GET_INVALIDATED_PROPERTIES
-            );
+        new MprisPlayerProxy(
+            Gio.DBus.session,
+            busName,
+            '/org/mpris/MediaPlayer2',
+            (proxy, error) => {
+                if (this._destroyed || !this._pendingAdds.has(busName)) {
+                    this._pendingAdds.delete(busName);
+                    return;
+                }
+                if (error) {
+                    this._pendingAdds.delete(busName);
+                    logError(error, `Medialine: Failed to create proxy for ${busName}`);
+                    return;
+                }
 
-            proxy.connectObject('g-properties-changed',
-                () => this._refreshMedia(), this);
+                proxy.connectObject('g-properties-changed',
+                    () => this._refreshMedia(), this);
 
-            let rootProxy = null;
-            try {
-                rootProxy = new MprisRootProxy(
+                new MprisRootProxy(
                     Gio.DBus.session,
                     busName,
                     '/org/mpris/MediaPlayer2',
-                    null,
+                    (rootProxy, rootError) => {
+                        if (this._destroyed || !this._pendingAdds.has(busName)) {
+                            proxy.disconnectObject(this);
+                            this._pendingAdds.delete(busName);
+                            return;
+                        }
+                        this._pendingAdds.delete(busName);
+                        if (this._players.has(busName)) {
+                            proxy.disconnectObject(this);
+                            return;
+                        }
+                        this._players.set(busName, {
+                            proxy,
+                            rootProxy: rootError ? null : rootProxy,
+                        });
+                        this._refreshMedia();
+                    },
                     null,
                     Gio.DBusProxyFlags.GET_INVALIDATED_PROPERTIES
                 );
-            } catch (_) { }
-
-            this._players.set(busName, { proxy, rootProxy });
-            this._refreshMedia();
-        } catch (e) {
-            logError(e, `Medialine: Failed to create proxy for ${busName}`);
-        }
+            },
+            null,
+            Gio.DBusProxyFlags.GET_INVALIDATED_PROPERTIES
+        );
     }
 
     _removePlayer(busName) {
+        this._pendingAdds.delete(busName);
+
         const entry = this._players.get(busName);
         if (!entry) return;
 
@@ -383,6 +405,9 @@ export const MprisManager = GObject.registerClass({
     }
 
     destroy() {
+        this._destroyed = true;
+        this._pendingAdds.clear();
+
         for (const [, entry] of this._players) {
             entry.proxy.disconnectObject(this);
         }
