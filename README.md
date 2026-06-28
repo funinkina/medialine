@@ -19,15 +19,9 @@ A GNOME Shell extension that shows the currently playing media track in the top 
 
 </div>
 
-## Screenshots
-### Single media playing, default view
-<img width="400" alt="Screenshot From 2026-06-19 17-13-08" src="https://github.com/user-attachments/assets/19a0c6ab-c510-4a55-aeee-a3bf45ef69d7" />
+## Preview
+<img width="650" height="350" alt="joined" src="https://github.com/user-attachments/assets/571e4f8d-a7db-4af4-8d88-f4f2355a1964" />
 
-### Compact view when multiple media sources
-<img width="400" alt="Screenshot From 2026-06-19 17-11-40" src="https://github.com/user-attachments/assets/3a3771f3-9e56-4c34-be3d-ac447e416589" /> 
-
-### Customisable background color without optional app icon
-<img width="400" alt="image" src="https://github.com/user-attachments/assets/fa24406a-bc84-4504-92f2-520f0061de32" />
 
 
 ## Features
