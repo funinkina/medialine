@@ -17,6 +17,8 @@ import { hexToRgba, adjustColorBrightness, escMarkup } from './colorUtils.js';
 import { makeButton, buildProgressWidgets } from './widgetFactory.js';
 import { setupClickHandling, toggleShuffle, cycleRepeat } from './inputActions.js';
 import { applyArtBin, extractArtColor } from './artDisplay.js';
+import { ArtCache } from './artCache.js';
+import { isRemoteArt } from './artUrl.js';
 import { ExpandableMediaRow } from './expandableMediaRow.js';
 import {
     startPositionPolling, stopPositionPolling, pollPosition,
@@ -71,6 +73,7 @@ export const Indicator = GObject.registerClass(
             this._mprisManager = mprisManager;
             this._currentArtUrl = null;
             this._currentPopupArtUrl = null;
+            this._artCache = new ArtCache(preferences.artCacheSizeMb * 1024 * 1024);
             this._positionTimerId = null;
             this._position = 0;
             this._dragging = false;
@@ -372,6 +375,9 @@ export const Indicator = GObject.registerClass(
             this.show();
             this._syncCompactExpandMode();
 
+            this._artCache.setMaxBytes(this._preferences.artCacheSizeMb * 1024 * 1024);
+            for (const m of allMedia) this._resolveArt(m);
+
             const media = allMedia[0];
             const prefs = this._preferences;
             const parts = [];
@@ -403,6 +409,17 @@ export const Indicator = GObject.registerClass(
 
             if (this._positionTimerId)
                 pollPosition(this);
+        }
+
+        _resolveArt(media) {
+            const url = media.artUrl;
+            if (!url || url.startsWith('file://')) return;
+            if (!isRemoteArt(url)) { media.artUrl = ''; return; }
+
+            const local = this._artCache.resolve(url, () => {
+                if (!this._destroyed) this._onMediaChanged();
+            });
+            media.artUrl = local || '';
         }
 
         _updatePopup(media) {
@@ -648,6 +665,9 @@ export const Indicator = GObject.registerClass(
             this._pidCache.clear();
             this._pendingPidLookups.clear();
             this._windowClassCache.clear();
+
+            this._artCache?.destroy();
+            this._artCache = null;
 
             this._popupArt?.disconnectObject(this);
             this._progressTrack?.disconnectObject(this);

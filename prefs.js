@@ -394,6 +394,15 @@ export default class MedialinePreferences extends ExtensionPreferences {
             _('Enhanced PWA support'),
             _('Use advanced detection to find the active PWA window for the correct icon. Might have unintended consequences of displaying the wrong icon.')));
 
+        const cacheGroup = new Adw.PreferencesGroup({
+            title: _('Album art cache'),
+            description: _('Downloaded cover art (e.g. from Spotify) is cached on disk.'),
+        });
+        page.add(cacheGroup);
+        cacheGroup.add(this._makeSpinRow(settings, 'art-cache-size-mb',
+            _('Cache size limit'), _('Maximum disk space in megabytes'),
+            5, 2000, 5));
+
         return page;
     }
 

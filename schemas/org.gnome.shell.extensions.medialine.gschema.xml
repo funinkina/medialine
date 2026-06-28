@@ -178,5 +178,12 @@
       <description>When enabled, use advanced detection to find the correct PWA window for app icons. When disabled, use the app icon as reported by MPRIS.</description>
     </key>
 
+    <key name="art-cache-size-mb" type="i">
+      <default>50</default>
+      <range min="5" max="2000" />
+      <summary>Album art cache size in megabytes</summary>
+      <description>Maximum disk space used to cache downloaded album art. When the limit is hit, the least recently used art is removed.</description>
+    </key>
+
   </schema>
 </schemalist>

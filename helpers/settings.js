@@ -28,6 +28,7 @@ export class ExtensionSettings {
     get popupDynamicBgIntensity() { return this._settings.get_double('popup-dynamic-bg-intensity'); }
     get popupCompactExpandMode() { return this._settings.get_enum('popup-compact-expand-mode'); }
     get enhancedPwaSupport() { return this._settings.get_boolean('enhanced-pwa-support'); }
+    get artCacheSizeMb() { return this._settings.get_int('art-cache-size-mb'); }
 
     connectObject(...args) {
         this._settings.connectObject(...args);
