@@ -19,9 +19,11 @@ A GNOME Shell extension that shows the currently playing media track in the top 
 
 </div>
 
-## Preview
-<img width="650" height="350" alt="joined" src="https://github.com/user-attachments/assets/571e4f8d-a7db-4af4-8d88-f4f2355a1964" />
+<details>
+<summary>Preview</summary>
 
+<img width="650" height="350" alt="joined" src="https://github.com/user-attachments/assets/571e4f8d-a7db-4af4-8d88-f4f2355a1964" />
+</details>
 
 
 ## Features
