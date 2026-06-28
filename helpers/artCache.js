@@ -13,6 +13,7 @@ export class ArtCache {
     constructor(maxBytes = 0) {
         this._session = new Soup.Session({ timeout: TIMEOUT_SECS });
         this._session.set_user_agent(USER_AGENT);
+        this._cancellable = new Gio.Cancellable();
         this._pending = new Map();
         this._attempts = new Map();
         this._retryTimers = new Set();
@@ -68,7 +69,7 @@ export class ArtCache {
         }
 
         this._session.send_and_read_async(
-            msg, GLib.PRIORITY_DEFAULT, null, (session, res) => {
+            msg, GLib.PRIORITY_DEFAULT, this._cancellable, (session, res) => {
                 if (this._destroyed) return;
                 this._pending.delete(url);
 
@@ -174,6 +175,10 @@ export class ArtCache {
         this._retryTimers.clear();
         this._pending.clear();
         this._attempts.clear();
+        if (this._cancellable) {
+            this._cancellable.cancel();
+            this._cancellable = null;
+        }
         if (this._session) {
             this._session.abort();
             this._session = null;
