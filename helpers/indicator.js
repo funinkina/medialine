@@ -412,10 +412,11 @@ export const Indicator = GObject.registerClass(
         }
 
         _resolveArt(media) {
-            const url = media.artUrl;
+            const url = media._remoteArtUrl ?? media.artUrl;
             if (!url || url.startsWith('file://')) return;
             if (!isRemoteArt(url)) { media.artUrl = ''; return; }
 
+            media._remoteArtUrl = url;
             const local = this._artCache.resolve(url, () => {
                 if (!this._destroyed) this._onMediaChanged();
             });
