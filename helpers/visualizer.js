@@ -13,7 +13,6 @@ export class Visualizer {
         this._tickId = null;
         this._playing = false;
         this._active = false;
-        this._destroyed = false;
 
         this.actor = new St.BoxLayout({
             x_align: Clutter.ActorAlign.CENTER,
@@ -56,7 +55,7 @@ export class Visualizer {
     }
 
     _sync() {
-        if (this._destroyed)
+        if (!this.actor)
             return;
         if (this._playing && this._active)
             this._startTicker();
@@ -69,10 +68,6 @@ export class Visualizer {
             return;
         this._tick();
         this._tickId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, VIS_TICK_MS, () => {
-            if (this._destroyed) {
-                this._tickId = null;
-                return GLib.SOURCE_REMOVE;
-            }
             this._tick();
             return GLib.SOURCE_CONTINUE;
         });
@@ -112,14 +107,14 @@ export class Visualizer {
     }
 
     destroy() {
-        if (this._destroyed)
+        if (!this.actor)
             return;
-        this._destroyed = true;
         if (this._tickId) {
             GLib.Source.remove(this._tickId);
             this._tickId = null;
         }
         this.actor.destroy();
+        this.actor = null;
         this._bars = [];
     }
 }

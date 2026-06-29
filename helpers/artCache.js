@@ -1,6 +1,6 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
-import Soup from 'gi://Soup?version=3.0';
+import Soup from 'gi://Soup';
 
 import { normalizeArtUrl, isRemoteArt, selectEvictions } from './artUrl.js';
 
@@ -17,7 +17,6 @@ export class ArtCache {
         this._pending = new Map();
         this._attempts = new Map();
         this._retryTimers = new Set();
-        this._destroyed = false;
         this._maxBytes = maxBytes;
         this._dir = GLib.build_filenamev(
             [GLib.get_user_cache_dir(), 'medialine', 'art']);
@@ -70,7 +69,7 @@ export class ArtCache {
 
         this._session.send_and_read_async(
             msg, GLib.PRIORITY_DEFAULT, this._cancellable, (session, res) => {
-                if (this._destroyed) return;
+                if (!this._session) return;
                 this._pending.delete(url);
 
                 let data = null;
@@ -162,7 +161,7 @@ export class ArtCache {
         const delay = BACKOFF_SECS[attempts - 1] || BACKOFF_SECS.at(-1);
         const id = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, delay, () => {
             this._retryTimers.delete(id);
-            if (this._destroyed) return GLib.SOURCE_REMOVE;
+            if (!this._session) return GLib.SOURCE_REMOVE;
             this._download(url, path, callbacks.size ? [...callbacks][0] : null);
             return GLib.SOURCE_REMOVE;
         });
@@ -170,7 +169,6 @@ export class ArtCache {
     }
 
     destroy() {
-        this._destroyed = true;
         for (const id of this._retryTimers) GLib.Source.remove(id);
         this._retryTimers.clear();
         this._pending.clear();

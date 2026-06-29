@@ -163,7 +163,7 @@ export function ensurePidResolved(self, busName) {
     self._mprisManager.getPidForBusName(busName, (pid) => {
         self._pendingPidLookups.delete(busName);
         self._pidCache.set(busName, pid);
-        if (!self._destroyed) self._onMediaChanged();
+        if (self._artCache) self._onMediaChanged();
     });
 }
 
@@ -214,7 +214,7 @@ export function focusPlayerWindow(self, media) {
 
     self._mprisManager.getPidForBusName(busName, (pid) => {
         self._pidCache.set(busName, pid);
-        if (self._destroyed) return;
+        if (!self._artCache) return;
         if (pid && activateWindowForMedia(media, pid, self._windowClassCache)) return;
         raiseViaMpris(busName);
     });

@@ -34,7 +34,6 @@ export class ExpandableMediaRow {
         this._dragging = false;
         this._dragRatio = 0;
         this._pollId = null;
-        this._destroyed = false;
 
         this.actor = new St.Widget({
             layout_manager: new Clutter.FixedLayout(),
@@ -230,7 +229,7 @@ export class ExpandableMediaRow {
             duration,
             mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
             onComplete: () => {
-                if (!this._destroyed)
+                if (this.actor)
                     this.actor.visible = !hideBecauseOtherExpanded;
             },
         });
@@ -259,7 +258,7 @@ export class ExpandableMediaRow {
                 duration,
                 mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
                 onComplete: () => {
-                    if (!this._destroyed &&
+                    if (this.actor &&
                         !(this._expanded && this._indicator._preferences.popupShowVisualizer))
                         this._visualizer.actor.hide();
                 },
@@ -432,7 +431,7 @@ export class ExpandableMediaRow {
             return;
         }
         this._indicator._mprisManager.getPositionAsync((position) => {
-            if (this._destroyed)
+            if (!this.actor)
                 return;
             this._position = position;
             this._updateProgress();
@@ -540,9 +539,8 @@ export class ExpandableMediaRow {
     }
 
     destroy() {
-        if (this._destroyed)
+        if (!this.actor)
             return;
-        this._destroyed = true;
         this._stopPolling();
         this._visualizer.destroy();
         this.actor.disconnectObject(this.actor);
@@ -551,5 +549,6 @@ export class ExpandableMediaRow {
         for (const btn of [this._shuffleBtn, this._prevBtn, this._playBtn, this._nextBtn, this._repeatBtn])
             btn.disconnectObject(this.actor);
         this.actor.destroy();
+        this.actor = null;
     }
 }

@@ -28,7 +28,7 @@ export function pollPosition(self) {
         return;
     }
     self._mprisManager.getPositionAsync((position) => {
-        if (self._destroyed) return;
+        if (!self._artCache) return;
         self._position = position;
         updateProgress(self);
     });

@@ -81,7 +81,6 @@ export const Indicator = GObject.registerClass(
             this._dragging = false;
             this._dragRatio = 0;
             this._scrollAccum = 0;
-            this._destroyed = false;
             this._mixer = null;
             this._pendingVolumeDelta = 0;
             this._controlButtons = [];
@@ -428,7 +427,7 @@ export const Indicator = GObject.registerClass(
 
             media._remoteArtUrl = url;
             const local = this._artCache.resolve(url, () => {
-                if (!this._destroyed) this._onMediaChanged();
+                if (this._artCache) this._onMediaChanged();
             });
             media.artUrl = local || '';
         }
@@ -669,7 +668,6 @@ export const Indicator = GObject.registerClass(
         }
 
         destroy() {
-            this._destroyed = true;
             stopPositionPolling(this);
             this._visualizer?.destroy();
             this._visualizer = null;

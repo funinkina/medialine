@@ -67,7 +67,6 @@ export const MprisManager = GObject.registerClass({
         this._currentEntry = null;
         this._nameOwnerChangedId = null;
         this._dbusProxy = null;
-        this._destroyed = false;
         this._pendingAdds = new Set();
 
         new DBusProxy(
@@ -75,7 +74,7 @@ export const MprisManager = GObject.registerClass({
             'org.freedesktop.DBus',
             '/org/freedesktop/DBus',
             (proxy, error) => {
-                if (this._destroyed) return;
+                if (!this._players) return;
                 if (error) {
                     logError(error, 'Medialine: Failed to initialize MPRIS manager');
                     return;
@@ -92,7 +91,7 @@ export const MprisManager = GObject.registerClass({
                 );
 
                 proxy.ListNamesRemote((result, err) => {
-                    if (this._destroyed || err || !result) return;
+                    if (!this._dbusProxy || err || !result) return;
                     for (const name of result[0]) {
                         if (name.startsWith(MPRIS_PREFIX))
                             this._addPlayer(name);
@@ -113,8 +112,8 @@ export const MprisManager = GObject.registerClass({
             busName,
             '/org/mpris/MediaPlayer2',
             (proxy, error) => {
-                if (this._destroyed || !this._pendingAdds.has(busName)) {
-                    this._pendingAdds.delete(busName);
+                if (!this._pendingAdds || !this._pendingAdds.has(busName)) {
+                    this._pendingAdds?.delete(busName);
                     return;
                 }
                 if (error) {
@@ -131,9 +130,9 @@ export const MprisManager = GObject.registerClass({
                     busName,
                     '/org/mpris/MediaPlayer2',
                     (rootProxy, rootError) => {
-                        if (this._destroyed || !this._pendingAdds.has(busName)) {
+                        if (!this._pendingAdds || !this._pendingAdds.has(busName)) {
                             proxy.disconnectObject(this);
-                            this._pendingAdds.delete(busName);
+                            this._pendingAdds?.delete(busName);
                             return;
                         }
                         this._pendingAdds.delete(busName);
@@ -405,13 +404,12 @@ export const MprisManager = GObject.registerClass({
     }
 
     destroy() {
-        this._destroyed = true;
         this._pendingAdds.clear();
 
         for (const [, entry] of this._players) {
             entry.proxy.disconnectObject(this);
         }
-        this._players.clear();
+        this._players = null;
 
         if (this._dbusProxy && this._nameOwnerChangedId) {
             this._dbusProxy.disconnectSignal(this._nameOwnerChangedId);
