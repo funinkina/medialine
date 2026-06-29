@@ -1,26 +1,21 @@
 <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <g clip-path="url(#clip0_40_14)">
-    <rect width="100" height="100" rx="20" fill="url(#paint0_linear_40_14)" />
-    <rect x="10" y="81" width="80" height="5" rx="2.5" fill="white" />
-    <rect x="10" y="14" width="80" height="5" rx="2.5" fill="white" />
-    <mask id="mask0_40_14" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="14" y="14"
-      width="72" height="72">
-      <rect x="14" y="14" width="72" height="72" fill="#D9D9D9" />
-    </mask>
-    <g mask="url(#mask0_40_14)">
-      <path
-        d="M38 66.7611V33.2389C38 32.3212 38.3259 31.552 38.9778 30.9312C39.6296 30.3104 40.3901 30 41.2593 30C41.5309 30 41.816 30.0405 42.1148 30.1215C42.4136 30.2024 42.6988 30.3239 42.9704 30.4858L69.5333 47.247C70.0222 47.5709 70.3889 47.9757 70.6333 48.4615C70.8778 48.9474 71 49.4602 71 50C71 50.5398 70.8778 51.0526 70.6333 51.5385C70.3889 52.0243 70.0222 52.4292 69.5333 52.753L42.9704 69.5142C42.6988 69.6761 42.4136 69.7976 42.1148 69.8785C41.816 69.9595 41.5309 70 41.2593 70C40.3901 70 39.6296 69.6896 38.9778 69.0688C38.3259 68.448 38 67.6788 38 66.7611Z"
-        fill="white" />
-    </g>
+  <rect x="10" y="10" width="80" height="80" rx="20" fill="url(#paint0_linear_119_19)" />
+  <rect x="18" y="76" width="64" height="2" rx="1" fill="white" />
+  <rect x="18" y="22" width="64" height="2" rx="1" fill="white" />
+  <mask id="mask0_119_19" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="23" y="23"
+    width="54" height="54">
+    <rect x="23" y="23" width="54" height="54" fill="#D9D9D9" />
+  </mask>
+  <g mask="url(#mask0_119_19)">
+    <path
+      d="M41.0001 62.5709V37.4291C41.0001 36.7409 41.2446 36.164 41.7335 35.6984C42.2223 35.2328 42.7927 35 43.4446 35C43.6483 35 43.8622 35.0304 44.0862 35.0911C44.3103 35.1518 44.5242 35.2429 44.7279 35.3644L64.6501 47.9352C65.0168 48.1781 65.2918 48.4818 65.4751 48.8462C65.6585 49.2105 65.7501 49.5951 65.7501 50C65.7501 50.4049 65.6585 50.7895 65.4751 51.1538C65.2918 51.5182 65.0168 51.8219 64.6501 52.0648L44.7279 64.6356C44.5242 64.7571 44.3103 64.8482 44.0862 64.9089C43.8622 64.9696 43.6483 65 43.4446 65C42.7927 65 42.2223 64.7672 41.7335 64.3016C41.2446 63.836 41.0001 63.2591 41.0001 62.5709Z"
+      fill="white" />
   </g>
   <defs>
-    <linearGradient id="paint0_linear_40_14" x1="50" y1="0" x2="50" y2="100"
+    <linearGradient id="paint0_linear_119_19" x1="64" y1="29" x2="8" y2="92.5"
       gradientUnits="userSpaceOnUse">
       <stop stop-color="#266EDA" />
-      <stop offset="1" stop-color="#5DDBD8" />
+      <stop offset="0.993735" stop-color="#67D8F5" />
     </linearGradient>
-    <clipPath id="clip0_40_14">
-      <rect width="100" height="100" fill="white" />
-    </clipPath>
   </defs>
 </svg>

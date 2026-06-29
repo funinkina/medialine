@@ -275,23 +275,17 @@ export default class MedialinePreferences extends ExtensionPreferences {
             _('Secondary color'), _('Color for backgrounds and accents'),
             '#888888'));
         colorsGroup.add(this._makeColorRow(settings, 'popup-background-color',
-            _('Background color'), _('Background color for the popup'),
+            _('Background color'), _('Background color for the popup (will also be used as fallback if dynamic background is enabled).'),
             ''));
-
-        const dynamicBgGroup = new Adw.PreferencesGroup({
-            title: _('Dynamic background'),
-            description: _('Extract the dominant color from album art to use as the popup background.'),
-        });
-        page.add(dynamicBgGroup);
 
         const dynamicBgSwitch = this._makeSwitchRow(settings, 'popup-dynamic-bg',
             _('Dynamic background'),
             _('Use the dominant color from album art as background'));
-        dynamicBgGroup.add(dynamicBgSwitch);
+        colorsGroup.add(dynamicBgSwitch);
 
         const intensityRow = new Adw.SpinRow({
-            title: _('Intensity'),
-            subtitle: _('How bright or dark the background appears'),
+            title: _('Background intensity'),
+            subtitle: _('How bright or dark the dynamic background appears'),
             adjustment: new Gtk.Adjustment({
                 lower: 0, upper: 100, step_increment: 5,
                 value: Math.round(settings.get_double('popup-dynamic-bg-intensity') * 100),
@@ -302,34 +296,25 @@ export default class MedialinePreferences extends ExtensionPreferences {
         });
         dynamicBgSwitch.bind_property('active', intensityRow, 'visible',
             GObject.BindingFlags.SYNC_CREATE);
-        dynamicBgGroup.add(intensityRow);
+        colorsGroup.add(intensityRow);
 
-        const appIconGroup = new Adw.PreferencesGroup({
-            title: _('App icon'),
-            description: _('Overlay the playing app’s icon on the album art shown in the popup.'),
+        const displayGroup = new Adw.PreferencesGroup({
+            title: _('Display'),
+            description: _('Control what the popup shows and how it behaves.'),
         });
-        page.add(appIconGroup);
-        appIconGroup.add(this._makeSwitchRow(settings, 'popup-show-app-icon',
-            _('Show app icon on the bottom right of the album art')));
+        page.add(displayGroup);
 
-        const compactGroup = new Adw.PreferencesGroup({
-            title: _('Compact layout'),
-            description: _('Control how multi-source compact rows expand in the popup.'),
-        });
-        page.add(compactGroup);
-
-        compactGroup.add(this._makeComboRow(settings, 'popup-compact-expand-mode',
-            _('Expand layout on'), _('When multiple media sources are shown'),
-            this._makeStringList([_('Off'), _('Hover'), _('Click')])));
-
-        const visGroup = new Adw.PreferencesGroup({
-            title: _('Visualizer'),
-            description: _('Show animated bars next to the track info while media plays.'),
-        });
-        page.add(visGroup);
-        visGroup.add(this._makeSwitchRow(settings, 'popup-show-visualizer',
+        displayGroup.add(this._makeSwitchRow(settings, 'popup-show-visualizer',
             _('Music visualizer'),
-            _('Animated bars that become dots when paused')));
+            _('Animated bars next to the track info for some eye candy.')));
+
+        displayGroup.add(this._makeSwitchRow(settings, 'popup-show-app-icon',
+            _('App icon on album art'),
+            _('Overlay the playing app’s icon on the bottom right of the album art')));
+
+        displayGroup.add(this._makeComboRow(settings, 'popup-compact-expand-mode',
+            _('Expand compact layout on'), _('How multi-source rows expand when several apps play'),
+            this._makeStringList([_('Off'), _('Hover'), _('Click')])));
 
         return page;
     }
