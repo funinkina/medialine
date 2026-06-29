@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Medialine 6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-24 23:56+0530\n"
+"POT-Creation-Date: 2026-06-29 12:52+0530\n"
 "PO-Revision-Date: 2026-06-24 22:23+0530\n"
 "Last-Translator: Aryan Kushwaha <hello@funinkina.co.in>\n"
 "Language-Team: Italian\n"
@@ -20,7 +20,7 @@ msgstr ""
 msgid "About Medialine"
 msgstr "Informazioni su Medialine"
 
-#: prefs.js:58 helpers/indicator.js:67
+#: prefs.js:58 helpers/indicator.js:71
 msgid "Medialine"
 msgstr "Medialine"
 
@@ -106,7 +106,7 @@ msgid "Album art, app icon, playback status, or a custom image"
 msgstr ""
 "Copertina album, icona app, stato di riproduzione o immagine personalizzata"
 
-#: prefs.js:109 prefs.js:308
+#: prefs.js:109
 msgid "App icon"
 msgstr "Icona app"
 
@@ -229,201 +229,203 @@ msgid "Background color"
 msgstr "Colore di sfondo"
 
 #: prefs.js:278
-msgid "Background color for the popup"
-msgstr "Colore di sfondo del popup"
+msgid ""
+"Background color for the popup (will also be used as fallback if dynamic "
+"background is enabled)."
+msgstr ""
+"Colore di sfondo del popup (verrà usato anche come ripiego se lo sfondo "
+"dinamico è abilitato)."
 
-#: prefs.js:282 prefs.js:288
+#: prefs.js:282
 msgid "Dynamic background"
 msgstr "Sfondo dinamico"
 
 #: prefs.js:283
-msgid ""
-"Extract the dominant color from album art to use as the popup background."
-msgstr ""
-"Estrae il colore dominante dalla copertina dell'album da usare come sfondo "
-"del popup."
-
-#: prefs.js:289
 msgid "Use the dominant color from album art as background"
 msgstr "Usare il colore dominante della copertina come sfondo"
 
-#: prefs.js:293
-msgid "Intensity"
-msgstr "Intensità"
+#: prefs.js:287
+msgid "Background intensity"
+msgstr "Intensità dello sfondo"
 
-#: prefs.js:294
-msgid "How bright or dark the background appears"
-msgstr "Quanto è luminoso o scuro lo sfondo"
+#: prefs.js:288
+msgid "How bright or dark the dynamic background appears"
+msgstr "Quanto è luminoso o scuro lo sfondo dinamico"
+
+#: prefs.js:302
+msgid "Display"
+msgstr "Visualizzazione"
+
+#: prefs.js:303
+msgid "Control what the popup shows and how it behaves."
+msgstr "Controlla cosa mostra il popup e come si comporta."
+
+#: prefs.js:308
+msgid "Music visualizer"
+msgstr "Visualizzatore musicale"
 
 #: prefs.js:309
-#, fuzzy
-msgid "Overlay the playing app’s icon on the album art shown in the popup."
-msgstr ""
-"Sovrapporre l'icona dell'app in riproduzione sulla copertina nel popup."
+msgid "Animated bars next to the track info for some eye candy."
+msgstr "Barre animate accanto alle informazioni sul brano per un tocco estetico."
+
+#: prefs.js:312
+msgid "App icon on album art"
+msgstr "Icona app sulla copertina album"
 
 #: prefs.js:313
-msgid "Show app icon on the bottom right of the album art"
-msgstr "Mostra icona app in basso a destra della copertina"
+msgid "Overlay the playing app’s icon on the bottom right of the album art"
+msgstr ""
+"Sovrappone l’icona dell’app in riproduzione in basso a destra della "
+"copertina album"
 
 #: prefs.js:316
-msgid "Compact layout"
-msgstr "Layout compatto"
+msgid "Expand compact layout on"
+msgstr "Espandi layout compatto al"
+
+#: prefs.js:316
+msgid "How multi-source rows expand when several apps play"
+msgstr "Come si espandono le righe multi-sorgente quando più app sono in riproduzione"
 
 #: prefs.js:317
-msgid "Control how multi-source compact rows expand in the popup."
-msgstr ""
-"Controlla come si espandono le righe compatte multi-sorgente nel popup."
-
-#: prefs.js:322
-msgid "Expand layout on"
-msgstr "Espandi layout al"
-
-#: prefs.js:322
-msgid "When multiple media sources are shown"
-msgstr "Quando sono visualizzate più sorgenti multimediali"
-
-#: prefs.js:323
 msgid "Off"
 msgstr "Disattivato"
 
-#: prefs.js:323
+#: prefs.js:317
 msgid "Hover"
 msgstr "Passaggio del mouse"
 
-#: prefs.js:323
+#: prefs.js:317
 msgid "Click"
 msgstr "Clic"
 
-#: prefs.js:330
+#: prefs.js:324
 msgid "Behaviour"
 msgstr "Comportamento"
 
-#: prefs.js:335
+#: prefs.js:329
 msgid "Click actions"
 msgstr "Azioni clic"
 
-#: prefs.js:336
+#: prefs.js:330
 msgid "What happens when you click the media bar indicator"
 msgstr "Cosa accade quando fai clic sull'indicatore della barra multimediale"
 
-#: prefs.js:341 prefs.js:367
+#: prefs.js:335 prefs.js:361
 msgid "Nothing"
 msgstr "Niente"
 
-#: prefs.js:341 prefs.js:367
+#: prefs.js:335 prefs.js:361
 msgid "Open popup"
 msgstr "Apri popup"
 
-#: prefs.js:341 prefs.js:367
+#: prefs.js:335 prefs.js:361
 msgid "Play / Pause"
 msgstr "Riproduci / Pausa"
 
-#: prefs.js:341 prefs.js:367
+#: prefs.js:335 prefs.js:361
 msgid "Open settings"
 msgstr "Apri impostazioni"
 
-#: prefs.js:342 prefs.js:368
+#: prefs.js:336 prefs.js:362
 msgid "Next track"
 msgstr "Brano successivo"
 
-#: prefs.js:342 prefs.js:368
+#: prefs.js:336 prefs.js:362
 msgid "Previous track"
 msgstr "Brano precedente"
 
-#: prefs.js:342 prefs.js:369
+#: prefs.js:336 prefs.js:363
 msgid "Raise player"
 msgstr "Mostra lettore"
 
-#: prefs.js:348
+#: prefs.js:342
 msgid "Left click"
 msgstr "Clic sinistro"
 
-#: prefs.js:348
+#: prefs.js:342
 msgid "Action when left-clicking the indicator"
 msgstr "Azione al clic sinistro sull'indicatore"
 
-#: prefs.js:349
+#: prefs.js:343
 msgid "Middle click"
 msgstr "Clic centrale"
 
-#: prefs.js:349
+#: prefs.js:343
 msgid "Action when middle-clicking the indicator"
 msgstr "Azione al clic centrale sull'indicatore"
 
-#: prefs.js:350
+#: prefs.js:344
 msgid "Right click"
 msgstr "Clic destro"
 
-#: prefs.js:350
+#: prefs.js:344
 msgid "Action when right-clicking the indicator"
 msgstr "Azione al clic destro sull'indicatore"
 
-#: prefs.js:361
+#: prefs.js:355
 msgid "Scroll actions"
 msgstr "Azioni di scorrimento"
 
-#: prefs.js:362
+#: prefs.js:356
 msgid "What happens when you scroll over the media bar indicator"
 msgstr "Cosa accade quando scorri sopra l'indicatore della barra multimediale"
 
-#: prefs.js:369
+#: prefs.js:363
 msgid "Volume up"
 msgstr "Alza volume"
 
-#: prefs.js:369
+#: prefs.js:363
 msgid "Volume down"
 msgstr "Abbassa volume"
 
-#: prefs.js:373
+#: prefs.js:367
 msgid "Scroll up"
 msgstr "Scorri verso l'alto"
 
-#: prefs.js:373
+#: prefs.js:367
 msgid "Action when scrolling up over the indicator"
 msgstr "Azione allo scorrimento verso l'alto sull'indicatore"
 
-#: prefs.js:374
+#: prefs.js:368
 msgid "Scroll down"
 msgstr "Scorri verso il basso"
 
-#: prefs.js:374
+#: prefs.js:368
 msgid "Action when scrolling down over the indicator"
 msgstr "Azione allo scorrimento verso il basso sull'indicatore"
 
-#: prefs.js:380
+#: prefs.js:374
 msgid "Notifications"
 msgstr "Notifiche"
 
-#: prefs.js:381
-#, fuzzy
+#: prefs.js:375
 msgid "Manage visibility of GNOME’s built-in media notifications."
 msgstr ""
 "Gestisce la visibilità delle notifiche multimediali integrate in GNOME."
 
-#: prefs.js:385
+#: prefs.js:379
 msgid "Hide default notification"
 msgstr "Nascondi notifica predefinita"
 
-#: prefs.js:386
-#, fuzzy
+#: prefs.js:380
 msgid "Remove GNOME’s media notification while the panel indicator is shown"
 msgstr ""
 "Rimuovere la notifica multimediale di GNOME mentre l'indicatore del pannello "
 "è visibile"
 
-#: prefs.js:389
+#: prefs.js:383
 msgid "Compatibility"
 msgstr "Compatibilità"
 
-#: prefs.js:390
+#: prefs.js:384
 msgid "Workarounds for specific apps and environments."
 msgstr "Soluzioni alternative per app e ambienti specifici."
 
-#: prefs.js:394
+#: prefs.js:388
 msgid "Enhanced PWA support"
 msgstr "Supporto PWA migliorato"
 
-#: prefs.js:395
+#: prefs.js:389
 msgid ""
 "Use advanced detection to find the active PWA window for the correct icon. "
 "Might have unintended consequences of displaying the wrong icon."
@@ -431,14 +433,53 @@ msgstr ""
 "Usa il rilevamento avanzato per trovare la finestra PWA attiva e mostrare "
 "l'icona corretta. Potrebbe visualizzare icone non corrette."
 
-#: prefs.js:410
+#: prefs.js:392
+msgid "Album art cache"
+msgstr "Cache copertine album"
+
+#: prefs.js:393
+msgid "Downloaded cover art (e.g. from Spotify) is cached on disk."
+msgstr "Le copertine scaricate (es. da Spotify) vengono memorizzate nella cache su disco."
+
+#: prefs.js:397
+msgid "Cache size limit"
+msgstr "Limite dimensione cache"
+
+#: prefs.js:397
+msgid "Maximum disk space in megabytes"
+msgstr "Spazio massimo su disco in megabyte"
+
+#: prefs.js:413
 msgid "Choose a color"
 msgstr "Scegli un colore"
 
-#: prefs.js:431
+#: prefs.js:434
 msgid "Reset to default"
 msgstr "Ripristina predefinito"
 
-#: helpers/indicator.js:409 helpers/expandableMediaRow.js:136
+#: helpers/indicator.js:437 helpers/expandableMediaRow.js:142
 msgid "Unknown"
 msgstr "Sconosciuto"
+
+#~ msgid "Background color for the popup"
+#~ msgstr "Colore di sfondo del popup"
+
+#~ msgid ""
+#~ "Extract the dominant color from album art to use as the popup background."
+#~ msgstr ""
+#~ "Estrae il colore dominante dalla copertina dell'album da usare come "
+#~ "sfondo del popup."
+
+#~ msgid "Intensity"
+#~ msgstr "Intensità"
+
+#, fuzzy
+#~ msgid "Overlay the playing app’s icon on the album art shown in the popup."
+#~ msgstr ""
+#~ "Sovrapporre l'icona dell'app in riproduzione sulla copertina nel popup."
+
+#~ msgid "Compact layout"
+#~ msgstr "Layout compatto"
+
+#~ msgid "When multiple media sources are shown"
+#~ msgstr "Quando sono visualizzate più sorgenti multimediali"
