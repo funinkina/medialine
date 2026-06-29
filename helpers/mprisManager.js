@@ -406,10 +406,11 @@ export const MprisManager = GObject.registerClass({
     destroy() {
         this._pendingAdds.clear();
 
-        for (const [, entry] of this._players) {
-            entry.proxy.disconnectObject(this);
+        if (this._players) {
+            for (const [, entry] of this._players)
+                entry.proxy.disconnectObject(this);
+            this._players = null;
         }
-        this._players = null;
 
         if (this._dbusProxy && this._nameOwnerChangedId) {
             this._dbusProxy.disconnectSignal(this._nameOwnerChangedId);

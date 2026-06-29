@@ -539,16 +539,16 @@ export class ExpandableMediaRow {
     }
 
     destroy() {
-        if (!this.actor)
-            return;
         this._stopPolling();
         this._visualizer.destroy();
-        this.actor.disconnectObject(this.actor);
-        this._art.disconnectObject(this.actor);
-        this._progressTrack.disconnectObject(this.actor);
-        for (const btn of [this._shuffleBtn, this._prevBtn, this._playBtn, this._nextBtn, this._repeatBtn])
-            btn.disconnectObject(this.actor);
-        this.actor.destroy();
-        this.actor = null;
+        if (this.actor) {
+            this.actor.disconnectObject(this.actor);
+            this._art.disconnectObject(this.actor);
+            this._progressTrack.disconnectObject(this.actor);
+            for (const btn of [this._shuffleBtn, this._prevBtn, this._playBtn, this._nextBtn, this._repeatBtn])
+                btn.disconnectObject(this.actor);
+            this.actor.destroy();
+            this.actor = null;
+        }
     }
 }

@@ -107,14 +107,14 @@ export class Visualizer {
     }
 
     destroy() {
-        if (!this.actor)
-            return;
         if (this._tickId) {
             GLib.Source.remove(this._tickId);
             this._tickId = null;
         }
-        this.actor.destroy();
-        this.actor = null;
+        if (this.actor) {
+            this.actor.destroy();
+            this.actor = null;
+        }
         this._bars = [];
     }
 }
