@@ -32,12 +32,12 @@ export const EXPANDED_HEIGHT = 162;
 export const BUTTON_SIZE = 40;
 export const COMPACT_BUTTON_SIZE = 32;
 
-export const VIS_BARS = 4;
-export const VIS_BAR_WIDTH = 4;
-export const VIS_BAR_GAP = 3;
+export const VIS_BARS = 5;
+export const VIS_BAR_WIDTH = 2;
+export const VIS_BAR_GAP = 2;
 export const VIS_HEIGHT = 28;
 export const VIS_MIN = VIS_BAR_WIDTH;
-export const VIS_TICK_MS = 180;
+export const VIS_TICK_MS = 500;
 export const VIS_WIDTH = VIS_BARS * VIS_BAR_WIDTH + (VIS_BARS - 1) * VIS_BAR_GAP;
 
 export const SCROLL_NOTCH = 1.0;

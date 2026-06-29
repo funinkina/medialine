@@ -28,7 +28,7 @@ export class Visualizer {
                 width: VIS_BAR_WIDTH,
                 height: VIS_MIN,
                 y_expand: false,
-                y_align: Clutter.ActorAlign.END,
+                y_align: Clutter.ActorAlign.CENTER,
                 style: styles.visualizerBar,
             });
             this.actor.add_child(bar);

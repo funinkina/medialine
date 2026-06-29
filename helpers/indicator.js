@@ -58,7 +58,7 @@ function buildPopupStyles(primary, secondary, popupBg) {
         progressFill: `background-color: ${hexToRgba(primary, 0.9)}; border-radius: ${PROGRESS_HEIGHT / 2}px;`,
         progressThumb: `background-color: ${primary}; border-radius: ${PROGRESS_THUMB_SIZE / 2}px;`,
         iconColor: `color: ${primary};`,
-        visualizerBar: `background-color: ${primary}; border-radius: 999px;`,
+        visualizerBar: `background-color: ${secondary}; border-radius: 999px;`,
         separator: `height: 1px; background-color: ${hexToRgba(secondary, 0.15)};`,
         compactBtn: `width: 32px; height: 32px; border-radius: 8px; color: ${primary};`,
         compactBtnHover: `width: 32px; height: 32px; border-radius: 8px; color: ${primary}; background-color: ${hexToRgba(secondary, 0.15)};`,

@@ -292,14 +292,14 @@ export class ExpandableMediaRow {
     }
 
     _expandedLayout() {
-        const textW = EXPANDED_WIDTH - 80 - VIS_WIDTH - 24;
+        const textW = EXPANDED_WIDTH - 80 - VIS_WIDTH - 12;
         return {
             rowWidth: EXPANDED_WIDTH,
             rowHeight: EXPANDED_HEIGHT,
             art: { x: 0, y: 0, w: ART_SIZE, h: ART_SIZE },
             title: { x: 80, y: 8, w: textW, h: 26 },
             subtitle: { x: 80, y: 38, w: textW, h: 24 },
-            visualizer: { x: EXPANDED_WIDTH - VIS_WIDTH - 16, y: 20, w: VIS_WIDTH, h: VIS_HEIGHT },
+            visualizer: { x: EXPANDED_WIDTH - VIS_WIDTH, y: 20, w: VIS_WIDTH, h: VIS_HEIGHT },
             time: { x: 0, y: 82, w: EXPANDED_WIDTH, h: 16 },
             progress: { x: 0, y: 102, w: EXPANDED_WIDTH, h: PROGRESS_HEIGHT },
             shuffle: { x: 62, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
