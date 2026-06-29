@@ -102,20 +102,20 @@ export class ExpandableMediaRow {
                 return Clutter.EVENT_STOP;
             }
             return Clutter.EVENT_PROPAGATE;
-        }, this.actor);
+        }, this);
 
         this.actor.connectObject(
             'notify::hover', () => this._onHoverChanged(),
             'button-release-event', (_a, event) => this._onRowButtonRelease(event),
             'notify::allocation', () => this._updateProgress(),
-            this.actor);
+            this);
 
         this._progressTrack.connectObject(
             'button-press-event', (_a, event) => this._onProgressPress(event),
             'motion-event', (_a, event) => this._onProgressMotion(event),
             'button-release-event', (_a, event) => this._onProgressRelease(event),
             'notify::hover', () => this._updateProgress(),
-            this.actor);
+            this);
     }
 
     _makeButton(iconName, iconSize, onClick) {
@@ -123,7 +123,7 @@ export class ExpandableMediaRow {
         btn.connectObject(
             'notify::hover', () => this._syncButtonStyle(btn),
             'clicked', onClick,
-            this.actor);
+            this);
         return btn;
     }
 
@@ -541,14 +541,12 @@ export class ExpandableMediaRow {
     destroy() {
         this._stopPolling();
         this._visualizer.destroy();
-        if (this.actor) {
-            this.actor.disconnectObject(this.actor);
-            this._art.disconnectObject(this.actor);
-            this._progressTrack.disconnectObject(this.actor);
-            for (const btn of [this._shuffleBtn, this._prevBtn, this._playBtn, this._nextBtn, this._repeatBtn])
-                btn.disconnectObject(this.actor);
-            this.actor.destroy();
-            this.actor = null;
-        }
+        this.actor.disconnectObject(this);
+        this._art.disconnectObject(this);
+        this._progressTrack.disconnectObject(this);
+        for (const btn of [this._shuffleBtn, this._prevBtn, this._playBtn, this._nextBtn, this._repeatBtn])
+            btn.disconnectObject(this);
+        this.actor.destroy();
+        this.actor = null;
     }
 }
