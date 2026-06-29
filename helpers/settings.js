@@ -26,6 +26,7 @@ export class ExtensionSettings {
     get popupShowAppIcon() { return this._settings.get_boolean('popup-show-app-icon'); }
     get popupDynamicBg() { return this._settings.get_boolean('popup-dynamic-bg'); }
     get popupDynamicBgIntensity() { return this._settings.get_double('popup-dynamic-bg-intensity'); }
+    get popupShowVisualizer() { return this._settings.get_boolean('popup-show-visualizer'); }
     get popupCompactExpandMode() { return this._settings.get_enum('popup-compact-expand-mode'); }
     get enhancedPwaSupport() { return this._settings.get_boolean('enhanced-pwa-support'); }
     get artCacheSizeMb() { return this._settings.get_int('art-cache-size-mb'); }

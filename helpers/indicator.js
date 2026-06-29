@@ -20,6 +20,7 @@ import { applyArtBin, extractArtColor } from './artDisplay.js';
 import { ArtCache } from './artCache.js';
 import { isRemoteArt } from './artUrl.js';
 import { ExpandableMediaRow } from './expandableMediaRow.js';
+import { Visualizer } from './visualizer.js';
 import {
     startPositionPolling, stopPositionPolling, pollPosition,
     updateProgress, onProgressPress, onProgressMotion, onProgressRelease,
@@ -57,6 +58,7 @@ function buildPopupStyles(primary, secondary, popupBg) {
         progressFill: `background-color: ${hexToRgba(primary, 0.9)}; border-radius: ${PROGRESS_HEIGHT / 2}px;`,
         progressThumb: `background-color: ${primary}; border-radius: ${PROGRESS_THUMB_SIZE / 2}px;`,
         iconColor: `color: ${primary};`,
+        visualizerBar: `background-color: ${primary}; border-radius: 999px;`,
         separator: `height: 1px; background-color: ${hexToRgba(secondary, 0.15)};`,
         compactBtn: `width: 32px; height: 32px; border-radius: 8px; color: ${primary};`,
         compactBtnHover: `width: 32px; height: 32px; border-radius: 8px; color: ${primary}; background-color: ${hexToRgba(secondary, 0.15)};`,
@@ -187,9 +189,12 @@ export const Indicator = GObject.registerClass(
             textBox.add_child(this._popupTitle);
             textBox.add_child(this._popupSubtitle);
 
+            this._visualizer = new Visualizer(this._popupStyles);
+
             const topRow = new St.BoxLayout({ x_expand: true, style: 'spacing: 12px;' });
             topRow.add_child(this._popupArt);
             topRow.add_child(textBox);
+            topRow.add_child(this._visualizer.actor);
             return topRow;
         }
 
@@ -287,8 +292,10 @@ export const Indicator = GObject.registerClass(
                 (_m, open) => {
                     if (open) {
                         startPositionPolling(this);
+                        this._visualizer?.setActive(this._preferences.popupShowVisualizer);
                     } else {
                         stopPositionPolling(this);
+                        this._visualizer?.setActive(false);
                         this._setExpandedBusName(null, true);
                         for (const row of this._compactRows.values())
                             row.stop();
@@ -332,6 +339,7 @@ export const Indicator = GObject.registerClass(
 
             Object.assign(this._popupStyles, buildPopupStyles(primary, secondary, popupBg));
 
+            this._visualizer?.setStyle(this._popupStyles);
             this._popupTitle.style = this._popupStyles.title;
             this._popupSubtitle.style = this._popupStyles.subtitle;
             this._timeCurrent.style = this._popupStyles.time;
@@ -368,6 +376,7 @@ export const Indicator = GObject.registerClass(
             if (allMedia.length === 0) {
                 this.hide();
                 stopPositionPolling(this);
+                this._visualizer?.setActive(false);
                 this._clearCompactRows();
                 return;
             }
@@ -403,6 +412,7 @@ export const Indicator = GObject.registerClass(
                 this._updatePopup(media);
             } else {
                 this._richContainer.hide();
+                this._visualizer?.setActive(false);
                 this._listContainer.show();
                 this._updateMediaList(allMedia);
             }
@@ -434,6 +444,11 @@ export const Indicator = GObject.registerClass(
             this._playBtn.get_child().icon_name = media.status === 'Playing'
                 ? 'media-playback-pause-symbolic'
                 : 'media-playback-start-symbolic';
+
+            const showVis = this._preferences.popupShowVisualizer;
+            this._visualizer.actor.visible = showVis;
+            this._visualizer.setPlaying(showVis && media.status === 'Playing');
+            this._visualizer.setActive(showVis && this.menu.isOpen);
 
             this._prevBtn.reactive = media.canGoPrevious !== false;
             this._nextBtn.reactive = media.canGoNext !== false;
@@ -656,6 +671,8 @@ export const Indicator = GObject.registerClass(
         destroy() {
             this._destroyed = true;
             stopPositionPolling(this);
+            this._visualizer?.destroy();
+            this._visualizer = null;
 
             if (this._mixer) {
                 this._mixer.disconnectObject(this);

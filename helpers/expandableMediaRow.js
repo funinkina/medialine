@@ -10,11 +10,13 @@ import {
     COMPACT_EXPAND_CLICK, COMPACT_EXPAND_HOVER, COMPACT_HEIGHT,
     COMPACT_WIDTH, EXPANDED_HEIGHT, EXPANDED_WIDTH,
     POLL_MS, PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE,
+    VIS_WIDTH, VIS_HEIGHT,
 } from './constants.js';
 import { escMarkup, formatTime } from './colorUtils.js';
 import { applyArtBin } from './artDisplay.js';
 import { makeButton, buildProgressWidgets } from './widgetFactory.js';
 import { lookupAppGicon, focusPlayerWindow } from './windowFocus.js';
+import { Visualizer } from './visualizer.js';
 
 function loopNext(current) {
     const order = ['None', 'Track', 'Playlist'];
@@ -76,6 +78,10 @@ export class ExpandableMediaRow {
         this._progressFill = pw.progressFill;
         this._progressThumb = pw.progressThumb;
 
+        this._visualizer = new Visualizer(styles);
+        this._visualizer.actor.opacity = 0;
+        this._visualizer.actor.hide();
+
         this._shuffleBtn = this._makeButton('media-playlist-shuffle-symbolic', 16, () => this._toggleShuffle());
         this._prevBtn = this._makeButton('media-skip-backward-symbolic', 18, () => this._indicator._mprisManager.previous(this.media.busName));
         this._playBtn = this._makeButton('media-playback-start-symbolic', 24, () => this._indicator._mprisManager.playPause(this.media.busName));
@@ -85,7 +91,7 @@ export class ExpandableMediaRow {
         for (const actor of [
             this._art, this._title, this._subtitle, this._timeRow,
             this._progressTrack, this._shuffleBtn, this._prevBtn, this._playBtn,
-            this._nextBtn, this._repeatBtn,
+            this._nextBtn, this._repeatBtn, this._visualizer.actor,
         ])
             this.actor.add_child(actor);
     }
@@ -155,6 +161,8 @@ export class ExpandableMediaRow {
             ? 'media-playback-pause-symbolic'
             : 'media-playback-start-symbolic';
 
+        this._visualizer.setPlaying(media.status === 'Playing');
+
         this._prevBtn.reactive = media.canGoPrevious !== false;
         this._nextBtn.reactive = media.canGoNext !== false;
         this._prevBtn.opacity = this._prevBtn.reactive ? 255 : 110;
@@ -186,6 +194,7 @@ export class ExpandableMediaRow {
         this._progressTrack.style = styles.progressTrack;
         this._progressFill.style = styles.progressFill;
         this._progressThumb.style = styles.progressThumb;
+        this._visualizer.setStyle(styles);
         for (const btn of [this._shuffleBtn, this._prevBtn, this._playBtn, this._nextBtn, this._repeatBtn]) {
             btn.get_child().style = styles.iconColor;
             this._syncButtonStyle(btn);
@@ -228,6 +237,7 @@ export class ExpandableMediaRow {
 
         if (hideBecauseOtherExpanded) {
             this._stopPolling();
+            this._visualizer.setActive(false);
             return;
         }
 
@@ -237,6 +247,26 @@ export class ExpandableMediaRow {
         this._animateActor(this._playBtn, layout.play, 255, duration);
         this._animateActor(this._nextBtn, layout.next, 255, duration);
         this._setExpandedControlsVisible(expanded, layout, duration);
+
+        const visOn = this._indicator._preferences.popupShowVisualizer;
+        if (expanded && visOn) {
+            this._animateActor(this._visualizer.actor, layout.visualizer, 255, duration);
+            this._visualizer.actor.reactive = false;
+        } else {
+            this._visualizer.actor.reactive = false;
+            this._visualizer.actor.ease({
+                opacity: 0,
+                duration,
+                mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+                onComplete: () => {
+                    if (!this._destroyed &&
+                        !(this._expanded && this._indicator._preferences.popupShowVisualizer))
+                        this._visualizer.actor.hide();
+                },
+            });
+        }
+        this._visualizer.setActive(expanded && visOn && this._indicator.menu.isOpen);
+        this._visualizer.setPlaying(this.media?.status === 'Playing');
 
         for (const btn of [this._shuffleBtn, this._prevBtn, this._playBtn, this._nextBtn, this._repeatBtn])
             this._syncButtonStyle(btn);
@@ -262,12 +292,14 @@ export class ExpandableMediaRow {
     }
 
     _expandedLayout() {
+        const textW = EXPANDED_WIDTH - 80 - VIS_WIDTH - 24;
         return {
             rowWidth: EXPANDED_WIDTH,
             rowHeight: EXPANDED_HEIGHT,
             art: { x: 0, y: 0, w: ART_SIZE, h: ART_SIZE },
-            title: { x: 80, y: 8, w: EXPANDED_WIDTH - 80, h: 26 },
-            subtitle: { x: 80, y: 38, w: EXPANDED_WIDTH - 80, h: 24 },
+            title: { x: 80, y: 8, w: textW, h: 26 },
+            subtitle: { x: 80, y: 38, w: textW, h: 24 },
+            visualizer: { x: EXPANDED_WIDTH - VIS_WIDTH - 16, y: 20, w: VIS_WIDTH, h: VIS_HEIGHT },
             time: { x: 0, y: 82, w: EXPANDED_WIDTH, h: 16 },
             progress: { x: 0, y: 102, w: EXPANDED_WIDTH, h: PROGRESS_HEIGHT },
             shuffle: { x: 62, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
@@ -512,6 +544,7 @@ export class ExpandableMediaRow {
             return;
         this._destroyed = true;
         this._stopPolling();
+        this._visualizer.destroy();
         this.actor.disconnectObject(this.actor);
         this._art.disconnectObject(this.actor);
         this._progressTrack.disconnectObject(this.actor);

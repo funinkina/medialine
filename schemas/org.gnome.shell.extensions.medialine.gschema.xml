@@ -165,6 +165,12 @@
       <description>Controls how bright or dark the dynamic background appears. Lower values are darker, higher values are brighter.</description>
     </key>
 
+    <key name="popup-show-visualizer" type="b">
+      <default>false</default>
+      <summary>Show music visualizer</summary>
+      <description>Show animated bars next to the track info that react to playback. Bars become dots when paused.</description>
+    </key>
+
     <key name="popup-compact-expand-mode"
       enum="org.gnome.shell.extensions.medialine.popup-compact-expand-mode">
       <default>'off'</default>

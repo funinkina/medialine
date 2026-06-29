@@ -322,6 +322,15 @@ export default class MedialinePreferences extends ExtensionPreferences {
             _('Expand layout on'), _('When multiple media sources are shown'),
             this._makeStringList([_('Off'), _('Hover'), _('Click')])));
 
+        const visGroup = new Adw.PreferencesGroup({
+            title: _('Visualizer'),
+            description: _('Show animated bars next to the track info while media plays.'),
+        });
+        page.add(visGroup);
+        visGroup.add(this._makeSwitchRow(settings, 'popup-show-visualizer',
+            _('Music visualizer'),
+            _('Animated bars that become dots when paused')));
+
         return page;
     }
 
