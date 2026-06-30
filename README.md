@@ -44,12 +44,18 @@ Click the indicator to open a media popup with:
 - **Playback controls** — shuffle, previous, play/pause, next, repeat (off / track / playlist) — with greyed-out state when unavailable
 - Customizable popup colors (primary text, secondary accent, and background)
 - **Dynamic background** — optionally extract the dominant color from album art and use it as the popup background, with adjustable intensity to control brightness
+- **Music visualizer** — optional animated bars next to the track info that react to playback (bars collapse to dots when paused)
 
 ### Multi-Source View
 When multiple media players are active, the popup switches to a **compact list view** showing each player with:
 - Album art thumbnail (click to focus the player)
 - Track title and artist/album
 - Per-source play/pause and next-track controls
+- **Expandable rows** — choose whether a compact row reveals full controls on **hover**, on **click**, or stays compact (**off**)
+
+### Album Art Caching
+- Downloaded cover art (e.g. Spotify) is cached on disk to avoid re-fetching
+- Configurable cache size limit; least-recently-used art is evicted when the limit is hit
 
 ### Mouse & Scroll Actions
 Each mouse button (left, middle, right) and scroll direction (up, down) can be independently configured to:
@@ -72,6 +78,9 @@ Each mouse button (left, middle, right) and scroll direction (up, down) can be i
 - Automatically detects all running MPRIS-compatible media players
 - Prefers actively **Playing** sources; falls back to **Paused** ones
 - Reacts instantly when players start, stop, or change tracks
+
+### Enhanced PWA Support
+- Optional advanced detection to match the active PWA window and show the correct app icon for web apps (YouTube Music, etc.)
 
 ## Requirements
 
@@ -125,36 +134,57 @@ Open the extension preferences via:
 - Right-clicking the indicator → **Settings**
 - Configuring a mouse button to **Open settings** and clicking
 
-### Appearance tab
-| Setting                     | Description                                          |
-| --------------------------- | ---------------------------------------------------- |
-| Icon source                 | Album art / App icon / Playing status / Custom image |
-| Custom image                | File picker for a custom PNG/SVG icon                |
-| Icon size                   | Size in pixels (8–64)                                |
-| Icon spacing                | Gap between icon and text (0–32 px)                  |
-| Separator                   | String placed between title, artist, album           |
-| Max text width              | Clip long labels (0 = unlimited)                     |
-| Show title / artist / album | Toggle each field independently                      |
+Preferences are split across three pages: **Top Bar**, **Popup**, and **Behaviour**.
 
-### Panel tab
-| Setting                   | Description                                  |
-| ------------------------- | -------------------------------------------- |
-| Panel section             | Left, Center, or Right                       |
-| Position index            | Order within the section (0 = first)         |
-| Hide default notification | Suppress GNOME's built-in media notification |
+### Top Bar page
+**Panel placement**
+| Setting        | Description                          |
+| -------------- | ------------------------------------ |
+| Panel section  | Left, Center, or Right               |
+| Position index | Order within the section (0 = first) |
 
-### Mouse tab
-Assign an action to left, middle, right click, and scroll up/down individually.
+**Icon**
+| Setting      | Description                                                        |
+| ------------ | ------------------------------------------------------------------ |
+| Icon source  | App icon / Album art / Playing status / Custom image               |
+| Custom image | File picker (PNG/JPEG/SVG/WebP), shown when source is Custom image |
+| Icon size    | Size in pixels (8–64)                                              |
+| Icon spacing | Gap between icon and text (0–32 px)                                |
 
-### Popup tab
-| Setting                    | Description                                                                |
-| -------------------------- | -------------------------------------------------------------------------- |
-| Primary color              | Text and control color in the popup (with reset)                           |
-| Secondary color            | Background and accent color in the popup (with reset)                      |
-| Background color           | Custom background for the popup (with reset)                               |
-| Dynamic background         | Extract the dominant color from album art as the popup background          |
-| Intensity                  | How bright or dark the dynamic background appears (0 = dark, 100 = bright) |
-| Show app icon on album art | Overlay the player's app icon badge on the art                             |
+**Label**
+| Setting                     | Description                                |
+| --------------------------- | ------------------------------------------ |
+| Show title / artist / album | Toggle each field independently            |
+| Separator                   | String placed between title, artist, album |
+| Max text width              | Clip long labels in pixels (0 = unlimited) |
+
+### Popup page
+**Colors**
+| Setting              | Description                                                                |
+| -------------------- | -------------------------------------------------------------------------- |
+| Primary color        | Text and control color in the popup (with reset)                           |
+| Secondary color      | Background and accent color in the popup (with reset)                      |
+| Background color     | Custom background for the popup, also used as fallback for dynamic bg      |
+| Dynamic background   | Extract the dominant color from album art as the popup background          |
+| Background intensity | How bright or dark the dynamic background appears (0 = dark, 100 = bright) |
+
+**Display**
+| Setting                  | Description                                                      |
+| ------------------------ | ---------------------------------------------------------------- |
+| Music visualizer         | Animated bars next to the track info; dots when paused           |
+| App icon on album art    | Overlay the player's app icon badge on the art                   |
+| Expand compact layout on | Off / Hover / Click — how multi-source rows reveal full controls |
+
+### Behaviour page
+**Click actions** — assign an action to left, middle, and right click (Nothing, Open popup, Play/Pause, Open settings, Next track, Previous track, Raise player).
+
+**Scroll actions** — assign an action to scroll up and scroll down (same as click, plus Volume up / Volume down).
+
+| Setting                   | Description                                                      |
+| ------------------------- | ---------------------------------------------------------------- |
+| Hide default notification | Suppress GNOME's built-in media notification                     |
+| Enhanced PWA support      | Advanced detection of the active PWA window for the correct icon |
+| Cache size limit          | Max disk space for cached album art in megabytes (5–2000)        |
 
 ## License
 
