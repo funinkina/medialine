@@ -8,21 +8,7 @@ export function tryGetArtBackgroundCss(media) {
     if (!artUrl || !artUrl.startsWith('file://')) return null;
     try {
         const path = GLib.uri_unescape_string(artUrl.substring('file://'.length), null);
-        const dims = readImageDims(path);
-        if (!dims) return null;
-        return { dims, safePath: path.replace(/"/g, '\\"') };
-    } catch (_) {
-        return null;
-    }
-}
-
-export function readImageDims(path) {
-    try {
-        const fmt = GdkPixbuf.Pixbuf.get_file_info(path);
-        if (fmt && fmt.length >= 3 && fmt[1] > 0 && fmt[2] > 0)
-            return { width: fmt[1], height: fmt[2] };
-        const pb = GdkPixbuf.Pixbuf.new_from_file(path);
-        return { width: pb.get_width(), height: pb.get_height() };
+        return { safePath: path.replace(/"/g, '\\"') };
     } catch (_) {
         return null;
     }
@@ -68,9 +54,7 @@ export function applyArtBin(bin, badgeIcon, media, opts, popupStyles, preference
     const showAppIcon = preferences.popupShowAppIcon;
 
     if (art) {
-        const [w, h] = opts.boxSize
-            ? [opts.boxSize, opts.boxSize]
-            : fitBox(art.dims.width, art.dims.height);
+		const [w, h] = [opts.boxSize, opts.boxSize];
         bin.style =
             `width: ${w}px; height: ${h}px; min-width: ${w}px; min-height: ${h}px; ` +
             `${popupStyles.artCommon} background-image: url("${art.safePath}");`;
