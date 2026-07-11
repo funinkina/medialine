@@ -134,6 +134,7 @@ export class ExpandableMediaRow {
         this._syncControlState();
         this._syncColors();
         this._updateProgress();
+        this._positionTitle(ANIM_MS);
     }
 
     _updateInfo() {
@@ -241,7 +242,7 @@ export class ExpandableMediaRow {
         }
 
         this._animateActor(this._art, layout.art, 255, duration);
-        this._animateActor(this._title, layout.title, 255, duration);
+        this._animateActor(this._title, this._titleBox(layout), 255, duration);
         this._animateActor(this._subtitle, layout.subtitle, this._subtitle.visible ? 255 : 0, duration);
         this._animateActor(this._playBtn, layout.play, 255, duration);
         this._animateActor(this._nextBtn, layout.next, 255, duration);
@@ -320,6 +321,17 @@ export class ExpandableMediaRow {
             duration,
             mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
         });
+    }
+
+    _titleBox(layout = this._expanded ? this._expandedLayout() : this._compactLayout()) {
+        const box = { ...layout.title };
+        if (!this._subtitle.visible)
+            box.y = Math.round((ART_SIZE - box.h) / 2);
+        return box;
+    }
+
+    _positionTitle(duration = ANIM_MS) {
+        this._animateActor(this._title, this._titleBox(), 255, duration);
     }
 
     _setExpandedControlsVisible(expanded, layout, duration) {

@@ -393,7 +393,12 @@ export const Indicator = GObject.registerClass(
             if (prefs.showArtist && media.artist) parts.push(media.artist);
             if (prefs.showAlbum && media.album) parts.push(media.album);
 
-            this._label.text = parts.join(prefs.separator);
+            const anyFieldEnabled = prefs.showTitle || prefs.showArtist || prefs.showAlbum;
+            this._label.text = parts.length
+                ? parts.join(prefs.separator)
+                : (anyFieldEnabled
+                    ? (media.identity ? `${media.identity} is playing media` : _('Unknown'))
+                    : '');
             this._label.style = prefs.maxTextWidth > 0
                 ? `max-width: ${prefs.maxTextWidth}px;`
                 : '';
