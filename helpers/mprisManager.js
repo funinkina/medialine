@@ -3,6 +3,7 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 
 import { MPRIS_PREFIX } from './constants.js';
+import { playerIdFromBusName } from './sourceFilter.js';
 
 const DBusInterface = `<node>
     <interface name="org.freedesktop.DBus">
@@ -59,7 +60,7 @@ export const MprisManager = GObject.registerClass({
         'media-changed': {},
     },
 }, class MprisManager extends GObject.Object {
-    _init() {
+    _init(preferences = null) {
         super._init();
         this._players = new Map();
         this._allMedia = [];
@@ -68,6 +69,11 @@ export const MprisManager = GObject.registerClass({
         this._nameOwnerChangedId = null;
         this._dbusProxy = null;
         this._pendingAdds = new Set();
+        this._preferences = preferences;
+        this._blockedSet = new Set(preferences?.blockedPlayers ?? []);
+
+        preferences?.connectObject('changed::blocked-players',
+            () => this._onBlockedChanged(), this);
 
         new DBusProxy(
             Gio.DBus.session,
@@ -199,12 +205,22 @@ export const MprisManager = GObject.registerClass({
         };
     }
 
+    // Re-read the blocklist and rebuild. Proxies stay connected while blocked,
+    // so unblocking a source makes it reappear instantly.
+    _onBlockedChanged() {
+        this._blockedSet = new Set(this._preferences?.blockedPlayers ?? []);
+        this._refreshMedia();
+    }
+
     // Rebuilds the full list of active (non-stopped) players, ordered
     // Playing-first then Paused, and picks the first as the "best" one
     // used for the panel label/icon and the single-player rich popup.
+    // Players whose id is in the blocklist are skipped entirely.
     _refreshMedia() {
         const candidates = [];
         for (const [busName, entry] of this._players) {
+            if (this._blockedSet.size && this._blockedSet.has(playerIdFromBusName(busName)))
+                continue;
             const status = entry.proxy.PlaybackStatus;
             if (status === 'Stopped') continue;
             candidates.push({ busName, entry, status });
@@ -405,6 +421,9 @@ export const MprisManager = GObject.registerClass({
 
     destroy() {
         this._pendingAdds.clear();
+
+        this._preferences?.disconnectObject(this);
+        this._preferences = null;
 
         if (this._players) {
             for (const [, entry] of this._players)

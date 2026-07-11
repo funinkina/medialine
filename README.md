@@ -79,6 +79,12 @@ Each mouse button (left, middle, right) and scroll direction (up, down) can be i
 - Prefers actively **Playing** sources; falls back to **Paused** ones
 - Reacts instantly when players start, stop, or change tracks
 
+### Source Blocking
+- **Block specific media sources** so only real players show up in the panel and popup
+- The **Media sources** list (Behaviour page) shows every running player with a toggle — turn one off to block it
+- Ideal for silencing **browser-tab autoplay** (YouTube previews, etc.): block your browser and only proper media players remain
+- Blocked sources are ignored entirely and persist across restarts; unblocking makes them reappear instantly
+
 ### Enhanced PWA Support
 - Optional advanced detection to match the active PWA window and show the correct app icon for web apps (YouTube Music, etc.)
 
@@ -180,11 +186,12 @@ Preferences are split across three pages: **Top Bar**, **Popup**, and **Behaviou
 
 **Scroll actions** — assign an action to scroll up and scroll down (same as click, plus Volume up / Volume down).
 
-| Setting                   | Description                                                      |
-| ------------------------- | ---------------------------------------------------------------- |
-| Hide default notification | Suppress GNOME's built-in media notification                     |
-| Enhanced PWA support      | Advanced detection of the active PWA window for the correct icon |
-| Cache size limit          | Max disk space for cached album art in megabytes (5–2000)        |
+| Setting                   | Description                                                          |
+| ------------------------- | ------------------------------------------------------------------- |
+| Hide default notification | Suppress GNOME's built-in media notification                        |
+| Media sources             | Toggle detected players off to block them (e.g. hide browser tabs)  |
+| Enhanced PWA support      | Advanced detection of the active PWA window for the correct icon    |
+| Cache size limit          | Max disk space for cached album art in megabytes (5–2000)           |
 
 ## License
 

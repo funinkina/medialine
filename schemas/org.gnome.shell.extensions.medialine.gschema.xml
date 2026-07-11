@@ -191,5 +191,11 @@
       <description>Maximum disk space used to cache downloaded album art. When the limit is hit, the least recently used art is removed.</description>
     </key>
 
+    <key name="blocked-players" type="as">
+      <default>[]</default>
+      <summary>Blocked media sources</summary>
+      <description>Player ids (the MPRIS bus name without the org.mpris.MediaPlayer2. prefix and instance suffix, e.g. "chromium" or "firefox") that Medialine ignores entirely. Use this to hide browser tab autoplay and only surface real media players.</description>
+    </key>
+
   </schema>
 </schemalist>

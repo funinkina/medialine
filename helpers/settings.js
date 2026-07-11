@@ -30,6 +30,8 @@ export class ExtensionSettings {
     get popupCompactExpandMode() { return this._settings.get_enum('popup-compact-expand-mode'); }
     get enhancedPwaSupport() { return this._settings.get_boolean('enhanced-pwa-support'); }
     get artCacheSizeMb() { return this._settings.get_int('art-cache-size-mb'); }
+    get blockedPlayers() { return this._settings.get_strv('blocked-players'); }
+    set blockedPlayers(ids) { this._settings.set_strv('blocked-players', ids); }
 
     connectObject(...args) {
         this._settings.connectObject(...args);

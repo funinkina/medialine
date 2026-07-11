@@ -13,7 +13,7 @@ const MprisSource = MprisModule.MprisSource ?? MprisModule.MediaSection;
 export default class MedialineExtension extends Extension {
     enable() {
         this._preferences = new ExtensionSettings(this);
-        this._mprisManager = new MprisManager();
+        this._mprisManager = new MprisManager(this._preferences);
         this._indicator = null;
         this._enableIdleId = null;
         this._origAddPlayer = null;

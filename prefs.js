@@ -1,10 +1,15 @@
 import Adw from 'gi://Adw';
 import Gdk from 'gi://Gdk';
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
 
 import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+
+import { playerIdFromBusName } from './helpers/sourceFilter.js';
+
+const MPRIS_PREFIX = 'org.mpris.MediaPlayer2.';
 
 export default class MedialinePreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
@@ -379,6 +384,8 @@ export default class MedialinePreferences extends ExtensionPreferences {
             _('Hide default notification'),
             _('Remove GNOME’s media notification while the panel indicator is shown')));
 
+        page.add(this._buildMediaSourcesGroup(settings));
+
         const compatGroup = new Adw.PreferencesGroup({
             title: _('Compatibility'),
             description: _('Workarounds for specific apps and environments.'),
@@ -398,6 +405,144 @@ export default class MedialinePreferences extends ExtensionPreferences {
             5, 2000, 5));
 
         return page;
+    }
+
+    _buildMediaSourcesGroup(settings) {
+        const group = new Adw.PreferencesGroup({
+            title: _('Media sources'),
+            description: _('Turn off the sources you do not want to see in the extension.'),
+        });
+
+        const refreshButton = new Gtk.Button({
+            icon_name: 'view-refresh-symbolic',
+            tooltip_text: _('Rescan for media players'),
+            valign: Gtk.Align.CENTER,
+        });
+        refreshButton.add_css_class('flat');
+        group.set_header_suffix(refreshButton);
+
+        let rows = [];
+        let generation = 0;
+
+        const clearRows = () => {
+            for (const row of rows) group.remove(row);
+            rows = [];
+        };
+        const addRow = (row) => {
+            rows.push(row);
+            group.add(row);
+        };
+
+        const rebuild = () => {
+            const gen = ++generation;
+            clearRows();
+            this._listMediaSources((sources) => {
+                // Ignore a stale scan superseded by a newer refresh, or a
+                // result arriving after the window closed.
+                if (gen !== generation || !refreshButton.get_root()) return;
+                clearRows();
+
+                const merged = this._mergeSources(sources, settings.get_strv('blocked-players'));
+                if (merged.length === 0) {
+                    const empty = new Adw.ActionRow({
+                        title: _('No media players detected'),
+                        subtitle: _('Start playing something, then press refresh.'),
+                    });
+                    empty.sensitive = false;
+                    addRow(empty);
+                    return;
+                }
+                for (const source of merged)
+                    addRow(this._makeSourceRow(settings, source));
+            });
+        };
+
+        refreshButton.connect('clicked', rebuild);
+        rebuild();
+        return group;
+    }
+
+    _makeSourceRow(settings, source) {
+        const row = new Adw.SwitchRow({
+            title: source.name,
+            subtitle: source.running ? source.id : `${source.id} — ${_('not running')}`,
+            active: !source.blocked,
+        });
+        row.connect('notify::active', () => {
+            const blocked = new Set(settings.get_strv('blocked-players'));
+            if (row.active) blocked.delete(source.id);
+            else blocked.add(source.id);
+            settings.set_strv('blocked-players', [...blocked]);
+        });
+        return row;
+    }
+
+    // Blocked ids that aren't currently running still get a row so they can be
+    // re-enabled. Running sources sort first, then alphabetically by name.
+    _mergeSources(sources, blocked) {
+        const byId = new Map();
+        for (const source of sources)
+            byId.set(source.id, { ...source, blocked: blocked.includes(source.id) });
+        for (const id of blocked) {
+            if (!byId.has(id))
+                byId.set(id, { id, name: id, running: false, blocked: true });
+        }
+        return [...byId.values()].sort((a, b) =>
+            a.running === b.running
+                ? a.name.localeCompare(b.name)
+                : (a.running ? -1 : 1));
+    }
+
+    // Enumerate running MPRIS players on the session bus and resolve a friendly
+    // display name (Identity) for each, deduplicated by player id.
+    _listMediaSources(callback) {
+        const bus = Gio.DBus.session;
+        bus.call(
+            'org.freedesktop.DBus', '/org/freedesktop/DBus', 'org.freedesktop.DBus',
+            'ListNames', null, new GLib.VariantType('(as)'),
+            Gio.DBusCallFlags.NONE, 2000, null,
+            (conn, res) => {
+                let names;
+                try {
+                    [names] = conn.call_finish(res).deepUnpack();
+                } catch (_) {
+                    callback([]);
+                    return;
+                }
+
+                names = names.filter(n => n.startsWith(MPRIS_PREFIX));
+                if (names.length === 0) {
+                    callback([]);
+                    return;
+                }
+
+                const byId = new Map();
+                let pending = names.length;
+                const finish = () => {
+                    if (--pending === 0) callback([...byId.values()]);
+                };
+
+                for (const busName of names) {
+                    const id = playerIdFromBusName(busName);
+                    bus.call(
+                        busName, '/org/mpris/MediaPlayer2', 'org.freedesktop.DBus.Properties',
+                        'Get', new GLib.Variant('(ss)', ['org.mpris.MediaPlayer2', 'Identity']),
+                        new GLib.VariantType('(v)'), Gio.DBusCallFlags.NONE, 2000, null,
+                        (c, r) => {
+                            let name = id;
+                            try {
+                                const unpacked = c.call_finish(r).recursiveUnpack();
+                                const identity = Array.isArray(unpacked) ? unpacked[0] : unpacked;
+                                if (identity) name = String(identity);
+                            } catch (_) { }
+                            if (!byId.has(id))
+                                byId.set(id, { id, name, running: true });
+                            finish();
+                        }
+                    );
+                }
+            }
+        );
     }
 
     _makeColorRow(settings, key, title, subtitle, defaultValue = null) {
