@@ -57,10 +57,19 @@ export function findWindowForMedia(media, pid, windowClassCache) {
     return best;
 }
 
-export function lookupPwaGiconByWmClass(win) {
+export function lookupPwaGiconByWmClass(win, cache = null) {
     const classes = [win.get_wm_class(), win.get_wm_class_instance()].filter(Boolean);
     if (classes.length === 0) return null;
 
+    const key = classes.join('\x1f');
+    if (cache && cache.has(key)) return cache.get(key);
+
+    const icon = _resolvePwaGicon(classes);
+    cache?.set(key, icon);
+    return icon;
+}
+
+function _resolvePwaGicon(classes) {
     const appids = [...new Set(classes.map(chromiumAppId).filter(Boolean))];
 
     // Fast path: build the PWA's .desktop id straight from the app id.
@@ -90,7 +99,16 @@ export function lookupPwaGiconByWmClass(win) {
     return null;
 }
 
-export function lookupAppGiconByString(media) {
+export function lookupAppGiconByString(media, cache = null) {
+    const key = `${media.desktopEntry || ''}\x1f${media.identity || ''}\x1f${media.busName || ''}`;
+    if (cache && cache.has(key)) return cache.get(key);
+
+    const icon = _resolveGiconByString(media);
+    cache?.set(key, icon);
+    return icon;
+}
+
+function _resolveGiconByString(media) {
     const candidates = identityCandidates(media);
     const ids = candidates.map(c => c.endsWith('.desktop') ? c : `${c}.desktop`);
 
@@ -128,18 +146,18 @@ export function lookupAppGiconByString(media) {
 export function lookupAppGicon(self, media) {
     if (!media) return null;
 
-    if (!self._preferences.enhancedPwaSupport) {
-        return lookupAppGiconByString(media);
-    }
+    const stringCache = self._giconStringCache;
+    if (!self._preferences.enhancedPwaSupport)
+        return lookupAppGiconByString(media, stringCache);
 
-    const pid = self._pidCache.get(media.busName);
+    const pid = self._pidCache?.get(media.busName);
     if (pid === undefined) {
         ensurePidResolved(self, media.busName);
     } else if (pid) {
         try {
             const win = findWindowForMedia(media, pid, self._windowClassCache);
             if (win) {
-                const pwaIcon = lookupPwaGiconByWmClass(win);
+                const pwaIcon = lookupPwaGiconByWmClass(win, self._pwaIconCache);
                 if (pwaIcon) return pwaIcon;
 
                 const app = Shell.WindowTracker.get_default().get_window_app(win);
@@ -150,10 +168,7 @@ export function lookupAppGicon(self, media) {
         } catch (_) { }
     }
 
-    const stringIcon = lookupAppGiconByString(media);
-    if (stringIcon) return stringIcon;
-
-    return null;
+    return lookupAppGiconByString(media, stringCache) || null;
 }
 
 export function ensurePidResolved(self, busName) {
@@ -163,7 +178,7 @@ export function ensurePidResolved(self, busName) {
     self._mprisManager.getPidForBusName(busName, (pid) => {
         self._pendingPidLookups.delete(busName);
         self._pidCache.set(busName, pid);
-        if (self._artCache) self._onMediaChanged();
+        if (self._artCache) self._scheduleMediaChanged();
     });
 }
 

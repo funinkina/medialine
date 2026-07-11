@@ -1,4 +1,5 @@
 import GObject from 'gi://GObject';
+import GLib from 'gi://GLib';
 import St from 'gi://St';
 import Gio from 'gi://Gio';
 import Clutter from 'gi://Clutter';
@@ -88,6 +89,12 @@ export const Indicator = GObject.registerClass(
             this._pidCache = new Map();
             this._pendingPidLookups = new Set();
             this._windowClassCache = new Map();
+            this._giconStringCache = new Map();
+            this._pwaIconCache = new Map();
+            this._mediaChangedId = null;
+            this._lastColorSig = null;
+            this._lastIconActorStyle = null;
+            this._popupStylesVersion = 0;
             this._compactRows = new Map();
             this._compactSeparators = new Map();
             this._expandedBusName = null;
@@ -99,12 +106,21 @@ export const Indicator = GObject.registerClass(
             setupClickHandling(this);
 
             this._mprisManager.connectObject('media-changed',
-                () => this._onMediaChanged(), this);
+                () => this._scheduleMediaChanged(), this);
 
             this._preferences.connectObject('changed',
-                () => this._onMediaChanged(), this);
+                () => this._scheduleMediaChanged(), this);
 
             this._onMediaChanged();
+        }
+
+        _scheduleMediaChanged() {
+            if (this._mediaChangedId) return;
+            this._mediaChangedId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                this._mediaChangedId = null;
+                this._onMediaChanged();
+                return GLib.SOURCE_REMOVE;
+            });
         }
 
         _buildUI() {
@@ -138,6 +154,7 @@ export const Indicator = GObject.registerClass(
             const bgColor = this._preferences.popupBackgroundColor;
             this._popupBgActive = false;
             this._popupStyles = buildPopupStyles(primary, secondary, bgColor ? `background-color: ${bgColor};` : '');
+            this._popupStylesVersion++;
         }
 
         _buildTopRow() {
@@ -320,14 +337,18 @@ export const Indicator = GObject.registerClass(
             const primary = this._preferences.popupPrimaryColor;
             const secondary = this._preferences.popupSecondaryColor;
             const bgColor = this._preferences.popupBackgroundColor;
+            const dynamicBg = this._preferences.popupDynamicBg;
+            const intensity = this._preferences.popupDynamicBgIntensity;
+            const media = this._mprisManager.currentMedia;
+            const artUrl = media?.artUrl || '';
+            const sig = `${primary}|${secondary}|${bgColor}|${dynamicBg ? 1 : 0}|${intensity}|${dynamicBg ? artUrl : ''}`;
+            if (sig === this._lastColorSig) return;
+            this._lastColorSig = sig;
 
             let popupBg;
-            const dynamicBg = this._preferences.popupDynamicBg;
             if (dynamicBg) {
-                const media = this._mprisManager.currentMedia;
                 const extracted = extractArtColor(media);
                 if (extracted) {
-                    const intensity = this._preferences.popupDynamicBgIntensity;
                     popupBg = `background-color: ${adjustColorBrightness(extracted, intensity)};`;
                 } else {
                     popupBg = bgColor && bgColor !== 'transparent' ? `background-color: ${bgColor};` : '';
@@ -337,6 +358,7 @@ export const Indicator = GObject.registerClass(
             }
 
             Object.assign(this._popupStyles, buildPopupStyles(primary, secondary, popupBg));
+            this._popupStylesVersion++;
 
             this._visualizer?.setStyle(this._popupStyles);
             this._popupTitle.style = this._popupStyles.title;
@@ -377,6 +399,8 @@ export const Indicator = GObject.registerClass(
                 stopPositionPolling(this);
                 this._visualizer?.setActive(false);
                 this._clearCompactRows();
+                this._giconStringCache.clear();
+                this._pwaIconCache.clear();
                 return;
             }
 
@@ -407,8 +431,13 @@ export const Indicator = GObject.registerClass(
                 this._iconActor.hide();
             } else {
                 this._iconActor.show();
-                this._iconActor.style = `margin-right: ${prefs.iconSpacing}px; border-radius: 4px;`;
-                this._iconActor.icon_size = prefs.iconSize;
+                const iconStyle = `margin-right: ${prefs.iconSpacing}px; border-radius: 4px;`;
+                if (iconStyle !== this._lastIconActorStyle) {
+                    this._iconActor.style = iconStyle;
+                    this._lastIconActorStyle = iconStyle;
+                }
+                if (this._iconActor.icon_size !== prefs.iconSize)
+                    this._iconActor.icon_size = prefs.iconSize;
                 this._updateIcon(media, prefs);
             }
             this._updatePopupColors();
@@ -436,7 +465,7 @@ export const Indicator = GObject.registerClass(
 
             media._remoteArtUrl = url;
             const local = this._artCache.resolve(url, () => {
-                if (this._artCache) this._onMediaChanged();
+                if (this._artCache) this._scheduleMediaChanged();
             });
             media.artUrl = local || '';
         }
@@ -677,6 +706,11 @@ export const Indicator = GObject.registerClass(
         }
 
         destroy() {
+            if (this._mediaChangedId) {
+                GLib.Source.remove(this._mediaChangedId);
+                this._mediaChangedId = null;
+            }
+
             stopPositionPolling(this);
             this._visualizer?.destroy();
             this._visualizer = null;
@@ -690,6 +724,8 @@ export const Indicator = GObject.registerClass(
             this._pidCache.clear();
             this._pendingPidLookups.clear();
             this._windowClassCache.clear();
+            this._giconStringCache.clear();
+            this._pwaIconCache.clear();
 
             this._artCache?.destroy();
             this._artCache = null;

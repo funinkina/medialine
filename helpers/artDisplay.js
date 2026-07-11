@@ -1,7 +1,7 @@
 import GLib from 'gi://GLib';
 import GdkPixbuf from 'gi://GdkPixbuf';
 
-import { ART_SIZE, POPUP_ART_MAX_W, POPUP_ART_MAX_H } from './constants.js';
+import { ART_SIZE } from './constants.js';
 
 export function tryGetArtBackgroundCss(media) {
     const artUrl = media.artUrl || '';
@@ -14,16 +14,6 @@ export function tryGetArtBackgroundCss(media) {
     }
 }
 
-export function fitBox(w, h) {
-    if (!w || !h) return [ART_SIZE, ART_SIZE];
-    const r = w / h;
-    const maxR = POPUP_ART_MAX_W / POPUP_ART_MAX_H;
-    let outW, outH;
-    if (r > maxR) { outW = POPUP_ART_MAX_W; outH = outW / r; }
-    else { outH = POPUP_ART_MAX_H; outW = outH * r; }
-    return [Math.round(outW), Math.round(outH)];
-}
-
 let _extractedArtColorUrl = null;
 let _extractedArtColor = null;
 
@@ -33,7 +23,7 @@ export function extractArtColor(media) {
     _extractedArtColorUrl = media.artUrl;
     try {
         const path = GLib.uri_unescape_string(media.artUrl.substring('file://'.length), null);
-        const pb = GdkPixbuf.Pixbuf.new_from_file(path);
+        const pb = GdkPixbuf.Pixbuf.new_from_file_at_scale(path, 16, 16, false);
         const small = pb.scale_simple(1, 1, GdkPixbuf.InterpType.BILINEAR);
         const pixels = small.get_pixels();
         const nChannels = small.get_n_channels();
@@ -54,9 +44,9 @@ export function applyArtBin(bin, badgeIcon, media, opts, popupStyles, preference
     const showAppIcon = preferences.popupShowAppIcon;
 
     if (art) {
-		const [w, h] = [opts.boxSize, opts.boxSize];
+        const s = opts.boxSize || ART_SIZE;
         bin.style =
-            `width: ${w}px; height: ${h}px; min-width: ${w}px; min-height: ${h}px; ` +
+            `width: ${s}px; height: ${s}px; min-width: ${s}px; min-height: ${s}px; ` +
             `${popupStyles.artCommon} background-image: url("${art.safePath}");`;
 
         const badgeSize = 28;
@@ -66,7 +56,7 @@ export function applyArtBin(bin, badgeIcon, media, opts, popupStyles, preference
         badgeIcon.gicon = appGicon || null;
         badgeIcon.visible = showAppIcon && !!appGicon;
         badgeIcon.set_size(badgeSize, badgeSize);
-        badgeIcon.set_position(w - badgeSize + overlap, h - badgeSize + overlap);
+        badgeIcon.set_position(s - badgeSize + overlap, s - badgeSize + overlap);
         return;
     }
 

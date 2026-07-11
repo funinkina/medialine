@@ -21,8 +21,6 @@ export const COMPACT_EXPAND_CLICK = 2;
 export const ART_SIZE = 68;
 export const PROGRESS_HEIGHT = 4;
 export const PROGRESS_THUMB_SIZE = 12;
-export const POPUP_ART_MAX_W = 120;
-export const POPUP_ART_MAX_H = ART_SIZE;
 
 export const ANIM_MS = 220;
 export const POLL_MS = 1000;

@@ -34,6 +34,7 @@ export class ExpandableMediaRow {
         this._dragging = false;
         this._dragRatio = 0;
         this._pollId = null;
+        this._syncedStyleVersion = -1;
 
         this.actor = new St.Widget({
             layout_manager: new Clutter.FixedLayout(),
@@ -186,6 +187,11 @@ export class ExpandableMediaRow {
     }
 
     _syncColors() {
+        const version = this._indicator._popupStylesVersion;
+        if (this._syncedStyleVersion === version)
+            return;
+        this._syncedStyleVersion = version;
+
         const styles = this._indicator._popupStyles;
         this._title.style = styles.title;
         this._subtitle.style = styles.subtitle;
