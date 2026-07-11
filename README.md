@@ -30,7 +30,7 @@ A GNOME Shell extension that shows the currently playing media track in the top 
 
 ### Panel Indicator
 - Displays track info (title, artist, album) inline in the top bar
-- Four icon modes: **album art**, **app icon**, **playback status icon**, or **custom image**
+- Icon modes: **album art**, **app icon**, **playback status icon**, **custom image**, or **none** for a text-only label
 - Auto-hides when no media is playing or playback is stopped
 - Configurable icon size, spacing, text separator, and max label width
 
@@ -152,7 +152,7 @@ Preferences are split across three pages: **Top Bar**, **Popup**, and **Behaviou
 **Icon**
 | Setting      | Description                                                        |
 | ------------ | ------------------------------------------------------------------ |
-| Icon source  | App icon / Album art / Playing status / Custom image               |
+| Icon source  | App icon / Album art / Playing status / Custom image / None        |
 | Custom image | File picker (PNG/JPEG/SVG/WebP), shown when source is Custom image |
 | Icon size    | Size in pixels (8–64)                                              |
 | Icon spacing | Gap between icon and text (0–32 px)                                |

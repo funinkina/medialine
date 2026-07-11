@@ -9,7 +9,7 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import {
-    ICON_TYPE_ART, ICON_TYPE_STATUS, ICON_TYPE_CUSTOM,
+    ICON_TYPE_ART, ICON_TYPE_STATUS, ICON_TYPE_CUSTOM, ICON_TYPE_NONE,
     ART_SIZE, COMPACT_EXPAND_CLICK, COMPACT_EXPAND_OFF,
     PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE, COMPACT_WIDTH,
 } from './constants.js';
@@ -403,10 +403,14 @@ export const Indicator = GObject.registerClass(
                 ? `max-width: ${prefs.maxTextWidth}px;`
                 : '';
 
-            this._iconActor.style = `margin-right: ${prefs.iconSpacing}px; border-radius: 4px;`;
-            this._iconActor.icon_size = prefs.iconSize;
-
-            this._updateIcon(media, prefs);
+            if (prefs.iconType === ICON_TYPE_NONE) {
+                this._iconActor.hide();
+            } else {
+                this._iconActor.show();
+                this._iconActor.style = `margin-right: ${prefs.iconSpacing}px; border-radius: 4px;`;
+                this._iconActor.icon_size = prefs.iconSize;
+                this._updateIcon(media, prefs);
+            }
             this._updatePopupColors();
 
             if (allMedia.length === 1) {

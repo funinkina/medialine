@@ -109,26 +109,34 @@ export default class MedialinePreferences extends ExtensionPreferences {
         page.add(iconGroup);
 
         const iconTypeRow = this._makeComboRow(settings, 'icon-type', _('Icon source'),
-            _('Album art, app icon, playback status, or a custom image'),
+            _('Album art, app icon or any icon.'),
             this._makeStringList([
                 _('App icon'),
                 _('Album art'),
                 _('Playing status'),
                 _('Custom image'),
+                _('None'),
             ]));
         iconGroup.add(iconTypeRow);
 
-        iconGroup.add(this._makeSpinRow(settings, 'icon-size',
-            _('Icon size'), _('Size in pixels'), 8, 64, 1));
-        iconGroup.add(this._makeSpinRow(settings, 'icon-spacing',
-            _('Icon spacing'), _('Space between the icon and text in pixels'), 0, 32, 1));
+        const iconSizeRow = this._makeSpinRow(settings, 'icon-size',
+            _('Icon size'), _('Size in pixels'), 8, 64, 1);
+        iconGroup.add(iconSizeRow);
+        const iconSpacingRow = this._makeSpinRow(settings, 'icon-spacing',
+            _('Icon spacing'), _('Space between the icon and text in pixels'), 0, 32, 1);
+        iconGroup.add(iconSpacingRow);
 
         const customImageGroup = this._buildCustomImageGroup(settings, parentWindow);
-        customImageGroup.visible = iconTypeRow.selected === 3;
-        iconTypeRow.connect('notify::selected', () => {
-            customImageGroup.visible = iconTypeRow.selected === 3;
-        });
         page.add(customImageGroup);
+
+        const syncIconRows = () => {
+            const iconOff = iconTypeRow.selected === 4;
+            iconSizeRow.sensitive = !iconOff;
+            iconSpacingRow.sensitive = !iconOff;
+            customImageGroup.visible = iconTypeRow.selected === 3;
+        };
+        syncIconRows();
+        iconTypeRow.connect('notify::selected', syncIconRows);
 
         // Merged "Text" + "Visible fields" — both answer "what text shows up"
         const labelGroup = new Adw.PreferencesGroup({
