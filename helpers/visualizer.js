@@ -111,10 +111,8 @@ export class Visualizer {
             GLib.Source.remove(this._tickId);
             this._tickId = null;
         }
-        if (this.actor) {
-            this.actor.destroy();
-            this.actor = null;
-        }
+        this.actor.destroy();
+        this.actor = null;
         this._bars = [];
     }
 }

@@ -18,7 +18,7 @@ export default class MedialineExtension extends Extension {
         this._enableIdleId = null;
         this._positionIdleId = null;
         this._origAddPlayer = null;
-        this._panelSignalIds = [];
+        this._panelBox = null;
 
         this._preferences.connectObject(
             'changed::panel-position', () => {
@@ -46,9 +46,8 @@ export default class MedialineExtension extends Extension {
     }
 
     _connectPanelBoxSignals() {
-        for (const [box, id] of this._panelSignalIds)
-            box.disconnect(id);
-        this._panelSignalIds = [];
+        this._panelBox?.disconnectObject(this);
+        this._panelBox = null;
 
         const positionName = PANEL_POSITIONS[this._preferences?.panelPosition] ?? 'right';
         const boxes = {
@@ -64,8 +63,11 @@ export default class MedialineExtension extends Extension {
             if (myContainer && actor !== myContainer)
                 this._queuePositionUpdate();
         };
-        for (const signal of ['child-added', 'child-removed'])
-            this._panelSignalIds.push([targetBox, targetBox.connect(signal, onChildrenChanged)]);
+        targetBox.connectObject(
+            'child-added', onChildrenChanged,
+            'child-removed', onChildrenChanged,
+            this);
+        this._panelBox = targetBox;
     }
 
     _queuePositionUpdate() {
@@ -141,9 +143,8 @@ export default class MedialineExtension extends Extension {
             this._positionIdleId = null;
         }
 
-        for (const [box, id] of this._panelSignalIds)
-            box.disconnect(id);
-        this._panelSignalIds = [];
+        this._panelBox?.disconnectObject(this);
+        this._panelBox = null;
 
         this._preferences.disconnectObject(this);
 
