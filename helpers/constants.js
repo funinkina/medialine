@@ -30,6 +30,7 @@ export const COMPACT_HEIGHT = ART_SIZE + 6;
 export const EXPANDED_HEIGHT = 162;
 export const BUTTON_SIZE = 40;
 export const COMPACT_BUTTON_SIZE = 32;
+export const TEXT_GAP = 4;
 
 export const VIS_BARS = 5;
 export const VIS_BAR_WIDTH = 2;

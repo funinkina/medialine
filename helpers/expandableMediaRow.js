@@ -10,7 +10,7 @@ import {
     COMPACT_EXPAND_CLICK, COMPACT_EXPAND_HOVER, COMPACT_HEIGHT,
     COMPACT_WIDTH, EXPANDED_HEIGHT, EXPANDED_WIDTH,
     POLL_MS, PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE,
-    VIS_WIDTH, VIS_HEIGHT,
+    TEXT_GAP, VIS_WIDTH, VIS_HEIGHT,
 } from './constants.js';
 import { escMarkup, formatTime } from './colorUtils.js';
 import { applyArtBin } from './artDisplay.js';
@@ -285,13 +285,20 @@ export class ExpandableMediaRow {
         }
     }
 
+    _textHeights() {
+        return [this._title, this._subtitle].map(l =>
+            Math.ceil(l.clutter_text.get_preferred_height(-1)[1]));
+    }
+
     _compactLayout() {
+        const [titleH, subH] = this._textHeights();
+        const textY = Math.round((ART_SIZE - (titleH + TEXT_GAP + subH)) / 2);
         return {
             rowWidth: COMPACT_WIDTH,
             rowHeight: COMPACT_HEIGHT,
             art: { x: 0, y: 0, w: ART_SIZE, h: ART_SIZE },
-            title: { x: 78, y: 13, w: 224, h: 24 },
-            subtitle: { x: 78, y: 39, w: 224, h: 22 },
+            title: { x: 78, y: textY, w: 224, h: titleH },
+            subtitle: { x: 78, y: textY + titleH + TEXT_GAP, w: 224, h: subH },
             play: { x: 312, y: 21, w: COMPACT_BUTTON_SIZE, h: COMPACT_BUTTON_SIZE },
             next: { x: 350, y: 21, w: COMPACT_BUTTON_SIZE, h: COMPACT_BUTTON_SIZE },
         };
@@ -299,12 +306,13 @@ export class ExpandableMediaRow {
 
     _expandedLayout() {
         const textW = EXPANDED_WIDTH - 80 - VIS_WIDTH - 12;
+        const [titleH, subH] = this._textHeights();
         return {
             rowWidth: EXPANDED_WIDTH,
             rowHeight: EXPANDED_HEIGHT,
             art: { x: 0, y: 0, w: ART_SIZE, h: ART_SIZE },
-            title: { x: 80, y: 8, w: textW, h: 26 },
-            subtitle: { x: 80, y: 38, w: textW, h: 24 },
+            title: { x: 80, y: 8, w: textW, h: titleH },
+            subtitle: { x: 80, y: 8 + titleH + TEXT_GAP, w: textW, h: subH },
             visualizer: { x: EXPANDED_WIDTH - VIS_WIDTH, y: 20, w: VIS_WIDTH, h: VIS_HEIGHT },
             time: { x: 0, y: 82, w: EXPANDED_WIDTH, h: 16 },
             progress: { x: 0, y: 102, w: EXPANDED_WIDTH, h: PROGRESS_HEIGHT },
