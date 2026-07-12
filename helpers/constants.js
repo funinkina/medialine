@@ -21,6 +21,8 @@ export const COMPACT_EXPAND_CLICK = 2;
 export const ART_SIZE = 68;
 export const PROGRESS_HEIGHT = 4;
 export const PROGRESS_THUMB_SIZE = 12;
+// Hover/input zone around the visual bar; also fits the thumb exactly
+export const PROGRESS_HIT_HEIGHT = 12;
 
 export const ANIM_MS = 220;
 export const POLL_MS = 1000;

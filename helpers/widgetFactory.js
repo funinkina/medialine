@@ -2,7 +2,7 @@ import Clutter from 'gi://Clutter';
 import Pango from 'gi://Pango';
 import St from 'gi://St';
 
-import { PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE } from './constants.js';
+import { PROGRESS_HEIGHT, PROGRESS_HIT_HEIGHT, PROGRESS_THUMB_SIZE } from './constants.js';
 
 export function makeButton(styles, iconName, iconSize) {
     const btn = new St.Button({
@@ -45,9 +45,17 @@ export function buildProgressWidgets(styles) {
         y_align: Clutter.ActorAlign.CENTER,
         reactive: true,
         track_hover: true,
+        height: PROGRESS_HIT_HEIGHT,
+    });
+    const progressBar = new St.Widget({
         style: styles.progressTrack,
         height: PROGRESS_HEIGHT,
     });
+    progressBar.set_position(0, (PROGRESS_HIT_HEIGHT - PROGRESS_HEIGHT) / 2);
+    progressBar.add_constraint(new Clutter.BindConstraint({
+        source: progressTrack,
+        coordinate: Clutter.BindCoordinate.WIDTH,
+    }));
     const progressFill = new St.Widget({
         style: styles.progressFill,
         width: 0,
@@ -62,9 +70,10 @@ export function buildProgressWidgets(styles) {
     });
     progressThumb.set_position(
         -PROGRESS_THUMB_SIZE / 2,
-        (PROGRESS_HEIGHT - PROGRESS_THUMB_SIZE) / 2);
-    progressTrack.add_child(progressFill);
+        (PROGRESS_HIT_HEIGHT - PROGRESS_THUMB_SIZE) / 2);
+    progressTrack.add_child(progressBar);
+    progressBar.add_child(progressFill);
     progressTrack.add_child(progressThumb);
 
-    return { timeCurrent, timeTotal, timeRow, progressTrack, progressFill, progressThumb };
+    return { timeCurrent, timeTotal, timeRow, progressTrack, progressBar, progressFill, progressThumb };
 }

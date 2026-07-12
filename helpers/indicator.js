@@ -219,6 +219,7 @@ export const Indicator = GObject.registerClass(
             this._timeCurrent = pw.timeCurrent;
             this._timeTotal = pw.timeTotal;
             this._progressTrack = pw.progressTrack;
+            this._progressBar = pw.progressBar;
             this._progressFill = pw.progressFill;
             this._progressThumb = pw.progressThumb;
 
@@ -230,7 +231,7 @@ export const Indicator = GObject.registerClass(
                 'notify::hover', () => updateProgress(this),
                 this);
 
-            const section = new St.BoxLayout({ vertical: true, x_expand: true, style: 'spacing: 4px;' });
+            const section = new St.BoxLayout({ vertical: true, x_expand: true });
             section.add_child(pw.timeRow);
             section.add_child(this._progressTrack);
             return section;
@@ -365,7 +366,7 @@ export const Indicator = GObject.registerClass(
             this._popupSubtitle.style = this._popupStyles.subtitle;
             this._timeCurrent.style = this._popupStyles.time;
             this._timeTotal.style = this._popupStyles.time;
-            this._progressTrack.style = this._popupStyles.progressTrack;
+            this._progressBar.style = this._popupStyles.progressTrack;
             this._progressFill.style = this._popupStyles.progressFill;
             this._progressThumb.style = this._popupStyles.progressThumb;
 

@@ -2,7 +2,7 @@ import GLib from 'gi://GLib';
 import Clutter from 'gi://Clutter';
 
 import { formatTime } from './colorUtils.js';
-import { POLL_MS, PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE } from './constants.js';
+import { POLL_MS, PROGRESS_HIT_HEIGHT, PROGRESS_THUMB_SIZE } from './constants.js';
 
 export function startPositionPolling(self) {
     pollPosition(self);
@@ -66,9 +66,11 @@ export function updateProgress(self) {
     const showThumb = canSeek && (self._dragging || self._progressTrack.hover);
     self._progressThumb.visible = showThumb;
     if (showThumb) {
+        const cx = Math.max(PROGRESS_THUMB_SIZE / 2,
+            Math.min(fillWidth, trackWidth - PROGRESS_THUMB_SIZE / 2));
         self._progressThumb.set_position(
-            Math.floor(fillWidth - PROGRESS_THUMB_SIZE / 2),
-            (PROGRESS_HEIGHT - PROGRESS_THUMB_SIZE) / 2);
+            Math.floor(cx - PROGRESS_THUMB_SIZE / 2),
+            (PROGRESS_HIT_HEIGHT - PROGRESS_THUMB_SIZE) / 2);
     }
 }
 

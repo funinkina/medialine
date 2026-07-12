@@ -9,7 +9,7 @@ import {
     ANIM_MS, ART_SIZE, BUTTON_SIZE, COMPACT_BUTTON_SIZE,
     COMPACT_EXPAND_CLICK, COMPACT_EXPAND_HOVER, COMPACT_HEIGHT,
     COMPACT_WIDTH, EXPANDED_HEIGHT, EXPANDED_WIDTH,
-    POLL_MS, PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE,
+    POLL_MS, PROGRESS_HEIGHT, PROGRESS_HIT_HEIGHT, PROGRESS_THUMB_SIZE,
     TEXT_GAP, VIS_WIDTH, VIS_HEIGHT,
 } from './constants.js';
 import { escMarkup, formatTime } from './colorUtils.js';
@@ -75,6 +75,7 @@ export class ExpandableMediaRow {
         this._timeTotal = pw.timeTotal;
         this._timeRow = pw.timeRow;
         this._progressTrack = pw.progressTrack;
+        this._progressBar = pw.progressBar;
         this._progressFill = pw.progressFill;
         this._progressThumb = pw.progressThumb;
 
@@ -197,7 +198,7 @@ export class ExpandableMediaRow {
         this._subtitle.style = styles.subtitle;
         this._timeCurrent.style = styles.time;
         this._timeTotal.style = styles.time;
-        this._progressTrack.style = styles.progressTrack;
+        this._progressBar.style = styles.progressTrack;
         this._progressFill.style = styles.progressFill;
         this._progressThumb.style = styles.progressThumb;
         this._visualizer.setStyle(styles);
@@ -315,7 +316,12 @@ export class ExpandableMediaRow {
             subtitle: { x: 80, y: 8 + titleH + TEXT_GAP, w: textW, h: subH },
             visualizer: { x: EXPANDED_WIDTH - VIS_WIDTH, y: 20, w: VIS_WIDTH, h: VIS_HEIGHT },
             time: { x: 0, y: 82, w: EXPANDED_WIDTH, h: 16 },
-            progress: { x: 0, y: 102, w: EXPANDED_WIDTH, h: PROGRESS_HEIGHT },
+            progress: {
+                x: 0,
+                y: 102 - (PROGRESS_HIT_HEIGHT - PROGRESS_HEIGHT) / 2,
+                w: EXPANDED_WIDTH,
+                h: PROGRESS_HIT_HEIGHT,
+            },
             shuffle: { x: 62, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
             prev: { x: 118, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
             play: { x: 174, y: 122, w: BUTTON_SIZE, h: BUTTON_SIZE },
@@ -494,9 +500,11 @@ export class ExpandableMediaRow {
         const showThumb = canSeek && (this._dragging || this._progressTrack.hover);
         this._progressThumb.visible = showThumb;
         if (showThumb) {
+            const cx = Math.max(PROGRESS_THUMB_SIZE / 2,
+                Math.min(fillWidth, trackWidth - PROGRESS_THUMB_SIZE / 2));
             this._progressThumb.set_position(
-                Math.floor(fillWidth - PROGRESS_THUMB_SIZE / 2),
-                (PROGRESS_HEIGHT - PROGRESS_THUMB_SIZE) / 2);
+                Math.floor(cx - PROGRESS_THUMB_SIZE / 2),
+                (PROGRESS_HIT_HEIGHT - PROGRESS_THUMB_SIZE) / 2);
         }
     }
 
