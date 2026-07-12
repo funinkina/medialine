@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Medialine 6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-29 12:52+0530\n"
-"PO-Revision-Date: 2026-06-24 22:23+0530\n"
+"POT-Creation-Date: 2026-07-12 13:28+0530\n"
+"PO-Revision-Date: 2026-07-12 00:00+0000\n"
 "Last-Translator: Aryan Kushwaha <hello@funinkina.co.in>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
@@ -17,217 +17,220 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: prefs.js:34
+#: prefs.js:39
 msgid "About Medialine"
 msgstr "O Medialine"
 
-#: prefs.js:58 helpers/indicator.js:71
+#: prefs.js:63 helpers/indicator.js:72
 msgid "Medialine"
 msgstr "Medialine"
 
-#: prefs.js:62
+#: prefs.js:67
 msgid "Shows currently playing media in the top bar in a minimal elegant way."
 msgstr ""
 "Wyświetla aktualnie odtwarzane multimedia w górnym pasku w minimalny i "
 "elegancki sposób."
 
-#: prefs.js:73
+#: prefs.js:78
 msgid "Donate"
 msgstr "Wesprzyj"
 
-#: prefs.js:74
+#: prefs.js:79
 msgid "GitHub"
 msgstr "GitHub"
 
-#: prefs.js:75
+#: prefs.js:80
 msgid "Twitter"
 msgstr "Twitter"
 
-#: prefs.js:76
+#: prefs.js:81
 msgid "Email"
 msgstr "E-mail"
 
-#: prefs.js:83
+#: prefs.js:88
 msgid "Top Bar"
 msgstr "Górny pasek"
 
-#: prefs.js:89
+#: prefs.js:94
 msgid "Panel placement"
 msgstr "Położenie na panelu"
 
-#: prefs.js:90
+#: prefs.js:95
 msgid "Where the indicator appears in the top bar."
 msgstr "Gdzie wskaźnik pojawia się na górnym pasku."
 
-#: prefs.js:94
+#: prefs.js:99
 msgid "Panel section"
 msgstr "Sekcja panelu"
 
-#: prefs.js:95
+#: prefs.js:100
 msgid "Which area of the top bar to place the indicator"
 msgstr "W której części górnego paska umieścić wskaźnik"
 
-#: prefs.js:96
+#: prefs.js:101
 msgid "Left"
 msgstr "Lewo"
 
-#: prefs.js:96
+#: prefs.js:101
 msgid "Center"
 msgstr "Środek"
 
-#: prefs.js:96
+#: prefs.js:101
 msgid "Right"
 msgstr "Prawo"
 
-#: prefs.js:98
+#: prefs.js:103
 msgid "Position index"
 msgstr "Indeks pozycji"
 
-#: prefs.js:98
-msgid "Order within the panel section (0 is first)"
-msgstr "Kolejność w sekcji panelu (0 jest pierwsza)"
+#: prefs.js:103
+msgid "Order within the panel section (0 is leftmost)"
+msgstr "Kolejność w sekcji panelu (0 oznacza pozycję skrajnie po lewej)"
 
-#: prefs.js:101
+#: prefs.js:106
 msgid "Icon"
 msgstr "Ikona"
 
-#: prefs.js:102
+#: prefs.js:107
 msgid ""
 "How Medialine represents the currently playing media in the panel and popup."
 msgstr ""
 "Jak Medialine wyświetla aktualnie odtwywane multimedia na panelu i w oknie "
 "podręcznym."
 
-#: prefs.js:106
+#: prefs.js:111
 msgid "Icon source"
 msgstr "Źródło ikony"
 
-#: prefs.js:107
-msgid "Album art, app icon, playback status, or a custom image"
-msgstr ""
-"Okładka albumu, ikona aplikacji, stan odtwarzania lub niestandardowy obraz"
+#: prefs.js:112
+msgid "Album art, app icon or any icon."
+msgstr "Okładka albumu, ikona aplikacji lub dowolna ikona."
 
-#: prefs.js:109
+#: prefs.js:114
 msgid "App icon"
 msgstr "Ikona aplikacji"
 
-#: prefs.js:110
+#: prefs.js:115
 msgid "Album art"
 msgstr "Okładka albumu"
 
-#: prefs.js:111
+#: prefs.js:116
 msgid "Playing status"
 msgstr "Stan odtwarzania"
 
-#: prefs.js:112 prefs.js:147
+#: prefs.js:117 prefs.js:160
 msgid "Custom image"
 msgstr "Niestandardowy obraz"
 
-#: prefs.js:117
+#: prefs.js:118
+msgid "None"
+msgstr "Brak"
+
+#: prefs.js:123
 msgid "Icon size"
 msgstr "Rozmiar ikony"
 
-#: prefs.js:117
+#: prefs.js:123
 msgid "Size in pixels"
 msgstr "Rozmiar w pikselach"
 
-#: prefs.js:119
+#: prefs.js:126
 msgid "Icon spacing"
 msgstr "Odstęp ikony"
 
-#: prefs.js:119
+#: prefs.js:126
 msgid "Space between the icon and text in pixels"
 msgstr "Odstęp między ikoną a tekstem w pikselach"
 
-#: prefs.js:130
+#: prefs.js:143
 msgid "Label"
 msgstr "Etykieta"
 
-#: prefs.js:131
+#: prefs.js:144
 msgid "Control what text appears next to the icon in the panel."
 msgstr "Kontroluje tekst wyświetlany obok ikony na panelu."
 
-#: prefs.js:135
+#: prefs.js:148
 msgid "Show title"
 msgstr "Pokaż tytuł"
 
-#: prefs.js:136
+#: prefs.js:149
 msgid "Show artist"
 msgstr "Pokaż artystę"
 
-#: prefs.js:137
+#: prefs.js:150
 msgid "Show album"
 msgstr "Pokaż album"
 
-#: prefs.js:138
+#: prefs.js:151
 msgid "Separator"
 msgstr "Separator"
 
-#: prefs.js:140
+#: prefs.js:153
 msgid "Max text width"
 msgstr "Maksymalna szerokość tekstu"
 
-#: prefs.js:140
+#: prefs.js:153
 msgid "Maximum label width in pixels (0 for unlimited)"
 msgstr "Maksymalna szerokość etykiety w pikselach (0 oznacza brak limitu)"
 
-#: prefs.js:148
+#: prefs.js:161
 msgid "Pick an image to use when the icon source is set to Custom image."
 msgstr "Wybierz obraz, gdy źródłem ikony jest «Niestandardowy obraz»."
 
-#: prefs.js:155
+#: prefs.js:168
 msgid "Image file"
 msgstr "Plik obrazu"
 
-#: prefs.js:156 prefs.js:201
+#: prefs.js:169 prefs.js:214
 msgid "No file selected"
 msgstr "Nie wybrano pliku"
 
-#: prefs.js:193
+#: prefs.js:206
 msgid "Choose image"
 msgstr "Wybierz obraz"
 
-#: prefs.js:219
+#: prefs.js:232
 msgid "Images"
 msgstr "Obrazy"
 
-#: prefs.js:227
+#: prefs.js:240
 msgid "Select custom image"
 msgstr "Wybierz niestandardowy obraz"
 
-#: prefs.js:261
+#: prefs.js:274
 msgid "Popup"
 msgstr "Okno podręczne"
 
-#: prefs.js:266
+#: prefs.js:279
 msgid "Colors"
 msgstr "Kolory"
 
-#: prefs.js:267
+#: prefs.js:280
 msgid "Customize the popup color scheme"
 msgstr "Dostosuj schemat kolorów okna podręcznego"
 
-#: prefs.js:272
+#: prefs.js:285
 msgid "Primary color"
 msgstr "Kolor podstawowy"
 
-#: prefs.js:272
+#: prefs.js:285
 msgid "Color for text and controls"
 msgstr "Kolor tekstu i elementów sterujących"
 
-#: prefs.js:275
+#: prefs.js:288
 msgid "Secondary color"
 msgstr "Kolor pomocniczy"
 
-#: prefs.js:275
+#: prefs.js:288
 msgid "Color for backgrounds and accents"
 msgstr "Kolor tła i akcentów"
 
-#: prefs.js:278
+#: prefs.js:291
 msgid "Background color"
 msgstr "Kolor tła"
 
-#: prefs.js:278
+#: prefs.js:291
 msgid ""
 "Background color for the popup (will also be used as fallback if dynamic "
 "background is enabled)."
@@ -235,192 +238,192 @@ msgstr ""
 "Kolor tła okna podręcznego (zostanie też użyty jako zapasowy, gdy włączone "
 "jest dynamiczne tło)."
 
-#: prefs.js:282
+#: prefs.js:295
 msgid "Dynamic background"
 msgstr "Dynamiczne tło"
 
-#: prefs.js:283
+#: prefs.js:296
 msgid "Use the dominant color from album art as background"
 msgstr "Użyj dominującego koloru okładki albumu jako tła"
 
-#: prefs.js:287
+#: prefs.js:300
 msgid "Background intensity"
 msgstr "Intensywność tła"
 
-#: prefs.js:288
+#: prefs.js:301
 msgid "How bright or dark the dynamic background appears"
 msgstr "Jak jasne lub ciemne jest dynamiczne tło"
 
-#: prefs.js:302
+#: prefs.js:315
 msgid "Display"
 msgstr "Wyświetlanie"
 
-#: prefs.js:303
+#: prefs.js:316
 msgid "Control what the popup shows and how it behaves."
 msgstr "Kontroluje, co pokazuje okno podręczne i jak się zachowuje."
 
-#: prefs.js:308
+#: prefs.js:321
 msgid "Music visualizer"
 msgstr "Wizualizacja muzyki"
 
-#: prefs.js:309
+#: prefs.js:322
 msgid "Animated bars next to the track info for some eye candy."
 msgstr "Animowane słupki obok informacji o utworze dla efektu wizualnego."
 
-#: prefs.js:312
+#: prefs.js:325
 msgid "App icon on album art"
 msgstr "Ikona aplikacji na okładce albumu"
 
-#: prefs.js:313
+#: prefs.js:326
 msgid "Overlay the playing app’s icon on the bottom right of the album art"
 msgstr ""
 "Nałóż ikonę odtwarzającej aplikacji w prawym dolnym rogu okładki albumu"
 
-#: prefs.js:316
+#: prefs.js:329
 msgid "Expand compact layout on"
 msgstr "Rozwiń kompaktowy układ przy"
 
-#: prefs.js:316
+#: prefs.js:329
 msgid "How multi-source rows expand when several apps play"
 msgstr "Jak rozwijają się wiersze z wieloma źródłami, gdy gra kilka aplikacji"
 
-#: prefs.js:317
+#: prefs.js:330
 msgid "Off"
 msgstr "Wyłączone"
 
-#: prefs.js:317
+#: prefs.js:330
 msgid "Hover"
 msgstr "Najechaniu"
 
-#: prefs.js:317
+#: prefs.js:330
 msgid "Click"
 msgstr "Kliknięciu"
 
-#: prefs.js:324
+#: prefs.js:337
 msgid "Behaviour"
 msgstr "Zachowanie"
 
-#: prefs.js:329
+#: prefs.js:342
 msgid "Click actions"
 msgstr "Akcje kliknięcia"
 
-#: prefs.js:330
+#: prefs.js:343
 msgid "What happens when you click the media bar indicator"
 msgstr "Co się dzieje po kliknięciu wskaźnika paska multimediów"
 
-#: prefs.js:335 prefs.js:361
+#: prefs.js:348 prefs.js:374
 msgid "Nothing"
 msgstr "Nic"
 
-#: prefs.js:335 prefs.js:361
+#: prefs.js:348 prefs.js:374
 msgid "Open popup"
 msgstr "Otwórz okno podręczne"
 
-#: prefs.js:335 prefs.js:361
+#: prefs.js:348 prefs.js:374
 msgid "Play / Pause"
 msgstr "Odtwórz / Pauza"
 
-#: prefs.js:335 prefs.js:361
+#: prefs.js:348 prefs.js:374
 msgid "Open settings"
 msgstr "Otwórz ustawienia"
 
-#: prefs.js:336 prefs.js:362
+#: prefs.js:349 prefs.js:375
 msgid "Next track"
 msgstr "Następny utwór"
 
-#: prefs.js:336 prefs.js:362
+#: prefs.js:349 prefs.js:375
 msgid "Previous track"
 msgstr "Poprzedni utwór"
 
-#: prefs.js:336 prefs.js:363
+#: prefs.js:349 prefs.js:376
 msgid "Raise player"
 msgstr "Pokaż odtwarzacz"
 
-#: prefs.js:342
+#: prefs.js:355
 msgid "Left click"
 msgstr "Lewy przycisk"
 
-#: prefs.js:342
+#: prefs.js:355
 msgid "Action when left-clicking the indicator"
 msgstr "Akcja po kliknięciu lewym przyciskiem wskaźnika"
 
-#: prefs.js:343
+#: prefs.js:356
 msgid "Middle click"
 msgstr "Środkowy przycisk"
 
-#: prefs.js:343
+#: prefs.js:356
 msgid "Action when middle-clicking the indicator"
 msgstr "Akcja po kliknięciu środkowym przyciskiem wskaźnika"
 
-#: prefs.js:344
+#: prefs.js:357
 msgid "Right click"
 msgstr "Prawy przycisk"
 
-#: prefs.js:344
+#: prefs.js:357
 msgid "Action when right-clicking the indicator"
 msgstr "Akcja po kliknięciu prawym przyciskiem wskaźnika"
 
-#: prefs.js:355
+#: prefs.js:368
 msgid "Scroll actions"
 msgstr "Akcje przewijania"
 
-#: prefs.js:356
+#: prefs.js:369
 msgid "What happens when you scroll over the media bar indicator"
 msgstr "Co się dzieje po przewinięciu nad wskaźnikiem paska multimediów"
 
-#: prefs.js:363
+#: prefs.js:376
 msgid "Volume up"
 msgstr "Zwiększ głośność"
 
-#: prefs.js:363
+#: prefs.js:376
 msgid "Volume down"
 msgstr "Zmniejsz głośność"
 
-#: prefs.js:367
+#: prefs.js:380
 msgid "Scroll up"
 msgstr "Przewiń w górę"
 
-#: prefs.js:367
+#: prefs.js:380
 msgid "Action when scrolling up over the indicator"
 msgstr "Akcja przy przewijaniu w górę nad wskaźnikiem"
 
-#: prefs.js:368
+#: prefs.js:381
 msgid "Scroll down"
 msgstr "Przewiń w dół"
 
-#: prefs.js:368
+#: prefs.js:381
 msgid "Action when scrolling down over the indicator"
 msgstr "Akcja przy przewijaniu w dół nad wskaźnikiem"
 
-#: prefs.js:374
+#: prefs.js:387
 msgid "Notifications"
 msgstr "Powiadomienia"
 
-#: prefs.js:375
+#: prefs.js:388
 msgid "Manage visibility of GNOME’s built-in media notifications."
 msgstr "Zarządza widocznością wbudowanych powiadomień multimedialnych GNOME."
 
-#: prefs.js:379
+#: prefs.js:392
 msgid "Hide default notification"
 msgstr "Ukryj domyślne powiadomienie"
 
-#: prefs.js:380
+#: prefs.js:393
 msgid "Remove GNOME’s media notification while the panel indicator is shown"
 msgstr "Usuń powiadomienie medialne GNOME, gdy widoczny jest wskaźnik panelu"
 
-#: prefs.js:383
+#: prefs.js:398
 msgid "Compatibility"
 msgstr "Zgodność"
 
-#: prefs.js:384
+#: prefs.js:399
 msgid "Workarounds for specific apps and environments."
 msgstr "Obejścia dla określonych aplikacji i środowisk."
 
-#: prefs.js:388
+#: prefs.js:403
 msgid "Enhanced PWA support"
 msgstr "Rozszerzona obsługa PWA"
 
-#: prefs.js:389
+#: prefs.js:404
 msgid ""
 "Use advanced detection to find the active PWA window for the correct icon. "
 "Might have unintended consequences of displaying the wrong icon."
@@ -428,33 +431,58 @@ msgstr ""
 "Użyj zaawansowanego wykrywania, aby znaleźć aktywne okno PWA i wyświetlić "
 "właściwą ikonę. Może skutkować wyświetlaniem błędnej ikony."
 
-#: prefs.js:392
+#: prefs.js:407
 msgid "Album art cache"
 msgstr "Pamięć podręczna okładek albumów"
 
-#: prefs.js:393
+#: prefs.js:408
 msgid "Downloaded cover art (e.g. from Spotify) is cached on disk."
 msgstr ""
 "Pobrane okładki (np. ze Spotify) są przechowywane w pamięci podręcznej na "
 "dysku."
 
-#: prefs.js:397
+#: prefs.js:412
 msgid "Cache size limit"
 msgstr "Limit rozmiaru pamięci podręcznej"
 
-#: prefs.js:397
+#: prefs.js:412
 msgid "Maximum disk space in megabytes"
 msgstr "Maksymalna przestrzeń dyskowa w megabajtach"
 
-#: prefs.js:413
+#: prefs.js:420
+msgid "Media sources"
+msgstr "Źródła multimediów"
+
+#: prefs.js:421
+msgid "Turn off the sources you do not want to see in the extension."
+msgstr "Wyłącz źródła, których nie chcesz widzieć w rozszerzeniu."
+
+#: prefs.js:426
+msgid "Rescan for media players"
+msgstr "Wyszukaj ponownie odtwarzacze multimedialne"
+
+#: prefs.js:456
+msgid "No media players detected"
+msgstr "Nie wykryto odtwarzaczy multimedialnych"
+
+#: prefs.js:457
+msgid "Start playing something, then press refresh."
+msgstr "Rozpocznij odtwarzanie, a następnie naciśnij odśwież."
+
+#: prefs.js:476
+msgid "not running"
+msgstr "nie jest uruchomiony"
+
+#: prefs.js:566
 msgid "Choose a color"
 msgstr "Wybierz kolor"
 
-#: prefs.js:434
+#: prefs.js:587
 msgid "Reset to default"
 msgstr "Przywróć domyślne"
 
-#: helpers/indicator.js:437 helpers/expandableMediaRow.js:142
+#: helpers/indicator.js:424 helpers/indicator.js:474
+#: helpers/expandableMediaRow.js:143
 msgid "Unknown"
 msgstr "Nieznane"
 

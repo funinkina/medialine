@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Medialine 6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-29 12:52+0530\n"
-"PO-Revision-Date: 2026-06-24 22:23+0530\n"
+"POT-Creation-Date: 2026-07-12 13:28+0530\n"
+"PO-Revision-Date: 2026-07-12 00:00+0000\n"
 "Last-Translator: Aryan Kushwaha <hello@funinkina.co.in>\n"
 "Language-Team: Simplified Chinese\n"
 "Language: zh_CN\n"
@@ -16,402 +16,406 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: prefs.js:34
+#: prefs.js:39
 msgid "About Medialine"
 msgstr "关于 Medialine"
 
-#: prefs.js:58 helpers/indicator.js:71
+#: prefs.js:63 helpers/indicator.js:72
 msgid "Medialine"
 msgstr "Medialine"
 
-#: prefs.js:62
+#: prefs.js:67
 msgid "Shows currently playing media in the top bar in a minimal elegant way."
 msgstr "以简洁优雅的方式在顶栏显示当前正在播放的媒体。"
 
-#: prefs.js:73
+#: prefs.js:78
 msgid "Donate"
 msgstr "捐赠"
 
-#: prefs.js:74
+#: prefs.js:79
 msgid "GitHub"
 msgstr "GitHub"
 
-#: prefs.js:75
+#: prefs.js:80
 msgid "Twitter"
 msgstr "Twitter"
 
-#: prefs.js:76
+#: prefs.js:81
 msgid "Email"
 msgstr "电子邮件"
 
-#: prefs.js:83
+#: prefs.js:88
 msgid "Top Bar"
 msgstr "顶栏"
 
-#: prefs.js:89
+#: prefs.js:94
 msgid "Panel placement"
 msgstr "面板位置"
 
-#: prefs.js:90
+#: prefs.js:95
 msgid "Where the indicator appears in the top bar."
 msgstr "指示器在顶栏中出现的位置。"
 
-#: prefs.js:94
+#: prefs.js:99
 msgid "Panel section"
 msgstr "面板区域"
 
-#: prefs.js:95
+#: prefs.js:100
 msgid "Which area of the top bar to place the indicator"
 msgstr "将指示器放置在顶栏的哪个区域"
 
-#: prefs.js:96
+#: prefs.js:101
 msgid "Left"
 msgstr "左侧"
 
-#: prefs.js:96
+#: prefs.js:101
 msgid "Center"
 msgstr "居中"
 
-#: prefs.js:96
+#: prefs.js:101
 msgid "Right"
 msgstr "右侧"
 
-#: prefs.js:98
+#: prefs.js:103
 msgid "Position index"
 msgstr "位置索引"
 
-#: prefs.js:98
-msgid "Order within the panel section (0 is first)"
-msgstr "在面板区域中的排列顺序（0 为第一位）"
+#: prefs.js:103
+msgid "Order within the panel section (0 is leftmost)"
+msgstr "面板区域内的顺序（0 为最左侧）"
 
-#: prefs.js:101
+#: prefs.js:106
 msgid "Icon"
 msgstr "图标"
 
-#: prefs.js:102
+#: prefs.js:107
 msgid ""
 "How Medialine represents the currently playing media in the panel and popup."
 msgstr "Medialine 在面板和弹窗中展示当前媒体的方式。"
 
-#: prefs.js:106
+#: prefs.js:111
 msgid "Icon source"
 msgstr "图标来源"
 
-#: prefs.js:107
-msgid "Album art, app icon, playback status, or a custom image"
-msgstr "专辑封面、应用图标、播放状态或自定义图片"
+#: prefs.js:112
+msgid "Album art, app icon or any icon."
+msgstr "专辑封面、应用图标或任意图标。"
 
-#: prefs.js:109
+#: prefs.js:114
 msgid "App icon"
 msgstr "应用图标"
 
-#: prefs.js:110
+#: prefs.js:115
 msgid "Album art"
 msgstr "专辑封面"
 
-#: prefs.js:111
+#: prefs.js:116
 msgid "Playing status"
 msgstr "播放状态"
 
-#: prefs.js:112 prefs.js:147
+#: prefs.js:117 prefs.js:160
 msgid "Custom image"
 msgstr "自定义图片"
 
-#: prefs.js:117
+#: prefs.js:118
+msgid "None"
+msgstr "无"
+
+#: prefs.js:123
 msgid "Icon size"
 msgstr "图标大小"
 
-#: prefs.js:117
+#: prefs.js:123
 msgid "Size in pixels"
 msgstr "像素大小"
 
-#: prefs.js:119
+#: prefs.js:126
 msgid "Icon spacing"
 msgstr "图标间距"
 
-#: prefs.js:119
+#: prefs.js:126
 msgid "Space between the icon and text in pixels"
 msgstr "图标与文字之间的像素间距"
 
-#: prefs.js:130
+#: prefs.js:143
 msgid "Label"
 msgstr "标签"
 
-#: prefs.js:131
+#: prefs.js:144
 msgid "Control what text appears next to the icon in the panel."
 msgstr "控制面板中图标旁显示的文字内容。"
 
-#: prefs.js:135
+#: prefs.js:148
 msgid "Show title"
 msgstr "显示标题"
 
-#: prefs.js:136
+#: prefs.js:149
 msgid "Show artist"
 msgstr "显示艺术家"
 
-#: prefs.js:137
+#: prefs.js:150
 msgid "Show album"
 msgstr "显示专辑"
 
-#: prefs.js:138
+#: prefs.js:151
 msgid "Separator"
 msgstr "分隔符"
 
-#: prefs.js:140
+#: prefs.js:153
 msgid "Max text width"
 msgstr "最大文字宽度"
 
-#: prefs.js:140
+#: prefs.js:153
 msgid "Maximum label width in pixels (0 for unlimited)"
 msgstr "标签最大宽度（像素，0 表示不限制）"
 
-#: prefs.js:148
+#: prefs.js:161
 msgid "Pick an image to use when the icon source is set to Custom image."
 msgstr "当图标来源设置为「自定义图片」时，选择要使用的图片。"
 
-#: prefs.js:155
+#: prefs.js:168
 msgid "Image file"
 msgstr "图片文件"
 
-#: prefs.js:156 prefs.js:201
+#: prefs.js:169 prefs.js:214
 msgid "No file selected"
 msgstr "未选择文件"
 
-#: prefs.js:193
+#: prefs.js:206
 msgid "Choose image"
 msgstr "选择图片"
 
-#: prefs.js:219
+#: prefs.js:232
 msgid "Images"
 msgstr "图片"
 
-#: prefs.js:227
+#: prefs.js:240
 msgid "Select custom image"
 msgstr "选择自定义图片"
 
-#: prefs.js:261
+#: prefs.js:274
 msgid "Popup"
 msgstr "弹窗"
 
-#: prefs.js:266
+#: prefs.js:279
 msgid "Colors"
 msgstr "颜色"
 
-#: prefs.js:267
+#: prefs.js:280
 msgid "Customize the popup color scheme"
 msgstr "自定义弹窗配色方案"
 
-#: prefs.js:272
+#: prefs.js:285
 msgid "Primary color"
 msgstr "主色"
 
-#: prefs.js:272
+#: prefs.js:285
 msgid "Color for text and controls"
 msgstr "文字和控件的颜色"
 
-#: prefs.js:275
+#: prefs.js:288
 msgid "Secondary color"
 msgstr "次色"
 
-#: prefs.js:275
+#: prefs.js:288
 msgid "Color for backgrounds and accents"
 msgstr "背景和强调色"
 
-#: prefs.js:278
+#: prefs.js:291
 msgid "Background color"
 msgstr "背景颜色"
 
-#: prefs.js:278
+#: prefs.js:291
 msgid ""
 "Background color for the popup (will also be used as fallback if dynamic "
 "background is enabled)."
 msgstr "弹窗的背景颜色（启用动态背景时也会作为后备颜色使用）。"
 
-#: prefs.js:282
+#: prefs.js:295
 msgid "Dynamic background"
 msgstr "动态背景"
 
-#: prefs.js:283
+#: prefs.js:296
 msgid "Use the dominant color from album art as background"
 msgstr "使用专辑封面的主色作为背景"
 
-#: prefs.js:287
+#: prefs.js:300
 msgid "Background intensity"
 msgstr "背景强度"
 
-#: prefs.js:288
+#: prefs.js:301
 msgid "How bright or dark the dynamic background appears"
 msgstr "动态背景显示的明暗程度"
 
-#: prefs.js:302
+#: prefs.js:315
 msgid "Display"
 msgstr "显示"
 
-#: prefs.js:303
+#: prefs.js:316
 msgid "Control what the popup shows and how it behaves."
 msgstr "控制弹窗显示的内容及其行为方式。"
 
-#: prefs.js:308
+#: prefs.js:321
 msgid "Music visualizer"
 msgstr "音乐可视化"
 
-#: prefs.js:309
+#: prefs.js:322
 msgid "Animated bars next to the track info for some eye candy."
 msgstr "在曲目信息旁显示动画条形，增添视觉效果。"
 
-#: prefs.js:312
+#: prefs.js:325
 msgid "App icon on album art"
 msgstr "专辑封面上的应用图标"
 
-#: prefs.js:313
+#: prefs.js:326
 msgid "Overlay the playing app’s icon on the bottom right of the album art"
 msgstr "在专辑封面右下角叠加正在播放的应用图标"
 
-#: prefs.js:316
+#: prefs.js:329
 msgid "Expand compact layout on"
 msgstr "展开紧凑布局的触发方式"
 
-#: prefs.js:316
+#: prefs.js:329
 msgid "How multi-source rows expand when several apps play"
 msgstr "多个应用播放时多来源行的展开方式"
 
-#: prefs.js:317
+#: prefs.js:330
 msgid "Off"
 msgstr "关闭"
 
-#: prefs.js:317
+#: prefs.js:330
 msgid "Hover"
 msgstr "悬停"
 
-#: prefs.js:317
+#: prefs.js:330
 msgid "Click"
 msgstr "点击"
 
-#: prefs.js:324
+#: prefs.js:337
 msgid "Behaviour"
 msgstr "行为"
 
-#: prefs.js:329
+#: prefs.js:342
 msgid "Click actions"
 msgstr "点击操作"
 
-#: prefs.js:330
+#: prefs.js:343
 msgid "What happens when you click the media bar indicator"
 msgstr "点击媒体栏指示器时发生的操作"
 
-#: prefs.js:335 prefs.js:361
+#: prefs.js:348 prefs.js:374
 msgid "Nothing"
 msgstr "无操作"
 
-#: prefs.js:335 prefs.js:361
+#: prefs.js:348 prefs.js:374
 msgid "Open popup"
 msgstr "打开弹窗"
 
-#: prefs.js:335 prefs.js:361
+#: prefs.js:348 prefs.js:374
 msgid "Play / Pause"
 msgstr "播放 / 暂停"
 
-#: prefs.js:335 prefs.js:361
+#: prefs.js:348 prefs.js:374
 msgid "Open settings"
 msgstr "打开设置"
 
-#: prefs.js:336 prefs.js:362
+#: prefs.js:349 prefs.js:375
 msgid "Next track"
 msgstr "下一曲"
 
-#: prefs.js:336 prefs.js:362
+#: prefs.js:349 prefs.js:375
 msgid "Previous track"
 msgstr "上一曲"
 
-#: prefs.js:336 prefs.js:363
+#: prefs.js:349 prefs.js:376
 msgid "Raise player"
 msgstr "显示播放器"
 
-#: prefs.js:342
+#: prefs.js:355
 msgid "Left click"
 msgstr "左键单击"
 
-#: prefs.js:342
+#: prefs.js:355
 msgid "Action when left-clicking the indicator"
 msgstr "左键单击指示器时的操作"
 
-#: prefs.js:343
+#: prefs.js:356
 msgid "Middle click"
 msgstr "中键单击"
 
-#: prefs.js:343
+#: prefs.js:356
 msgid "Action when middle-clicking the indicator"
 msgstr "中键单击指示器时的操作"
 
-#: prefs.js:344
+#: prefs.js:357
 msgid "Right click"
 msgstr "右键单击"
 
-#: prefs.js:344
+#: prefs.js:357
 msgid "Action when right-clicking the indicator"
 msgstr "右键单击指示器时的操作"
 
-#: prefs.js:355
+#: prefs.js:368
 msgid "Scroll actions"
 msgstr "滚动操作"
 
-#: prefs.js:356
+#: prefs.js:369
 msgid "What happens when you scroll over the media bar indicator"
 msgstr "在媒体栏指示器上滚动时发生的操作"
 
-#: prefs.js:363
+#: prefs.js:376
 msgid "Volume up"
 msgstr "增大音量"
 
-#: prefs.js:363
+#: prefs.js:376
 msgid "Volume down"
 msgstr "减小音量"
 
-#: prefs.js:367
+#: prefs.js:380
 msgid "Scroll up"
 msgstr "向上滚动"
 
-#: prefs.js:367
+#: prefs.js:380
 msgid "Action when scrolling up over the indicator"
 msgstr "在指示器上向上滚动时的操作"
 
-#: prefs.js:368
+#: prefs.js:381
 msgid "Scroll down"
 msgstr "向下滚动"
 
-#: prefs.js:368
+#: prefs.js:381
 msgid "Action when scrolling down over the indicator"
 msgstr "在指示器上向下滚动时的操作"
 
-#: prefs.js:374
+#: prefs.js:387
 msgid "Notifications"
 msgstr "通知"
 
-#: prefs.js:375
+#: prefs.js:388
 msgid "Manage visibility of GNOME’s built-in media notifications."
 msgstr "管理 GNOME 内置媒体通知的显示。"
 
-#: prefs.js:379
+#: prefs.js:392
 msgid "Hide default notification"
 msgstr "隐藏默认通知"
 
-#: prefs.js:380
+#: prefs.js:393
 msgid "Remove GNOME’s media notification while the panel indicator is shown"
 msgstr "在面板指示器显示时隐藏 GNOME 媒体通知"
 
-#: prefs.js:383
+#: prefs.js:398
 msgid "Compatibility"
 msgstr "兼容性"
 
-#: prefs.js:384
+#: prefs.js:399
 msgid "Workarounds for specific apps and environments."
 msgstr "针对特定应用和环境的兼容性处理。"
 
-#: prefs.js:388
+#: prefs.js:403
 msgid "Enhanced PWA support"
 msgstr "增强 PWA 支持"
 
-#: prefs.js:389
+#: prefs.js:404
 msgid ""
 "Use advanced detection to find the active PWA window for the correct icon. "
 "Might have unintended consequences of displaying the wrong icon."
@@ -419,31 +423,56 @@ msgstr ""
 "使用高级检测找到活跃的 PWA 窗口以显示正确图标。可能会导致显示错误图标的意外情"
 "况。"
 
-#: prefs.js:392
+#: prefs.js:407
 msgid "Album art cache"
 msgstr "专辑封面缓存"
 
-#: prefs.js:393
+#: prefs.js:408
 msgid "Downloaded cover art (e.g. from Spotify) is cached on disk."
 msgstr "下载的封面（例如来自 Spotify）会缓存在磁盘上。"
 
-#: prefs.js:397
+#: prefs.js:412
 msgid "Cache size limit"
 msgstr "缓存大小限制"
 
-#: prefs.js:397
+#: prefs.js:412
 msgid "Maximum disk space in megabytes"
 msgstr "最大磁盘空间（兆字节）"
 
-#: prefs.js:413
+#: prefs.js:420
+msgid "Media sources"
+msgstr "媒体来源"
+
+#: prefs.js:421
+msgid "Turn off the sources you do not want to see in the extension."
+msgstr "关闭您不想在扩展中看到的来源。"
+
+#: prefs.js:426
+msgid "Rescan for media players"
+msgstr "重新扫描媒体播放器"
+
+#: prefs.js:456
+msgid "No media players detected"
+msgstr "未检测到媒体播放器"
+
+#: prefs.js:457
+msgid "Start playing something, then press refresh."
+msgstr "开始播放内容，然后按刷新。"
+
+#: prefs.js:476
+msgid "not running"
+msgstr "未运行"
+
+#: prefs.js:566
 msgid "Choose a color"
 msgstr "选择颜色"
 
-#: prefs.js:434
+#: prefs.js:587
 msgid "Reset to default"
 msgstr "重置为默认值"
 
-#: helpers/indicator.js:437 helpers/expandableMediaRow.js:142
+#: helpers/indicator.js:424 helpers/indicator.js:474
+#: helpers/expandableMediaRow.js:143
 msgid "Unknown"
 msgstr "未知"
 
