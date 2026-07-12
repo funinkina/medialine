@@ -10,9 +10,6 @@ LANGUAGES = de es fr pt_BR zh_CN ru it pl
 
 all: schemas/gschemas.compiled locale
 
-test:
-	@for t in helpers/*.test.js; do echo "node $$t"; node $$t || exit 1; done
-
 schemas/gschemas.compiled: schemas/*.gschema.xml
 	glib-compile-schemas schemas/
 

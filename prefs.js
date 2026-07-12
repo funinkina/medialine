@@ -100,7 +100,7 @@ export default class MedialinePreferences extends ExtensionPreferences {
             _('Which area of the top bar to place the indicator'),
             this._makeStringList([_('Left'), _('Center'), _('Right')])));
         placementGroup.add(this._makeSpinRow(settings, 'panel-index',
-            _('Position index'), _('Order within the panel section (0 is first)'), 0, 20, 1));
+            _('Position index'), _('Order within the panel section (0 is leftmost)'), 0, 20, 1));
 
         const iconGroup = new Adw.PreferencesGroup({
             title: _('Icon'),

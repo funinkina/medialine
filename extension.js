@@ -16,6 +16,7 @@ export default class MedialineExtension extends Extension {
         this._mprisManager = new MprisManager(this._preferences);
         this._indicator = null;
         this._enableIdleId = null;
+        this._positionIdleId = null;
         this._origAddPlayer = null;
         this._panelSignalIds = [];
 
@@ -58,14 +59,22 @@ export default class MedialineExtension extends Extension {
         const targetBox = boxes[positionName];
         if (!targetBox) return;
 
-        // Re-enforce our index whenever another extension (e.g. AppIndicator)
-        // adds an actor to the same box after us, shifting our position.
-        const id = targetBox.connect('actor-added', (_box, actor) => {
+        const onChildrenChanged = (_box, actor) => {
             const myContainer = this._indicator?.container ?? this._indicator;
             if (myContainer && actor !== myContainer)
-                this._updateIndicatorPosition();
+                this._queuePositionUpdate();
+        };
+        for (const signal of ['child-added', 'child-removed'])
+            this._panelSignalIds.push([targetBox, targetBox.connect(signal, onChildrenChanged)]);
+    }
+
+    _queuePositionUpdate() {
+        if (this._positionIdleId) return;
+        this._positionIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+            this._positionIdleId = null;
+            this._updateIndicatorPosition();
+            return GLib.SOURCE_REMOVE;
         });
-        this._panelSignalIds.push([targetBox, id]);
     }
 
     _updateDefaultNotification() {
@@ -111,7 +120,10 @@ export default class MedialineExtension extends Extension {
         const container = this._indicator.container ?? this._indicator;
         const currentParent = container.get_parent();
         if (currentParent === targetBox) {
-            currentParent.set_child_at_index(container, index);
+            const children = targetBox.get_children();
+            const target = Math.min(index, children.length - 1);
+            if (children.indexOf(container) !== target)
+                targetBox.set_child_at_index(container, target);
             return;
         }
         if (currentParent) currentParent.remove_child(container);
@@ -122,6 +134,11 @@ export default class MedialineExtension extends Extension {
         if (this._enableIdleId) {
             GLib.Source.remove(this._enableIdleId);
             this._enableIdleId = null;
+        }
+
+        if (this._positionIdleId) {
+            GLib.Source.remove(this._positionIdleId);
+            this._positionIdleId = null;
         }
 
         for (const [box, id] of this._panelSignalIds)
