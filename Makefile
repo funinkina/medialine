@@ -21,7 +21,7 @@ pot:
 		--files-from=$(PO_DIR)/POTFILES.in \
 		--output=$(PO_DIR)/$(DOMAIN).pot \
 		--package-name="Medialine" \
-		--package-version="6" \
+		--package-version="11" \
 		--copyright-holder="Aryan Kushwaha"
 
 update-po: pot
