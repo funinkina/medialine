@@ -15,7 +15,7 @@ import {
     PROGRESS_HEIGHT, PROGRESS_THUMB_SIZE, COMPACT_WIDTH,
 } from './constants.js';
 import { hexToRgba, adjustColorBrightness, escMarkup } from './colorUtils.js';
-import { makeButton, buildProgressWidgets } from './widgetFactory.js';
+import { makeButton, makeVBox, buildProgressWidgets } from './widgetFactory.js';
 import { setupClickHandling, toggleShuffle, cycleRepeat } from './inputActions.js';
 import { applyArtBin, extractArtColor } from './artDisplay.js';
 import { ArtCache } from './artCache.js';
@@ -195,8 +195,7 @@ export const Indicator = GObject.registerClass(
             this._popupSubtitle.clutter_text.use_markup = true;
             this._popupSubtitle.clutter_text.ellipsize = Pango.EllipsizeMode.END;
 
-            const textBox = new St.BoxLayout({
-                vertical: true,
+            const textBox = makeVBox({
                 x_expand: true,
                 y_expand: false,
                 y_align: Clutter.ActorAlign.CENTER,
@@ -231,7 +230,7 @@ export const Indicator = GObject.registerClass(
                 'notify::hover', () => updateProgress(this),
                 this);
 
-            const section = new St.BoxLayout({ vertical: true, x_expand: true });
+            const section = makeVBox({ x_expand: true });
             section.add_child(pw.timeRow);
             section.add_child(this._progressTrack);
             return section;
@@ -273,14 +272,12 @@ export const Indicator = GObject.registerClass(
             item.setOrnament(PopupMenu.Ornament.HIDDEN);
             item.style = 'padding: 8px 6px 4px 6px;';
 
-            const container = new St.BoxLayout({
-                vertical: true,
+            const container = makeVBox({
                 x_expand: true,
                 style: `spacing: 12px; min-width: ${COMPACT_WIDTH}px; max-width: ${COMPACT_WIDTH}px;`,
             });
 
-            this._richContainer = new St.BoxLayout({
-                vertical: true,
+            this._richContainer = makeVBox({
                 x_expand: true,
                 style: 'spacing: 12px;',
             });
@@ -288,8 +285,7 @@ export const Indicator = GObject.registerClass(
             this._richContainer.add_child(this._buildProgressSection());
             this._richContainer.add_child(this._buildControlsRow());
 
-            this._listContainer = new St.BoxLayout({
-                vertical: true,
+            this._listContainer = makeVBox({
                 x_expand: true,
             });
             this._listContainer.hide();

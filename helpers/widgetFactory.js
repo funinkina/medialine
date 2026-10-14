@@ -1,8 +1,15 @@
 import Clutter from 'gi://Clutter';
 import Pango from 'gi://Pango';
 import St from 'gi://St';
+import { PACKAGE_VERSION } from 'resource:///org/gnome/shell/misc/config.js';
 
 import { PROGRESS_HEIGHT, PROGRESS_HIT_HEIGHT, PROGRESS_THUMB_SIZE } from './constants.js';
+
+const VERTICAL = parseInt(PACKAGE_VERSION) >= 48
+    ? { orientation: Clutter.Orientation.VERTICAL }
+    : { vertical: true };
+
+export const makeVBox = params => new St.BoxLayout({ ...params, ...VERTICAL });
 
 export function makeButton(styles, iconName, iconSize) {
     const btn = new St.Button({
