@@ -213,22 +213,27 @@ export const MprisManager = GObject.registerClass({
     }
 
     // Rebuilds the full list of active (non-stopped) players, ordered
-    // Playing-first then Paused, and picks the first as the "best" one
-    // used for the panel label/icon and the single-player rich popup.
+    // Playing-first then Paused, most recently played first within each
+    // group, and picks the first as the "best" one used for the panel
+    // label/icon and the single-player rich popup.
     // Players whose id is in the blocklist are skipped entirely.
     _refreshMedia() {
         const candidates = [];
+        const now = GLib.get_monotonic_time();
         for (const [busName, entry] of this._players) {
             if (this._blockedSet.size && this._blockedSet.has(playerIdFromBusName(busName)))
                 continue;
             const status = entry.proxy.PlaybackStatus;
+            if (status === 'Playing')
+                entry.lastPlayed = now;
             if (status === 'Stopped') continue;
             candidates.push({ busName, entry, status });
         }
 
         candidates.sort((a, b) => {
             const rank = s => (s === 'Playing' ? 0 : 1);
-            return rank(a.status) - rank(b.status);
+            return rank(a.status) - rank(b.status) ||
+                (b.entry.lastPlayed ?? 0) - (a.entry.lastPlayed ?? 0);
         });
 
         this._allMedia = candidates.map(c => this._buildMediaObject(c.busName, c.entry));
